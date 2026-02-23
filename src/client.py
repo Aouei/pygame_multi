@@ -14,6 +14,7 @@ BACKGROUND_COLOR = (127, 64, 0)
 
 # Pygame setup
 pygame.init()
+pygame.joystick.init()
 window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 clock = pygame.time.Clock()
 
@@ -46,10 +47,25 @@ async def game_loop(websocket):
 
         keys = pygame.key.get_pressed()
         dx, dy = 0, 0
-        if keys[pygame.K_LEFT]: dx = -PLAYER_SPEED
-        if keys[pygame.K_RIGHT]: dx = PLAYER_SPEED
-        if keys[pygame.K_UP]: dy = -PLAYER_SPEED
-        if keys[pygame.K_DOWN]: dy = PLAYER_SPEED
+        # Joystick support
+        joystick_count = pygame.joystick.get_count()
+        if joystick_count > 0:
+            joystick = pygame.joystick.Joystick(0)
+            joystick.init()
+            axis_x = joystick.get_axis(0)
+            axis_y = joystick.get_axis(1)
+            # Deadzone para evitar drift
+            deadzone = 0.2
+            if abs(axis_x) > deadzone:
+                dx = int(axis_x * PLAYER_SPEED)
+            if abs(axis_y) > deadzone:
+                dy = int(axis_y * PLAYER_SPEED)
+        else:
+            # Fallback a teclado si no hay joystick
+            if keys[pygame.K_LEFT]: dx = -PLAYER_SPEED
+            if keys[pygame.K_RIGHT]: dx = PLAYER_SPEED
+            if keys[pygame.K_UP]: dy = -PLAYER_SPEED
+            if keys[pygame.K_DOWN]: dy = PLAYER_SPEED
         if keys[pygame.K_ESCAPE]: return
 
         if dx != 0 or dy != 0:
