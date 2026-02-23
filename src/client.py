@@ -21,6 +21,8 @@ class Ship:
         self.image = self.original_image
         self.rect = self.image.get_rect(center=(WIDTH//2, HEIGHT//2))
         self.angle = 0
+        self.last_dx = 0
+        self.last_dy = -1  # Por defecto apunta hacia arriba
 
     def update(self, dx, dy):
         self.rect.x += dx
@@ -28,7 +30,9 @@ class Ship:
         self.rect.clamp_ip(screen.get_rect())
         # Rotar según joystick
         if dx != 0 or dy != 0:
-            self.angle = math.degrees(math.atan2(-dx, -dy))
+            self.last_dx = dx
+            self.last_dy = dy
+            self.angle = math.degrees(math.atan2(-self.last_dx, -self.last_dy))
             self.image = pygame.transform.rotate(self.original_image, self.angle)
             self.rect = self.image.get_rect(center=self.rect.center)
 
@@ -36,13 +40,21 @@ class Ship:
         surface.blit(self.image, self.rect)
 
 class Bullet:
-    def __init__(self, x, y):
-        self.image = bullet_img
+    def __init__(self, x, y, angle):
+        # Ajustar el ángulo para que la bala salga desde el "norte" de la nave
+        self.original_image = bullet_img
+        self.angle = angle
+        self.image = pygame.transform.rotate(self.original_image, self.angle)
         self.rect = self.image.get_rect(center=(x, y))
         self.speed = 10
+        # Restar 90 grados para que el disparo salga desde el "norte"
+        rad = math.radians(angle + 90)
+        self.dx = math.cos(rad) * self.speed
+        self.dy = -math.sin(rad) * self.speed
 
     def update(self):
-        self.rect.y -= self.speed
+        self.rect.x += int(self.dx)
+        self.rect.y += int(self.dy)
 
     def draw(self, surface):
         surface.blit(self.image, self.rect)
@@ -72,7 +84,7 @@ def main():
             if event.type == pygame.JOYBUTTONDOWN:
                 # Botón X (usualmente botón 2 en mandos tipo PlayStation)
                 if joystick and joystick.get_button(2):
-                    bullets.append(Bullet(ship.rect.centerx, ship.rect.top))
+                    bullets.append(Bullet(ship.rect.centerx, ship.rect.centery, ship.angle))
 
         # Leer joystick
         if joystick:
@@ -84,7 +96,9 @@ def main():
         # Actualizar balas
         for bullet in bullets[:]:
             bullet.update()
-            if bullet.rect.bottom < 0:
+            # Destruir si sale de pantalla
+            if (bullet.rect.bottom < 0 or bullet.rect.top > HEIGHT or
+                bullet.rect.right < 0 or bullet.rect.left > WIDTH):
                 bullets.remove(bullet)
 
         # Dibujar
