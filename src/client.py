@@ -1,5 +1,6 @@
 import pygame
 import sys
+import math
 
 # Inicialización
 pygame.init()
@@ -16,13 +17,20 @@ bullet_img = pygame.image.load('../assets/bala.png').convert_alpha()
 # Clases
 class Ship:
     def __init__(self):
-        self.image = ship_img
+        self.original_image = ship_img
+        self.image = self.original_image
         self.rect = self.image.get_rect(center=(WIDTH//2, HEIGHT//2))
+        self.angle = 0
 
     def update(self, dx, dy):
         self.rect.x += dx
         self.rect.y += dy
         self.rect.clamp_ip(screen.get_rect())
+        # Rotar según joystick
+        if dx != 0 or dy != 0:
+            self.angle = math.degrees(math.atan2(-dx, -dy))
+            self.image = pygame.transform.rotate(self.original_image, self.angle)
+            self.rect = self.image.get_rect(center=self.rect.center)
 
     def draw(self, surface):
         surface.blit(self.image, self.rect)
