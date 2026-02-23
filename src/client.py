@@ -4,7 +4,6 @@ import pygame
 import websockets
 import pandas as pd
 
-WIDTH, HEIGHT = 800, 600
 FRAME_RATE = 60
 
 PLAYER_SPEED = 5
@@ -15,7 +14,10 @@ BACKGROUND_COLOR = (127, 64, 0)
 # Pygame setup
 pygame.init()
 pygame.joystick.init()
-window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+window = pygame.display.set_mode((800, 600))
+# window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+WIDTH, HEIGHT = window.get_rect().width, window.get_rect().height
+print(WIDTH, HEIGHT)
 clock = pygame.time.Clock()
 
 # Load sprites
@@ -34,7 +36,7 @@ map = pd.read_csv(r'C:\Users\sergi\Documents\repos\pygame_multi\assets\map\map.c
 def draw_map(surface : pygame.Surface):
     for i, row in enumerate(map.values):
         for j, col in enumerate(row):
-            surface.blit(TILES[col], (j * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE))
+            surface.blit(TILES[col], (j * TILE_SIZE, i * TILE_SIZE))
 
 async def game_loop(websocket):
     players = {}
@@ -82,12 +84,13 @@ async def game_loop(websocket):
         draw_map(window)
 
         for player_id, player in players.items():
-            window.blit(player_sprite, (player["x"] - PLAYER_SIZE // 2, player["y"] - PLAYER_SIZE // 2))
+            window.blit(player_sprite, (player["x"], player["y"]))
         pygame.display.flip()
         clock.tick(FRAME_RATE)
 
 async def main():
     async with websockets.connect("ws://localhost:8765") as websocket:
+        await websocket.send(json.dumps({"type": "start", "x": WIDTH, "y": HEIGHT}))
         await game_loop(websocket)
 
 asyncio.run(main())

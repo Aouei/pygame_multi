@@ -2,10 +2,11 @@ import asyncio
 import json
 import random
 import websockets
+import numpy as np
 
 # Constants
 WIDTH, HEIGHT = 800, 600
-PLAYER_SIZE = 64
+PLAYER_SIZE = 32
 
 # Store player data
 players = {}
@@ -13,26 +14,26 @@ next_player_id = 1
 clients = set()
 
 async def handle_client(websocket):
-    print('new')
     global next_player_id
     player_id = next_player_id
     next_player_id += 1
-    players[player_id] = {"x": random.randint(PLAYER_SIZE, WIDTH - PLAYER_SIZE),
-                          "y": random.randint(PLAYER_SIZE, HEIGHT - PLAYER_SIZE),
-                          "score": 0}
     clients.add(websocket)
-    print(players)
+    
     try:
-        # Enviar estado inicial al cliente recién conectado
-        initial_update = json.dumps({"type": "update", "players": players})
-        await websocket.send(initial_update)
-
         async for message in websocket:
             data = json.loads(message)
-            if data["type"] == "move":
-                players[player_id]["x"] += data["dx"]
-                players[player_id]["y"] += data["dy"]
-            
+            if data['type'] == 'start':
+                players[player_id] = {
+                    'x_lim' : data['x'],
+                    'y_lim' : data['y'],
+                    "x": random.randint(PLAYER_SIZE, data['x'] - PLAYER_SIZE),
+                    "y": random.randint(PLAYER_SIZE, data['y'] - PLAYER_SIZE),
+                }
+            elif data["type"] == "move" and player_id in players:
+                new_x = np.clip(players[player_id]["x"] + data['dx'], 0, players[player_id]['x_lim'])
+                new_y = np.clip(players[player_id]["y"] + data['dy'], 0, players[player_id]['y_lim'])
+                players[player_id]["x"] = int(new_x)
+                players[player_id]["y"] = int(new_y)
             # Broadcast updates to all clients
             update = json.dumps({"type": "update", "players": players})
             await asyncio.gather(*(client.send(update) for client in clients))
