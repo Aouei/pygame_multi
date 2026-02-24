@@ -36,13 +36,9 @@ solid_positions = []
 for i, row in enumerate(map_data):
     for j, col in enumerate(row):
         if col in SOLID_TILES:
-            # Centro del tile
-            solid_positions.append((j * PLAYER_SIZE + PLAYER_SIZE // 2, i * PLAYER_SIZE + PLAYER_SIZE // 2))
+            solid_positions.append((j * TILE_SIZE + TILE_SIZE // 2, i * TILE_SIZE + TILE_SIZE // 2))
 
-if solid_positions:
-    solid_tree = KDTree(solid_positions)
-else:
-    solid_tree = None
+solid_tree = KDTree(solid_positions) if solid_positions else None
 
 def is_collision(x, y, radius=PLAYER_SIZE//2):
     """Chequea si el rectángulo (x, y, PLAYER_SIZE, PLAYER_SIZE) colisiona con un tile sólido."""
