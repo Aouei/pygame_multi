@@ -29,6 +29,7 @@ map_data = pd.read_csv(MAP_PATH, header=None).values
 
 # Tiles sólidos (ejemplo: 5 es sólido, puedes ajustar según el diseño)
 SOLID_TILES = {2}
+SPAWN_CODE = 8
 
 # Preprocesar posiciones sólidas para KDTree
 solid_positions = []
@@ -86,7 +87,7 @@ async def handle_client(websocket):
                 spawn_tiles = []
                 for i, row in enumerate(map_data):
                     for j, col in enumerate(row):
-                        if col == 6:
+                        if col == SPAWN_CODE:
                             spawn_tiles.append((j, i))
                 if spawn_tiles:
                     j, i = random.choice(spawn_tiles)
