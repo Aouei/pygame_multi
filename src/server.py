@@ -11,6 +11,7 @@ from loguru import logger
 
 # Constants
 PLAYER_SIZE = 32
+TILE_SIZE = 32
 TICK_RATE = 20  # Server broadcasts at 20 Hz regardless of client input rate
 
 
@@ -43,12 +44,21 @@ else:
     solid_tree = None
 
 def is_collision(x, y, radius=PLAYER_SIZE//2):
-    """Chequea si la posición (x, y) colisiona con un tile sólido usando KDTree."""
-    if not solid_tree:
-        return False
-    # Buscar tiles sólidos cercanos
-    idxs = solid_tree.query_ball_point([x, y], r=radius)
-    return len(idxs) > 0
+    """Chequea si el rectángulo (x, y, PLAYER_SIZE, PLAYER_SIZE) colisiona con un tile sólido."""
+    for sx, sy in solid_positions:
+        # Tile rect
+        tile_rect = (sx, sy, TILE_SIZE, TILE_SIZE)
+        # Player rect
+        player_rect = (x, y, PLAYER_SIZE, PLAYER_SIZE)
+        # Check intersection
+        if (
+            player_rect[0] < tile_rect[0] + tile_rect[2] and
+            player_rect[0] + player_rect[2] > tile_rect[0] and
+            player_rect[1] < tile_rect[1] + tile_rect[3] and
+            player_rect[1] + player_rect[3] > tile_rect[1]
+        ):
+            return True
+    return False
 
 # State
 players = {}

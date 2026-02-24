@@ -171,7 +171,10 @@ async def game_loop(websocket) -> None:
         window.blit(MAP_SURFACE, (0, 0))
 
         for pid, pos in render_positions.items():
-            window.blit(player_sprite, (int(pos["x"]), int(pos["y"])))
+            window.blit(player_sprite, (int(pos["x"]), int(pos["y"]), PLAYER_SIZE, PLAYER_SIZE))
+            pygame.draw.rect(window, (0, 0, 0), 
+                             (int(pos["x"]), int(pos["y"]), PLAYER_SIZE, PLAYER_SIZE),
+                             width=2)
 
         pygame.display.flip()
         clock.tick(FRAME_RATE)
