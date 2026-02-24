@@ -10,8 +10,8 @@ from scipy.spatial import KDTree
 from loguru import logger
 
 # Constants
-PLAYER_SIZE = 32
-TILE_SIZE = 32
+PLAYER_SIZE = 64
+TILE_SIZE = 64
 TICK_RATE = 20  # Server broadcasts at 20 Hz regardless of client input rate
 
 

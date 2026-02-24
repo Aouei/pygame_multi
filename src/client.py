@@ -11,8 +11,8 @@ import pandas as pd
 # ---------------------------------------------------------------------------
 FRAME_RATE   = 60
 PLAYER_SPEED = 5
-PLAYER_SIZE  = 32
-TILE_SIZE    = 32
+PLAYER_SIZE  = 64
+TILE_SIZE    = 64
 BACKGROUND_COLOR = (127, 64, 0)
 
 # Interpolation factor: how quickly remote players catch up to their server
@@ -27,9 +27,17 @@ if getattr(sys, "frozen", False):
 else:
     BASE_DIR = os.path.join(os.path.dirname(__file__), "..")
 ASSETS_DIR  = os.path.join(BASE_DIR, "assets")
+PLAYER_DIR  = os.path.join(ASSETS_DIR, "player")
 TILES_DIR   = os.path.join(ASSETS_DIR, "tiles")
 MAP_PATH    = os.path.join(ASSETS_DIR, "map", "map.csv")
-SPRITE_PATH = os.path.join(ASSETS_DIR, "nave.png")
+
+PLAYER = {
+    'up' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, "up.png")), (PLAYER_SIZE, PLAYER_SIZE)),
+    'down' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, "down.png")), (PLAYER_SIZE, PLAYER_SIZE)),
+    'right' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, "right.png")), (PLAYER_SIZE, PLAYER_SIZE)),
+    'left' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, "left.png")), (PLAYER_SIZE, PLAYER_SIZE)),
+}
+CURRENT_STATE = 'down'
 
 # ---------------------------------------------------------------------------
 # Pygame setup
@@ -43,10 +51,6 @@ clock = pygame.time.Clock()
 # ---------------------------------------------------------------------------
 # Assets
 # ---------------------------------------------------------------------------
-player_sprite = pygame.transform.scale(
-    pygame.image.load(SPRITE_PATH), (PLAYER_SIZE, PLAYER_SIZE)
-)
-
 TILES = {
     str(i): pygame.transform.scale(
         pygame.image.load(os.path.join(TILES_DIR, f"tile_{i}_{'shore' if i <= 5 else 'grass'}.png")),
@@ -88,7 +92,9 @@ def lerp(a: float, b: float, t: float) -> float:
 # Input
 # ---------------------------------------------------------------------------
 def get_input() -> tuple[int, int]:
+    global CURRENT_STATE
     dx, dy = 0, 0
+
     if pygame.joystick.get_count() > 0:
         js = pygame.joystick.Joystick(0)
         js.init()
@@ -101,10 +107,18 @@ def get_input() -> tuple[int, int]:
             dy = int(ay * PLAYER_SPEED)
     else:
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:  dx = -PLAYER_SPEED
-        if keys[pygame.K_RIGHT]: dx =  PLAYER_SPEED
-        if keys[pygame.K_UP]:    dy = -PLAYER_SPEED
-        if keys[pygame.K_DOWN]:  dy =  PLAYER_SPEED
+        if keys[pygame.K_LEFT]:  
+            dx = -PLAYER_SPEED
+            CURRENT_STATE = 'left'
+        if keys[pygame.K_RIGHT]: 
+            dx =  PLAYER_SPEED
+            CURRENT_STATE = 'right'
+        if keys[pygame.K_UP]:    
+            dy = -PLAYER_SPEED
+            CURRENT_STATE = 'up'
+        if keys[pygame.K_DOWN]:  
+            dy =  PLAYER_SPEED
+            CURRENT_STATE = 'down'
     return dx, dy
 
 
@@ -140,6 +154,7 @@ async def receive_loop(websocket) -> None:
 # Main game loop
 # ---------------------------------------------------------------------------
 async def game_loop(websocket) -> None:
+    global CURRENT_STATE
     while True:
         # --- Events ---
         for event in pygame.event.get():
@@ -171,10 +186,7 @@ async def game_loop(websocket) -> None:
         window.blit(MAP_SURFACE, (0, 0))
 
         for pid, pos in render_positions.items():
-            window.blit(player_sprite, (int(pos["x"]), int(pos["y"]), PLAYER_SIZE, PLAYER_SIZE))
-            pygame.draw.rect(window, (0, 0, 0), 
-                             (int(pos["x"]), int(pos["y"]), PLAYER_SIZE, PLAYER_SIZE),
-                             width=2)
+            window.blit(PLAYER[CURRENT_STATE], (int(pos["x"]), int(pos["y"]), PLAYER_SIZE, PLAYER_SIZE))
 
         pygame.display.flip()
         clock.tick(FRAME_RATE)
