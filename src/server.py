@@ -40,7 +40,7 @@ for i, row in enumerate(map_data):
 
 solid_tree = KDTree(solid_positions) if solid_positions else None
 
-def is_collision(x, y, radius=PLAYER_SIZE//2):
+def is_collision(x, y):
     """Chequea si el rectángulo (x, y, PLAYER_SIZE, PLAYER_SIZE) colisiona con un tile sólido."""
     for sx, sy in solid_positions:
         # Tile rect
@@ -98,6 +98,7 @@ async def handle_client(websocket):
                     "y_lim": data["y"],
                     "x": x,
                     "y": y,
+                    'state' : 'up'
                 }
 
             elif data["type"] == "move" and player_id in players:
@@ -108,6 +109,8 @@ async def handle_client(websocket):
                 if not is_collision(new_x + PLAYER_SIZE // 2, new_y + PLAYER_SIZE // 2):
                     p["x"] = new_x
                     p["y"] = new_y
+                    p['state'] = data['state']
+                print(p)
                 # Si hay colisión, no se mueve
 
     except websockets.exceptions.ConnectionClosed:

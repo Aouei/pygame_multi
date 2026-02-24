@@ -170,7 +170,7 @@ async def game_loop(websocket) -> None:
         # --- Input & send ---
         dx, dy = get_input()
         if dx != 0 or dy != 0:
-            await websocket.send(json.dumps({"type": "move", "dx": dx, "dy": dy}))
+            await websocket.send(json.dumps({"type": "move", "dx": dx, "dy": dy, 'state' : CURRENT_STATE}))
 
         for pid, srv in server_positions.items():
             rnd = render_positions.get(pid)
@@ -180,13 +180,15 @@ async def game_loop(websocket) -> None:
             # All players, including own, update position directly from server
             rnd["x"] = float(srv["x"])
             rnd["y"] = float(srv["y"])
+            rnd["state"] = srv["state"]
 
         # --- Draw ---
         window.fill(BACKGROUND_COLOR)
         window.blit(MAP_SURFACE, (0, 0))
 
         for pid, pos in render_positions.items():
-            window.blit(PLAYER[CURRENT_STATE], (int(pos["x"]), int(pos["y"]), PLAYER_SIZE, PLAYER_SIZE))
+            print(pos)
+            window.blit(PLAYER[pos['state']], (int(pos["x"]), int(pos["y"]), PLAYER_SIZE, PLAYER_SIZE))
 
         pygame.display.flip()
         clock.tick(FRAME_RATE)
