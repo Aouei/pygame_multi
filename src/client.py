@@ -155,33 +155,16 @@ async def game_loop(websocket) -> None:
         # --- Input & send ---
         dx, dy = get_input()
         if dx != 0 or dy != 0:
-            # Client-side prediction: move locally right away without waiting
-            # for the server tick. The server remains authoritative — if it
-            # corrects us we'll snap/lerp back, but in practice on LAN/local
-            # the correction is invisible.
-            if local_pos["ready"]:
-                local_pos["x"] = max(0.0, min(local_pos["x"] + dx, WIDTH  - PLAYER_SIZE))
-                local_pos["y"] = max(0.0, min(local_pos["y"] + dy, HEIGHT - PLAYER_SIZE))
             await websocket.send(json.dumps({"type": "move", "dx": dx, "dy": dy}))
 
-        # --- Interpolate remote players toward their server positions ---
         for pid, srv in server_positions.items():
             rnd = render_positions.get(pid)
             if rnd is None:
                 render_positions[pid] = {"x": float(srv["x"]), "y": float(srv["y"])}
                 continue
-            if str(pid) == str(my_id):
-                # Own player: use local predicted position, but softly correct
-                # toward server position to avoid drifting out of sync.
-                if local_pos["ready"]:
-                    local_pos["x"] = lerp(local_pos["x"], float(srv["x"]), 0.05)
-                    local_pos["y"] = lerp(local_pos["y"], float(srv["y"]), 0.05)
-                    rnd["x"] = local_pos["x"]
-                    rnd["y"] = local_pos["y"]
-            else:
-                # Remote players: smooth interpolation to hide network jitter
-                rnd["x"] = lerp(rnd["x"], float(srv["x"]), LERP_ALPHA)
-                rnd["y"] = lerp(rnd["y"], float(srv["y"]), LERP_ALPHA)
+            # All players, including own, update position directly from server
+            rnd["x"] = float(srv["x"])
+            rnd["y"] = float(srv["y"])
 
         # --- Draw ---
         window.fill(BACKGROUND_COLOR)

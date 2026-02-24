@@ -27,7 +27,7 @@ SPRITE_PATH = os.path.join(ASSETS_DIR, "nave.png")
 map_data = pd.read_csv(MAP_PATH, header=None).values
 
 # Tiles sólidos (ejemplo: 5 es sólido, puedes ajustar según el diseño)
-SOLID_TILES = {1}
+SOLID_TILES = {2}
 
 # Preprocesar posiciones sólidas para KDTree
 solid_positions = []
