@@ -50,8 +50,8 @@ class GameState:
         if player_id not in self.players:
             return
         p = self.players[player_id]
-        new_x = int(np.clip(p["x"] + data["dx"], 0, p["x_lim"] - PLAYER_SIZE))
-        new_y = int(np.clip(p["y"] + data["dy"], 0, p["y_lim"] - PLAYER_SIZE))
+        new_x = int(p["x"] + data["dx"])
+        new_y = int(p["y"] + data["dy"])
         if not self.is_collision(new_x + PLAYER_SIZE // 2, new_y + PLAYER_SIZE // 2):
             p["x"] = new_x
             p["y"] = new_y
