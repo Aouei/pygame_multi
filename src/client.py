@@ -219,14 +219,34 @@ async def game_loop(websocket) -> None:
 
         # --- Draw ---
         window.fill(BACKGROUND_COLOR)
-        window.blit(MAP_SURFACE, (0, 0))
+
+        # --- Viewport centered on current player ---
+        if my_id is not None and str(my_id) in render_positions:
+            player_pos = render_positions[str(my_id)]
+            center_x = int(player_pos["x"] + PLAYER_SIZE // 2)
+            center_y = int(player_pos["y"] + PLAYER_SIZE // 2)
+        else:
+            center_x = WIDTH // 2
+            center_y = HEIGHT // 2
+
+
+        # Clamp viewport so it doesn't show outside the map
+        map_pixel_width = len(map_data.columns) * TILE_SIZE
+        map_pixel_height = len(map_data) * TILE_SIZE
+        offset_x = center_x - WIDTH // 2
+        offset_y = center_y - HEIGHT // 2
+        offset_x = max(0, min(offset_x, map_pixel_width - WIDTH))
+        offset_y = max(0, min(offset_y, map_pixel_height - HEIGHT))
+
+        # Draw map with clamped viewport offset
+        window.blit(MAP_SURFACE, (-offset_x, -offset_y))
 
         # Draw minimap in top-left corner
         render_minimap(window, render_positions, my_id)
 
+        # Draw all players with viewport offset
         for pid, pos in render_positions.items():
-            print(pos)
-            window.blit(PLAYER[pos['state']], (int(pos["x"]), int(pos["y"]), PLAYER_SIZE, PLAYER_SIZE))
+            window.blit(PLAYER[pos['state']], (int(pos["x"])-offset_x, int(pos["y"])-offset_y, PLAYER_SIZE, PLAYER_SIZE))
 
         pygame.display.flip()
         clock.tick(FRAME_RATE)
