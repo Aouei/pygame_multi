@@ -1,100 +1,213 @@
 import asyncio
 import json
+import os
+import sys
 import pygame
 import websockets
 import pandas as pd
 
-FRAME_RATE = 60
-
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+FRAME_RATE   = 60
 PLAYER_SPEED = 5
-PLAYER_SIZE = 32
-
+PLAYER_SIZE  = 32
+TILE_SIZE    = 32
 BACKGROUND_COLOR = (127, 64, 0)
 
+# Interpolation factor: how quickly remote players catch up to their server
+# position each frame.  0.0 = never moves, 1.0 = instant snap.
+LERP_ALPHA = 0.2
+
+# ---------------------------------------------------------------------------
+# Paths (relative to this file so the project is portable)
+# ---------------------------------------------------------------------------
+if getattr(sys, "frozen", False):
+    BASE_DIR = sys._MEIPASS
+else:
+    BASE_DIR = os.path.join(os.path.dirname(__file__), "..")
+ASSETS_DIR  = os.path.join(BASE_DIR, "assets")
+TILES_DIR   = os.path.join(ASSETS_DIR, "tiles")
+MAP_PATH    = os.path.join(ASSETS_DIR, "map", "map.csv")
+SPRITE_PATH = os.path.join(ASSETS_DIR, "nave.png")
+
+# ---------------------------------------------------------------------------
 # Pygame setup
+# ---------------------------------------------------------------------------
 pygame.init()
 pygame.joystick.init()
 window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-WIDTH, HEIGHT = window.get_rect().width, window.get_rect().height
-print(WIDTH, HEIGHT)
+WIDTH, HEIGHT = window.get_size()
 clock = pygame.time.Clock()
 
-# Load sprites
-player_sprite = pygame.image.load(r"C:\Users\sergi\Documents\repos\pygame_multi\assets\nave.png")
-player_sprite = pygame.transform.scale(player_sprite, (PLAYER_SIZE, PLAYER_SIZE))
+# ---------------------------------------------------------------------------
+# Assets
+# ---------------------------------------------------------------------------
+player_sprite = pygame.transform.scale(
+    pygame.image.load(SPRITE_PATH), (PLAYER_SIZE, PLAYER_SIZE)
+)
 
-TILE_SIZE = 32
 TILES = {
-    '1' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_1_shore.png"), (TILE_SIZE, TILE_SIZE)),
-    '2' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_2_shore.png"), (TILE_SIZE, TILE_SIZE)),
-    '3' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_3_shore.png"), (TILE_SIZE, TILE_SIZE)),
-    '4' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_4_shore.png"), (TILE_SIZE, TILE_SIZE)),
-    '5' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_5_shore.png"), (TILE_SIZE, TILE_SIZE)),
-    '6' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_6_grass.png"), (TILE_SIZE, TILE_SIZE)),
-    '7' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_7_grass.png"), (TILE_SIZE, TILE_SIZE)),
-    '8' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_8_grass.png"), (TILE_SIZE, TILE_SIZE)),
-    '9' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_9_grass.png"), (TILE_SIZE, TILE_SIZE)),
-    '10' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_10_grass.png"), (TILE_SIZE, TILE_SIZE)),
+    str(i): pygame.transform.scale(
+        pygame.image.load(os.path.join(TILES_DIR, f"tile_{i}_{'shore' if i <= 5 else 'grass'}.png")),
+        (TILE_SIZE, TILE_SIZE),
+    )
+    for i in range(1, 11)
 }
 
-map = pd.read_csv(r'C:\Users\sergi\Documents\repos\pygame_multi\assets\map\map.csv', header=None)
-def draw_map(surface : pygame.Surface):
-    for i, row in enumerate(map.values):
+map_data = pd.read_csv(MAP_PATH, header=None)
+
+def draw_map(surface: pygame.Surface) -> None:
+    for i, row in enumerate(map_data.values):
         for j, col in enumerate(row):
             surface.blit(TILES[str(col)], (j * TILE_SIZE, i * TILE_SIZE))
 
-async def game_loop(websocket):
-    players = {}
+# Pre-render map onto a static surface so we only blit once per frame
+MAP_SURFACE = pygame.Surface((len(map_data.columns) * TILE_SIZE, len(map_data) * TILE_SIZE))
+draw_map(MAP_SURFACE)
+
+# ---------------------------------------------------------------------------
+# Game state
+# ---------------------------------------------------------------------------
+my_id: int | None = None
+
+# server_positions holds the authoritative positions received from the server.
+# render_positions holds the smoothly interpolated positions used for drawing.
+server_positions: dict[str, dict] = {}
+render_positions: dict[str, dict] = {}
+
+# Local predicted position for our own player (updated every frame immediately)
+local_pos: dict = {"x": 0.0, "y": 0.0, "ready": False}
+
+
+def lerp(a: float, b: float, t: float) -> float:
+    return a + (b - a) * t
+
+
+# ---------------------------------------------------------------------------
+# Input
+# ---------------------------------------------------------------------------
+def get_input() -> tuple[int, int]:
+    dx, dy = 0, 0
+    if pygame.joystick.get_count() > 0:
+        js = pygame.joystick.Joystick(0)
+        js.init()
+        deadzone = 0.2
+        ax = js.get_axis(0)
+        ay = js.get_axis(1)
+        if abs(ax) > deadzone:
+            dx = int(ax * PLAYER_SPEED)
+        if abs(ay) > deadzone:
+            dy = int(ay * PLAYER_SPEED)
+    else:
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:  dx = -PLAYER_SPEED
+        if keys[pygame.K_RIGHT]: dx =  PLAYER_SPEED
+        if keys[pygame.K_UP]:    dy = -PLAYER_SPEED
+        if keys[pygame.K_DOWN]:  dy =  PLAYER_SPEED
+    return dx, dy
+
+
+# ---------------------------------------------------------------------------
+# Receive coroutine — runs concurrently with the game loop
+# ---------------------------------------------------------------------------
+async def receive_loop(websocket) -> None:
+    """Continuously reads server messages and updates shared state."""
+    global my_id
+    async for raw in websocket:
+        data = json.loads(raw)
+        if data["type"] == "hello":
+            my_id = data["id"]
+        elif data["type"] == "update":
+            server_positions.clear()
+            server_positions.update(data.get("players", {}))
+            # Initialise render position for newly connected players
+            for pid, pos in server_positions.items():
+                if pid not in render_positions:
+                    render_positions[pid] = {"x": float(pos["x"]), "y": float(pos["y"])}
+                # Initialise local prediction from the first server position we receive
+                if str(pid) == str(my_id) and not local_pos["ready"]:
+                    local_pos["x"] = float(pos["x"])
+                    local_pos["y"] = float(pos["y"])
+                    local_pos["ready"] = True
+            # Remove players that have disconnected
+            for pid in list(render_positions):
+                if pid not in server_positions:
+                    del render_positions[pid]
+
+
+# ---------------------------------------------------------------------------
+# Main game loop
+# ---------------------------------------------------------------------------
+async def game_loop(websocket) -> None:
     while True:
+        # --- Events ---
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return
-
+                pygame.quit()
+                sys.exit() # TODO: message to server to quit
 
         keys = pygame.key.get_pressed()
-        dx, dy = 0, 0
-        # Joystick support
-        joystick_count = pygame.joystick.get_count()
-        if joystick_count > 0:
-            joystick = pygame.joystick.Joystick(0)
-            joystick.init()
-            axis_x = joystick.get_axis(0)
-            axis_y = joystick.get_axis(1)
-            # Deadzone para evitar drift
-            deadzone = 0.2
-            if abs(axis_x) > deadzone:
-                dx = int(axis_x * PLAYER_SPEED)
-            if abs(axis_y) > deadzone:
-                dy = int(axis_y * PLAYER_SPEED)
-        else:
-            # Fallback a teclado si no hay joystick
-            if keys[pygame.K_LEFT]: dx = -PLAYER_SPEED
-            if keys[pygame.K_RIGHT]: dx = PLAYER_SPEED
-            if keys[pygame.K_UP]: dy = -PLAYER_SPEED
-            if keys[pygame.K_DOWN]: dy = PLAYER_SPEED
-        if keys[pygame.K_ESCAPE]: return
+        if keys[pygame.K_ESCAPE]:
+            pygame.quit()
+            sys.exit() # TODO: message to server to quit
 
+        # --- Input & send ---
+        dx, dy = get_input()
         if dx != 0 or dy != 0:
+            # Client-side prediction: move locally right away without waiting
+            # for the server tick. The server remains authoritative — if it
+            # corrects us we'll snap/lerp back, but in practice on LAN/local
+            # the correction is invisible.
+            if local_pos["ready"]:
+                local_pos["x"] = max(0.0, min(local_pos["x"] + dx, WIDTH  - PLAYER_SIZE))
+                local_pos["y"] = max(0.0, min(local_pos["y"] + dy, HEIGHT - PLAYER_SIZE))
             await websocket.send(json.dumps({"type": "move", "dx": dx, "dy": dy}))
 
-        try:
-            response = await asyncio.wait_for(websocket.recv(), timeout=0.1)
-            data = json.loads(response)
-            players = data.get("players", {})
-        except asyncio.TimeoutError:
-            pass
+        # --- Interpolate remote players toward their server positions ---
+        for pid, srv in server_positions.items():
+            rnd = render_positions.get(pid)
+            if rnd is None:
+                render_positions[pid] = {"x": float(srv["x"]), "y": float(srv["y"])}
+                continue
+            if str(pid) == str(my_id):
+                # Own player: use local predicted position, but softly correct
+                # toward server position to avoid drifting out of sync.
+                if local_pos["ready"]:
+                    local_pos["x"] = lerp(local_pos["x"], float(srv["x"]), 0.05)
+                    local_pos["y"] = lerp(local_pos["y"], float(srv["y"]), 0.05)
+                    rnd["x"] = local_pos["x"]
+                    rnd["y"] = local_pos["y"]
+            else:
+                # Remote players: smooth interpolation to hide network jitter
+                rnd["x"] = lerp(rnd["x"], float(srv["x"]), LERP_ALPHA)
+                rnd["y"] = lerp(rnd["y"], float(srv["y"]), LERP_ALPHA)
 
+        # --- Draw ---
         window.fill(BACKGROUND_COLOR)
-        draw_map(window)
+        window.blit(MAP_SURFACE, (0, 0))
 
-        for player_id, player in players.items():
-            window.blit(player_sprite, (player["x"], player["y"]))
+        for pid, pos in render_positions.items():
+            window.blit(player_sprite, (int(pos["x"]), int(pos["y"])))
+
         pygame.display.flip()
         clock.tick(FRAME_RATE)
 
-async def main():
-    async with websockets.connect("ws://localhost:8765") as websocket:
+        # Yield control so receive_loop can run between frames
+        await asyncio.sleep(0)
+
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+async def main() -> None:
+    async with websockets.connect("ws://25.33.144.47:25565") as websocket:
         await websocket.send(json.dumps({"type": "start", "x": WIDTH, "y": HEIGHT}))
-        await game_loop(websocket)
+        # Run receive loop and game loop concurrently
+        await asyncio.gather(
+            receive_loop(websocket),
+            game_loop(websocket),
+        )
+
 
 asyncio.run(main())
