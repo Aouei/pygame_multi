@@ -3,11 +3,11 @@ import os
 import pandas as pd
 import asyncio
 import json
-import random
 import websockets
 import numpy as np
 from scipy.spatial import KDTree
 from loguru import logger
+from game_state import GameState
 
 # Constants
 PLAYER_SIZE = 64
@@ -57,18 +57,13 @@ def is_collision(x, y):
             return True
     return False
 
-# State
-players = {}
-next_player_id = 1
-clients = {}  # websocket -> player_id
+
+# State managed by GameState
+game_state = GameState(map_data, solid_positions, is_collision)
 
 
 async def handle_client(websocket):
-    global next_player_id
-    player_id = next_player_id
-    next_player_id += 1
-    clients[websocket] = player_id
-
+    player_id = game_state.add_client(websocket)
     try:
         # Inform client of its assigned ID
         msg = json.dumps({"type": "hello", "id": player_id})
@@ -79,69 +74,34 @@ async def handle_client(websocket):
             data = json.loads(message)
 
             if data["type"] == "start":
-                # Buscar tiles con valor 6
-                spawn_tiles = []
-                for i, row in enumerate(map_data):
-                    for j, col in enumerate(row):
-                        if col == SPAWN_CODE:
-                            spawn_tiles.append((j, i))
-                if spawn_tiles:
-                    j, i = random.choice(spawn_tiles)
-                    x = j * TILE_SIZE
-                    y = i * TILE_SIZE
-                else:
-                    # Fallback: centro del mapa
-                    x = data["x"] // 2
-                    y = data["y"] // 2
-                players[player_id] = {
-                    "x_lim": data["x"],
-                    "y_lim": data["y"],
-                    "x": x,
-                    "y": y,
-                    'state' : 'up'
-                }
-
-            elif data["type"] == "move" and player_id in players:
-                p = players[player_id]
-                new_x = int(np.clip(p["x"] + data["dx"], 0, p["x_lim"] - PLAYER_SIZE))
-                new_y = int(np.clip(p["y"] + data["dy"], 0, p["y_lim"] - PLAYER_SIZE))
-                # Chequear colisión antes de mover
-                if not is_collision(new_x + PLAYER_SIZE // 2, new_y + PLAYER_SIZE // 2):
-                    p["x"] = new_x
-                    p["y"] = new_y
-                    p['state'] = data['state']
-                print(p)
-                # Si hay colisión, no se mueve
+                game_state.handle_start(player_id, data)
+            elif data["type"] == "move":
+                game_state.handle_move(player_id, data)
 
     except websockets.exceptions.ConnectionClosed:
         pass
     finally:
-        players.pop(player_id, None)
-        clients.pop(websocket, None)
+        game_state.remove_client(websocket)
 
 
 async def broadcast_loop():
-    """Sends world state to all clients at a fixed 20 Hz tick rate.
-    Decoupling broadcast from input handling prevents clients with high
-    input rates from flooding slower clients with updates."""
+    """Sends world state to all clients at a fixed 20 Hz tick rate."""
     interval = 1.0 / TICK_RATE
     while True:
         await asyncio.sleep(interval)
-        if not clients:
+        if not game_state.clients:
             continue
 
-        update = json.dumps({"type": "update", "players": players})
+        update = json.dumps({"type": "update", "players": game_state.get_players()})
         dead = []
-        for ws in list(clients):
+        for ws in list(game_state.clients):
             try:
-                logger.info(f"Enviando actualización a cliente {clients[ws]}: {update}")
+                logger.info(f"Enviando actualización a cliente {game_state.clients[ws]}: {update}")
                 await ws.send(update)
             except websockets.exceptions.ConnectionClosed:
                 dead.append(ws)
         for ws in dead:
-            pid = clients.pop(ws, None)
-            if pid is not None:
-                players.pop(pid, None)
+            game_state.remove_client(ws)
 
 
 async def main():
