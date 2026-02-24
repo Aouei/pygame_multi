@@ -82,11 +82,25 @@ async def handle_client(websocket):
             data = json.loads(message)
 
             if data["type"] == "start":
+                # Buscar tiles con valor 6
+                spawn_tiles = []
+                for i, row in enumerate(map_data):
+                    for j, col in enumerate(row):
+                        if col == 6:
+                            spawn_tiles.append((j, i))
+                if spawn_tiles:
+                    j, i = random.choice(spawn_tiles)
+                    x = j * TILE_SIZE
+                    y = i * TILE_SIZE
+                else:
+                    # Fallback: centro del mapa
+                    x = data["x"] // 2
+                    y = data["y"] // 2
                 players[player_id] = {
                     "x_lim": data["x"],
                     "y_lim": data["y"],
-                    "x": random.randint(PLAYER_SIZE, data["x"] - PLAYER_SIZE),
-                    "y": random.randint(PLAYER_SIZE, data["y"] - PLAYER_SIZE),
+                    "x": x,
+                    "y": y,
                 }
 
             elif data["type"] == "move" and player_id in players:
