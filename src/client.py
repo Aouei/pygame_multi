@@ -60,29 +60,39 @@ TILES = {
 }
 
 map_data = pd.read_csv(MAP_PATH, header=None)
-MINIMAP_SIZE = 200  # Size of minimap square
+MINIMAP_SCALE = 0.1  # Minimap scale relative to original map
+MINIMAP_MARGIN = 20 # Margin from top-left corner
+PLAYER_COLORS = [(255,0,0), (0,255,0), (0,0,255), (255,255,0)]
+
+# Calculate minimap size based on original map size
+MINIMAP_WIDTH = int(len(map_data.columns) * TILE_SIZE * MINIMAP_SCALE)
+MINIMAP_HEIGHT = int(len(map_data) * TILE_SIZE * MINIMAP_SCALE)
 MINIMAP_MARGIN = 20 # Margin from top-left corner
 PLAYER_COLORS = [(255,0,0), (0,255,0), (0,0,255), (255,255,0)]
 
 def render_minimap(surface: pygame.Surface, player_positions: dict, my_id: int | None):
     # Draw minimap background
-    minimap = pygame.Surface((MINIMAP_SIZE, MINIMAP_SIZE))
-    minimap.fill((30, 30, 30))
-    # Draw map tiles (scaled down)
+    minimap = pygame.Surface((MINIMAP_WIDTH, MINIMAP_HEIGHT)).convert_alpha() ## TODO: corregir exceso tiles
+    minimap.fill((255, 255, 255, 0))
+    # Draw map tiles using scaled-down tile images
     rows, cols = map_data.shape
-    tile_w = MINIMAP_SIZE / cols
-    tile_h = MINIMAP_SIZE / rows
+    tile_w = int(TILE_SIZE * MINIMAP_SCALE)
+    tile_h = int(TILE_SIZE * MINIMAP_SCALE)
     for i, row in enumerate(map_data.values):
         for j, col in enumerate(row):
-            color = (80, 40, 0) if int(col) <= 5 else (60, 120, 60)
-            pygame.draw.rect(minimap, color, (j*tile_w, i*tile_h, tile_w, tile_h))
+            tile_img = TILES.get(str(col))
+            if tile_img:
+                scaled_tile = pygame.transform.smoothscale(tile_img, (tile_w, tile_h))
+                minimap.blit(scaled_tile, (j*tile_w, i*tile_h))
+            else:
+                pygame.draw.rect(minimap, (100,100,100), (j*tile_w, i*tile_h, tile_w, tile_h))
     # Draw players
     for idx, (pid, pos) in enumerate(list(player_positions.items())[:4]):
-        px = pos["x"] / (cols * TILE_SIZE) * MINIMAP_SIZE
-        py = pos["y"] / (rows * TILE_SIZE) * MINIMAP_SIZE
+        px = int(pos["x"] * MINIMAP_SCALE)
+        py = int(pos["y"] * MINIMAP_SCALE)
         color = PLAYER_COLORS[idx % 4]
         radius = 8 if str(pid) == str(my_id) else 6
-        pygame.draw.circle(minimap, color, (int(px), int(py)), radius)
+        pygame.draw.circle(minimap, color, (px, py), radius)
     # Blit minimap to main surface
     surface.blit(minimap, (MINIMAP_MARGIN, MINIMAP_MARGIN))
 
