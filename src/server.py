@@ -30,8 +30,8 @@ async def handle_client(websocket):
                     "y": random.randint(PLAYER_SIZE, data['y'] - PLAYER_SIZE),
                 }
             elif data["type"] == "move" and player_id in players:
-                new_x = np.clip(players[player_id]["x"] + data['dx'], 0, players[player_id]['x_lim'])
-                new_y = np.clip(players[player_id]["y"] + data['dy'], 0, players[player_id]['y_lim'])
+                new_x = np.clip(players[player_id]["x"] + data['dx'], 0, players[player_id]['x_lim'] - PLAYER_SIZE)
+                new_y = np.clip(players[player_id]["y"] + data['dy'], 0, players[player_id]['y_lim'] - PLAYER_SIZE)
                 players[player_id]["x"] = int(new_x)
                 players[player_id]["y"] = int(new_y)
             # Broadcast updates to all clients

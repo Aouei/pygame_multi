@@ -14,8 +14,7 @@ BACKGROUND_COLOR = (127, 64, 0)
 # Pygame setup
 pygame.init()
 pygame.joystick.init()
-window = pygame.display.set_mode((800, 600))
-# window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 WIDTH, HEIGHT = window.get_rect().width, window.get_rect().height
 print(WIDTH, HEIGHT)
 clock = pygame.time.Clock()
@@ -26,17 +25,23 @@ player_sprite = pygame.transform.scale(player_sprite, (PLAYER_SIZE, PLAYER_SIZE)
 
 TILE_SIZE = 32
 TILES = {
-    'G1' : pygame.transform.scale(pygame.image.load(r"C:\Users\sergi\Documents\repos\pygame_multi\assets\Grass_1.png"), (TILE_SIZE, TILE_SIZE)),
-    'G2' : pygame.transform.scale(pygame.image.load(r"C:\Users\sergi\Documents\repos\pygame_multi\assets\Grass_2.png"), (TILE_SIZE, TILE_SIZE)),
-    'S1' : pygame.transform.scale(pygame.image.load(r"C:\Users\sergi\Documents\repos\pygame_multi\assets\Shore_1.png"), (TILE_SIZE, TILE_SIZE)),
-    'S2' : pygame.transform.scale(pygame.image.load(r"C:\Users\sergi\Documents\repos\pygame_multi\assets\Shore_2.png"), (TILE_SIZE, TILE_SIZE)),
+    '1' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_1_shore.png"), (TILE_SIZE, TILE_SIZE)),
+    '2' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_2_shore.png"), (TILE_SIZE, TILE_SIZE)),
+    '3' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_3_shore.png"), (TILE_SIZE, TILE_SIZE)),
+    '4' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_4_shore.png"), (TILE_SIZE, TILE_SIZE)),
+    '5' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_5_shore.png"), (TILE_SIZE, TILE_SIZE)),
+    '6' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_6_grass.png"), (TILE_SIZE, TILE_SIZE)),
+    '7' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_7_grass.png"), (TILE_SIZE, TILE_SIZE)),
+    '8' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_8_grass.png"), (TILE_SIZE, TILE_SIZE)),
+    '9' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_9_grass.png"), (TILE_SIZE, TILE_SIZE)),
+    '10' : pygame.transform.scale(pygame.image.load(r"..\assets\tiles\tile_10_grass.png"), (TILE_SIZE, TILE_SIZE)),
 }
 
 map = pd.read_csv(r'C:\Users\sergi\Documents\repos\pygame_multi\assets\map\map.csv', header=None)
 def draw_map(surface : pygame.Surface):
     for i, row in enumerate(map.values):
         for j, col in enumerate(row):
-            surface.blit(TILES[col], (j * TILE_SIZE, i * TILE_SIZE))
+            surface.blit(TILES[str(col)], (j * TILE_SIZE, i * TILE_SIZE))
 
 async def game_loop(websocket):
     players = {}
@@ -44,8 +49,7 @@ async def game_loop(websocket):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return
-            
-                
+
 
         keys = pygame.key.get_pressed()
         dx, dy = 0, 0
