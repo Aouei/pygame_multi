@@ -8,13 +8,14 @@ import numpy as np
 from scipy.spatial import KDTree
 from loguru import logger
 from game_state import GameState
+import pygame
 
 # Constants
 PLAYER_SIZE = 64
 TILE_SIZE = 64
 TICK_RATE = 20  # Server broadcasts at 20 Hz regardless of client input rate
 
-
+pygame.init()
 # Map loading (same as client)
 import sys
 if getattr(sys, "frozen", False):
@@ -22,6 +23,7 @@ if getattr(sys, "frozen", False):
 else:
     BASE_DIR = os.path.join(os.path.dirname(__file__), "..")
 ASSETS_DIR  = os.path.join(BASE_DIR, "assets")
+PLAYER_DIR  = os.path.join(ASSETS_DIR, "player")
 TILES_DIR   = os.path.join(ASSETS_DIR, "tiles")
 MAP_PATH    = os.path.join(ASSETS_DIR, "map", "map.csv")
 SPRITE_PATH = os.path.join(ASSETS_DIR, "nave.png")
@@ -30,6 +32,14 @@ map_data = pd.read_csv(MAP_PATH, header=None).values
 # Tiles sólidos (ejemplo: 5 es sólido, puedes ajustar según el diseño)
 SOLID_TILES = {2}
 SPAWN_CODE = 8
+
+PLAYER = {
+    'up' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, "up.png")), (PLAYER_SIZE, PLAYER_SIZE)),
+    'down' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, "down.png")), (PLAYER_SIZE, PLAYER_SIZE)),
+    'right' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, "right.png")), (PLAYER_SIZE, PLAYER_SIZE)),
+    'left' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, "left.png")), (PLAYER_SIZE, PLAYER_SIZE)),
+}
+PLAYER_MASKS = { state : pygame.mask.from_surface(surface) for state, surface in PLAYER.items() }
 
 # Preprocesar posiciones sólidas para KDTree
 solid_positions = []
@@ -40,20 +50,13 @@ for i, row in enumerate(map_data):
 
 solid_tree = KDTree(solid_positions) if solid_positions else None
 
-def is_collision(x, y):
+def is_collision(x, y, state : str):
     """Chequea si el rectángulo (x, y, PLAYER_SIZE, PLAYER_SIZE) colisiona con un tile sólido."""
     for sx, sy in solid_positions:
         # Tile rect
-        tile_rect = (sx, sy, TILE_SIZE, TILE_SIZE)
-        # Player rect
-        player_rect = (x, y, PLAYER_SIZE, PLAYER_SIZE)
-        # Check intersection
-        if (
-            player_rect[0] < tile_rect[0] + tile_rect[2] and
-            player_rect[0] + player_rect[2] > tile_rect[0] and
-            player_rect[1] < tile_rect[1] + tile_rect[3] and
-            player_rect[1] + player_rect[3] > tile_rect[1]
-        ):
+        tile_mask = pygame.mask.Mask((TILE_SIZE, TILE_SIZE), fill=True)  # tile sólido
+        offset = (sx - x, sy - y)  # posición del tile relativa al player
+        if PLAYER_MASKS[state].overlap(tile_mask, offset):
             return True
     return False
 

@@ -52,7 +52,7 @@ class GameState:
         p = self.players[player_id]
         new_x = int(p["x"] + data["dx"])
         new_y = int(p["y"] + data["dy"])
-        if not self.is_collision(new_x + PLAYER_SIZE // 2, new_y + PLAYER_SIZE // 2):
+        if not self.is_collision(new_x + PLAYER_SIZE // 2, new_y + PLAYER_SIZE // 2, p['state']):
             p["x"] = new_x
             p["y"] = new_y
             p['state'] = data['state']
