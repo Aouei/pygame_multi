@@ -253,7 +253,7 @@ async def game_loop(websocket) -> None:
         map_pixel_height = len(map_data) * TILE_SIZE
         offset_x = center_x - WIDTH // 2
         offset_y = center_y - HEIGHT // 2
-        offset_x = min(0, min(offset_x, map_pixel_width - WIDTH))
+        offset_x = max(0, min(offset_x, map_pixel_width - WIDTH))
         offset_y = max(0, min(offset_y, map_pixel_height - HEIGHT))
 
         # Draw map with clamped viewport offset
