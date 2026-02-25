@@ -5,6 +5,8 @@ import sys
 import pygame
 import websockets
 import pandas as pd
+import numpy as np
+from loguru import logger
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -70,6 +72,12 @@ MINIMAP_HEIGHT = int(len(map_data) * TILE_SIZE * MINIMAP_SCALE)
 MINIMAP_MARGIN = 20 # Margin from top-left corner
 PLAYER_COLORS = [(255,0,0), (0,255,0), (0,0,255), (255,255,0)]
 
+# Joystick instance (initialized once)
+JOYSTICK = None
+if pygame.joystick.get_count() > 0:
+    JOYSTICK = pygame.joystick.Joystick(0)
+    JOYSTICK.init()
+
 def render_minimap(surface: pygame.Surface, player_positions: dict, my_id: int | None):
     # Draw minimap background
     minimap = pygame.Surface((MINIMAP_WIDTH, MINIMAP_HEIGHT)).convert_alpha() ## TODO: corregir exceso tiles
@@ -130,16 +138,24 @@ def get_input() -> tuple[int, int]:
     global CURRENT_STATE
     dx, dy = 0, 0
 
-    if pygame.joystick.get_count() > 0:
-        js = pygame.joystick.Joystick(0)
-        js.init()
-        deadzone = 0.2
-        ax = js.get_axis(0)
-        ay = js.get_axis(1)
+    if JOYSTICK is not None:
+        deadzone = 0.1
+        ax = JOYSTICK.get_axis(0)
+        ay = JOYSTICK.get_axis(1)
         if abs(ax) > deadzone:
-            dx = int(ax * PLAYER_SPEED)
+            if ax < 0:
+                dx = -PLAYER_SPEED
+                CURRENT_STATE = 'left'
+            else:
+                dx = PLAYER_SPEED
+                CURRENT_STATE = 'right'
         if abs(ay) > deadzone:
-            dy = int(ay * PLAYER_SPEED)
+            if ay < 0:
+                dy = -PLAYER_SPEED
+                CURRENT_STATE = 'up'
+            else:
+                dy = PLAYER_SPEED
+                CURRENT_STATE = 'down'
     else:
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:  
@@ -205,7 +221,9 @@ async def game_loop(websocket) -> None:
         # --- Input & send ---
         dx, dy = get_input()
         if dx != 0 or dy != 0:
-            await websocket.send(json.dumps({"type": "move", "dx": dx, "dy": dy, 'state' : CURRENT_STATE}))
+            msg = {"type": "move", "dx": dx, "dy": dy, 'state' : CURRENT_STATE}
+            logger.info(f"Sending to server: {msg}")
+            await websocket.send(json.dumps(msg))
 
         for pid, srv in server_positions.items():
             rnd = render_positions.get(pid)
@@ -235,7 +253,7 @@ async def game_loop(websocket) -> None:
         map_pixel_height = len(map_data) * TILE_SIZE
         offset_x = center_x - WIDTH // 2
         offset_y = center_y - HEIGHT // 2
-        offset_x = max(0, min(offset_x, map_pixel_width - WIDTH))
+        offset_x = min(0, min(offset_x, map_pixel_width - WIDTH))
         offset_y = max(0, min(offset_y, map_pixel_height - HEIGHT))
 
         # Draw map with clamped viewport offset
@@ -260,7 +278,9 @@ async def game_loop(websocket) -> None:
 # ---------------------------------------------------------------------------
 async def main() -> None:
     async with websockets.connect("ws://25.33.144.47:25565") as websocket:
-        await websocket.send(json.dumps({"type": "start", "x": WIDTH, "y": HEIGHT}))
+        msg = {"type": "start", "x": WIDTH, "y": HEIGHT}
+        logger.info(f"Sending to server: {msg}")
+        await websocket.send(json.dumps(msg))
         # Run receive loop and game loop concurrently
         await asyncio.gather(
             receive_loop(websocket),
