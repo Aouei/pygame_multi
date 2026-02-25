@@ -23,7 +23,7 @@ if getattr(sys, "frozen", False):
 else:
     BASE_DIR = os.path.join(os.path.dirname(__file__), "..")
 ASSETS_DIR  = os.path.join(BASE_DIR, "assets")
-PLAYER_DIR  = os.path.join(ASSETS_DIR, "player")
+PLAYER_DIR  = os.path.join(ASSETS_DIR, "player", 'mage')
 TILES_DIR   = os.path.join(ASSETS_DIR, "tiles")
 MAP_PATH    = os.path.join(ASSETS_DIR, "map", "map.csv")
 SPRITE_PATH = os.path.join(ASSETS_DIR, "nave.png")
@@ -58,6 +58,7 @@ def is_collision(x, y, state : str):
         offset = (sx - x, sy - y)  # posición del tile relativa al player
         if PLAYER_MASKS[state].overlap(tile_mask, offset):
             return True
+            
     return False
 
 

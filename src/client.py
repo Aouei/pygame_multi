@@ -8,6 +8,12 @@ import pandas as pd
 import numpy as np
 from loguru import logger
 
+
+from levels import lobby
+from enums import PLAYER_CLASS
+from entities.player import Player
+
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -34,10 +40,10 @@ TILES_DIR   = os.path.join(ASSETS_DIR, "tiles")
 MAP_PATH    = os.path.join(ASSETS_DIR, "map", "map.csv")
 
 PLAYER = {
-    'up' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, "up.png")), (PLAYER_SIZE, PLAYER_SIZE)),
-    'down' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, "down.png")), (PLAYER_SIZE, PLAYER_SIZE)),
-    'right' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, "right.png")), (PLAYER_SIZE, PLAYER_SIZE)),
-    'left' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, "left.png")), (PLAYER_SIZE, PLAYER_SIZE)),
+    'up' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, 'mage', "up.png")), (PLAYER_SIZE, PLAYER_SIZE)),
+    'down' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, 'mage', "down.png")), (PLAYER_SIZE, PLAYER_SIZE)),
+    'right' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, 'mage', "right.png")), (PLAYER_SIZE, PLAYER_SIZE)),
+    'left' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, 'mage', "left.png")), (PLAYER_SIZE, PLAYER_SIZE)),
 }
 CURRENT_STATE = 'down'
 
@@ -276,7 +282,10 @@ async def game_loop(websocket) -> None:
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
-async def main() -> None:
+async def main(player_class : PLAYER_CLASS) -> None:
+    global PLAYER
+    PLAYER = Player(PLAYER_DIR, player_class)
+
     async with websockets.connect("ws://25.33.144.47:25565") as websocket:
         msg = {"type": "start", "x": WIDTH, "y": HEIGHT}
         logger.info(f"Sending to server: {msg}")
@@ -288,4 +297,10 @@ async def main() -> None:
         )
 
 
-asyncio.run(main())
+if __name__ == '__main__':
+    first_screen = lobby.Screen(size = 20)
+    selection = first_screen.loop(window, clock, FRAME_RATE)
+
+    print(selection)
+
+    asyncio.run(main(selection))
