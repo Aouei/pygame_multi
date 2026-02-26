@@ -9,10 +9,13 @@ import numpy as np
 from loguru import logger
 
 
+import messages
+
 from levels import game, lobby
-from enums import PLAYER_CLASS
+from enums import PLAYER_CLASS, MESSAGES, STATE
 from entities.player import Player
 from inputs import InputHandler
+from states import ClientState
 
 
 # ---------------------------------------------------------------------------
@@ -49,215 +52,115 @@ CURRENT_STATE = 'down'
 # ---------------------------------------------------------------------------
 pygame.init()
 
-INPUTS = InputHandler()
-pygame.joystick.init()
 window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 WIDTH, HEIGHT = window.get_size()
-clock = pygame.time.Clock()
 
-# ---------------------------------------------------------------------------
-# Assets
-# ---------------------------------------------------------------------------
-TILES = {
-    str(i): pygame.transform.scale(
-        pygame.image.load(os.path.join(TILES_DIR, f"tile_{i}_{'shore' if i <= 5 else 'grass'}.png")),
-        (TILE_SIZE, TILE_SIZE),
-    )
-    for i in range(1, 11)
-}
-
-map_data = pd.read_csv(MAP_PATH, header=None)
-MINIMAP_SCALE = 0.1  # Minimap scale relative to original map
-MINIMAP_MARGIN = 20 # Margin from top-left corner
-PLAYER_COLORS = [(255,0,0), (0,255,0), (0,0,255), (255,255,0)]
-
-# Calculate minimap size based on original map size
-MINIMAP_WIDTH = int(len(map_data.columns) * TILE_SIZE * MINIMAP_SCALE)
-MINIMAP_HEIGHT = int(len(map_data) * TILE_SIZE * MINIMAP_SCALE)
-MINIMAP_MARGIN = 20 # Margin from top-left corner
-PLAYER_COLORS = [(255,0,0), (0,255,0), (0,0,255), (255,255,0)]
+class Client:
+    INPUTS = InputHandler()
+    CLOCK = pygame.time.Clock()
+    FRAME_RATE = 60
+    server_positions = {}
+    render_positions =  {}
 
 
-def render_minimap(surface: pygame.Surface, player_positions: dict, my_id: int | None):
-    # Draw minimap background
-    minimap = pygame.Surface((MINIMAP_WIDTH, MINIMAP_HEIGHT)).convert_alpha() ## TODO: corregir exceso tiles
-    minimap.fill((255, 255, 255, 0))
-    # Draw map tiles using scaled-down tile images
-    rows, cols = map_data.shape
-    tile_w = int(TILE_SIZE * MINIMAP_SCALE)
-    tile_h = int(TILE_SIZE * MINIMAP_SCALE)
-    for i, row in enumerate(map_data.values):
-        for j, col in enumerate(row):
-            tile_img = TILES.get(str(col))
-            if tile_img:
-                scaled_tile = pygame.transform.smoothscale(tile_img, (tile_w, tile_h))
-                minimap.blit(scaled_tile, (j*tile_w, i*tile_h))
+    def __init__(self):
+        self.state = ClientState()
+        self.ID = -1
+        self.server_positions = {}
+        self.render_positions = {}
+
+    async def update(self, websocket) -> None:
+        async for raw in websocket:
+            data = json.loads(raw)
+
+            message_type = MESSAGES(data["type"])
+            
+            if message_type == MESSAGES.HELLO:
+                self.ID = data["id"]
+            elif message_type == MESSAGES.PLAYERS_UPDATE:
+                print(data)
+
+                self.server_positions.clear()
+                self.server_positions.update(data.get("players", {}))
+
+                # Initialise render position for newly connected players
+                for pid, pos in self.server_positions.items():
+                    if pid not in self.render_positions:
+                        self.render_positions[pid] = pos
+
+                # Remove players that have disconnected
+                for pid in list(self.render_positions):
+                    if pid not in self.server_positions:
+                        del self.render_positions[pid]
+
+
+    async def loop(self, websocket) -> None:
+        while True:
+            self.INPUTS.update()
+
+            if self.INPUTS.quit:
+                pygame.quit()
+                sys.exit()
+
+            dx, dy, state = self.player.wish_to_move(self.INPUTS)
+            if dx != 0 or dy != 0:
+                logger.info(f"Sending to server {MESSAGES.WISH_MOVE}")
+                await messages.wish_move(dx, dy, state, websocket) 
+
+            for pid, srv in self.server_positions.items():
+                rnd = self.render_positions.get(pid)
+                if rnd is None:
+                    self.render_positions[pid] = srv
+                    continue
+
+                rnd["x"] = srv["x"]
+                rnd["y"] = srv["y"]
+                rnd["state"] = srv["state"]
+
+            window.fill(BACKGROUND_COLOR)
+
+            my_id = str(self.ID)
+            if self.ID >= 0 and my_id in self.render_positions:
+                player_pos = self.render_positions[my_id]
+                center_x = int(player_pos["x"] + PLAYER_SIZE // 2)
+                center_y = int(player_pos["y"] + PLAYER_SIZE // 2)
             else:
-                pygame.draw.rect(minimap, (100,100,100), (j*tile_w, i*tile_h, tile_w, tile_h))
-    # Draw players
-    for idx, (pid, pos) in enumerate(list(player_positions.items())[:4]):
-        px = int(pos["x"] * MINIMAP_SCALE)
-        py = int(pos["y"] * MINIMAP_SCALE)
-        color = PLAYER_COLORS[idx % 4]
-        radius = 8 if str(pid) == str(my_id) else 6
-        pygame.draw.circle(minimap, color, (px, py), radius)
-    # Blit minimap to main surface
-    surface.blit(minimap, (MINIMAP_MARGIN, MINIMAP_MARGIN))
-
-def draw_map(surface: pygame.Surface) -> None:
-    for i, row in enumerate(map_data.values):
-        for j, col in enumerate(row):
-            surface.blit(TILES[str(col)], (j * TILE_SIZE, i * TILE_SIZE))
-
-# Pre-render map onto a static surface so we only blit once per frame
-MAP_SURFACE = pygame.Surface((len(map_data.columns) * TILE_SIZE, len(map_data) * TILE_SIZE))
-draw_map(MAP_SURFACE)
-
-# ---------------------------------------------------------------------------
-# Game state
-# ---------------------------------------------------------------------------
-my_id: int | None = None
-
-# server_positions holds the authoritative positions received from the server.
-# render_positions holds the smoothly interpolated positions used for drawing.
-server_positions: dict[str, dict] = {}
-render_positions: dict[str, dict] = {}
-
-# ---------------------------------------------------------------------------
-# Input
-# ---------------------------------------------------------------------------
-def get_input() -> tuple[int, int]:
-    global CURRENT_STATE, INPUTS
-    dx, dy = 0, 0
-
-    if INPUTS.con_left:
-        dx = -PLAYER_SPEED
-        CURRENT_STATE = 'left'
-    if INPUTS.con_right:
-        dx =  PLAYER_SPEED
-        CURRENT_STATE = 'right'
-    if INPUTS.con_up:
-        dy = -PLAYER_SPEED
-        CURRENT_STATE = 'up'
-    if INPUTS.con_down:
-        dy =  PLAYER_SPEED
-        CURRENT_STATE = 'down'
-        
-    return dx, dy
+                center_x = WIDTH // 2
+                center_y = HEIGHT // 2
 
 
-# ---------------------------------------------------------------------------
-# Receive coroutine — runs concurrently with the game loop
-# ---------------------------------------------------------------------------
-async def receive_loop(websocket) -> None:
-    """Continuously reads server messages and updates shared state."""
-    global my_id
-    async for raw in websocket:
-        data = json.loads(raw)
-        if data["type"] == "hello":
-            my_id = data["id"]
-        elif data["type"] == "update":
-            server_positions.clear()
-            server_positions.update(data.get("players", {}))
-            # Initialise render position for newly connected players
-            for pid, pos in server_positions.items():
-                if pid not in render_positions:
-                    render_positions[pid] = {"x": float(pos["x"]), "y": float(pos["y"])}
-            # Remove players that have disconnected
-            for pid in list(render_positions):
-                if pid not in server_positions:
-                    del render_positions[pid]
+            map_pixel_width = self.state.MAP.width
+            map_pixel_height = self.state.MAP.height
+            offset_x = center_x - WIDTH // 2
+            offset_y = center_y - HEIGHT // 2
+            offset_x = max(0, min(offset_x, map_pixel_width - WIDTH))
+            offset_y = max(0, min(offset_y, map_pixel_height - HEIGHT))
 
+            self.state.MAP.draw(window, (-offset_x, -offset_y))
 
-# ---------------------------------------------------------------------------
-# Main game loop
-# ---------------------------------------------------------------------------
-async def game_loop(websocket) -> None:
-    global CURRENT_STATE, INPUTS
+            for pid, pos in self.render_positions.items():
+                self.state.draw(window, -offset_x, -offset_y, pos)
+            
+            pygame.display.flip()
+            self.CLOCK.tick(self.FRAME_RATE)
+            await asyncio.sleep(0)  # Cede el control al event loop para que `update` reciba mensajes del servidor
+    
+    async def connect(self, player_class : PLAYER_CLASS) -> None:
+        self.player = Player(None, PLAYER_DIR, player_class)
 
-    while True:
-        INPUTS.update()
-
-        if INPUTS.quit:
-            pygame.quit()
-            sys.exit()
-
-        # --- Input & send ---
-        dx, dy = get_input()
-        if dx != 0 or dy != 0:
-            msg = {"type": "move", "dx": dx, "dy": dy, 'state' : CURRENT_STATE}
-            logger.info(f"Sending to server: {msg}")
-            await websocket.send(json.dumps(msg))
-
-        for pid, srv in server_positions.items():
-            rnd = render_positions.get(pid)
-            if rnd is None:
-                render_positions[pid] = {"x": float(srv["x"]), "y": float(srv["y"])}
-                continue
-            # All players, including own, update position directly from server
-            rnd["x"] = float(srv["x"])
-            rnd["y"] = float(srv["y"])
-            rnd["state"] = srv["state"]
-
-        # --- Draw ---
-        window.fill(BACKGROUND_COLOR)
-
-        # --- Viewport centered on current player ---
-        if my_id is not None and str(my_id) in render_positions:
-            player_pos = render_positions[str(my_id)]
-            center_x = int(player_pos["x"] + PLAYER_SIZE // 2)
-            center_y = int(player_pos["y"] + PLAYER_SIZE // 2)
-        else:
-            center_x = WIDTH // 2
-            center_y = HEIGHT // 2
-
-
-        # Clamp viewport so it doesn't show outside the map
-        map_pixel_width = len(map_data.columns) * TILE_SIZE
-        map_pixel_height = len(map_data) * TILE_SIZE
-        offset_x = center_x - WIDTH // 2
-        offset_y = center_y - HEIGHT // 2
-        offset_x = max(0, min(offset_x, map_pixel_width - WIDTH))
-        offset_y = max(0, min(offset_y, map_pixel_height - HEIGHT))
-
-        # Draw map with clamped viewport offset
-        window.blit(MAP_SURFACE, (-offset_x, -offset_y))
-
-        # Draw minimap in top-left corner
-        render_minimap(window, render_positions, my_id)
-
-        # Draw all players with viewport offset
-        for pid, pos in render_positions.items():
-            window.blit(PLAYER[pos['state']], (int(pos["x"])-offset_x, int(pos["y"])-offset_y, PLAYER_SIZE, PLAYER_SIZE))
-
-        pygame.display.flip()
-        clock.tick(FRAME_RATE)
-
-        # Yield control so receive_loop can run between frames
-        await asyncio.sleep(0)
-
-
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
-async def game(player_class : PLAYER_CLASS) -> None:
-    demo = Player(PLAYER_DIR, player_class)
-
-    async with websockets.connect("ws://25.33.144.47:25565") as websocket:
-        msg = {"type": "start", "x": WIDTH, "y": HEIGHT}
-        logger.info(f"Sending to server: {msg}")
-        await websocket.send(json.dumps(msg))
-        # Run receive loop and game loop concurrently
-        await asyncio.gather(
-            receive_loop(websocket),
-            game_loop(websocket),
-        )
-
+        async with websockets.connect("ws://25.33.144.47:25565") as websocket:
+            logger.info(f"Sending to server: {MESSAGES.PLAYER_CLASS}")
+            await messages.player_class(self.player.class_type, websocket)
+            
+            await asyncio.gather(
+                self.update(websocket),
+                self.loop(websocket),
+            )
 
 if __name__ == '__main__':
-    first_screen = lobby.Screen(INPUTS, PLAYER_DIR)
-    selection = first_screen.loop(window, clock, FRAME_RATE)
+    client = Client()
 
-    print(selection)
+    first_screen = lobby.Screen(client.INPUTS, PLAYER_DIR)
+    selection = first_screen.loop(window, client.CLOCK, client.FRAME_RATE)
 
-    asyncio.run(game(selection))
+    asyncio.run(client.connect(selection))

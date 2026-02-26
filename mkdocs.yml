@@ -1,0 +1,46 @@
+site_name: 'Documentación Pygame Multi'
+theme:
+  name: material
+  language: es
+  features:
+    - navigation.tabs
+    - navigation.top
+    - content.code.annotate
+    - content.tabs.link
+    - navigation.sections
+    - navigation.expand
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+    - content.action.edit
+    - content.action.view
+    - content.code.copy
+markdown_extensions:
+  - admonition
+  - codehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.tasklist
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.caret
+  - pymdownx.progressbar
+  - pymdownx.magiclink
+  - pymdownx.betterem
+  - pymdownx.critic
+  - pymdownx.arithmatex
+  - pymdownx.smartsymbols
+  - pymdownx.escapes
+  - pymdownx.extra
+  - pymdownx.tasklist
+  - pymdownx.saneheaders
+  - pymdownx.striphtml
+  - pymdownx.mermaid
+nav:
+  - Inicio: index.md

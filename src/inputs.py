@@ -55,13 +55,17 @@ class InputHandler:
             ay = self.joystick.get_axis(1)
             if abs(ax) > self.deadzone:
                 if ax < 0:
+                    print('LEFT')
                     self.con_left = True
                 else:
+                    print('RIGTH')
                     self.con_right = True
             if abs(ay) > self.deadzone:
                 if ay < 0:
+                    print('UP')
                     self.con_up = True
                 else:
+                    print('DOWN')
                     self.con_down = True
 
     def handle_keyboard(self):
@@ -69,6 +73,7 @@ class InputHandler:
             if event.type == pygame.QUIT:
                 self.quit = True
             elif event.type == pygame.KEYDOWN:
+                print(f"KEYDOWN: {pygame.key.name(event.key)}")
                 if event.key == pygame.K_LEFT:
                     self.k_left = True
                 elif event.key == pygame.K_RIGHT:
@@ -80,10 +85,14 @@ class InputHandler:
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
+            print("con_left activado")
             self.con_left = True
         if keys[pygame.K_RIGHT]:
+            print("con_right activado")
             self.con_right = True
         if keys[pygame.K_UP]:
+            print("con_up activado")
             self.con_up = True
         if keys[pygame.K_DOWN]:
+            print("con_down activado")
             self.con_down = True
