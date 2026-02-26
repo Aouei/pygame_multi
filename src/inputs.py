@@ -11,6 +11,7 @@ class InputHandler:
         else:
             self.joystick = None
 
+        self.deadzone = 0.1
         self._reset()
         self._prev_hat = (0, 0)
 
@@ -21,29 +22,15 @@ class InputHandler:
         self.k_enter = False
         self.con_left = False
         self.con_right = False
+        self.con_up = False
+        self.con_down = False
 
     def update(self):
         self._reset()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.quit = True
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    self.k_left = True
-                elif event.key == pygame.K_RIGHT:
-                    self.k_right = True
-                elif event.key == pygame.K_RETURN:
-                    self.k_enter = True
-                elif event.key == pygame.K_ESCAPE:
-                    self.quit = True
+        self.handle_keyboard()
+        self.handle_joystick()
 
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
-            self.con_left = True
-        if keys[pygame.K_RIGHT]:
-            self.con_right = True
-
-        # Joystick support
+    def handle_joystick(self):
         if self.joystick is not None: # meter con_left y con_right
             hat = self.joystick.get_hat(0) if self.joystick.get_numhats() > 0 else (0, 0)
             # Detectar solo transición de cruceta
@@ -63,3 +50,40 @@ class InputHandler:
             select = self.joystick.get_button(6) if self.joystick.get_numbuttons() > 6 else False
             if start and select:
                 self.quit = True
+
+            ax = self.joystick.get_axis(0)
+            ay = self.joystick.get_axis(1)
+            if abs(ax) > self.deadzone:
+                if ax < 0:
+                    self.con_left = True
+                else:
+                    self.con_right = True
+            if abs(ay) > self.deadzone:
+                if ay < 0:
+                    self.con_up = True
+                else:
+                    self.con_down = True
+
+    def handle_keyboard(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.quit = True
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    self.k_left = True
+                elif event.key == pygame.K_RIGHT:
+                    self.k_right = True
+                elif event.key == pygame.K_RETURN:
+                    self.k_enter = True
+                elif event.key == pygame.K_ESCAPE:
+                    self.quit = True
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            self.con_left = True
+        if keys[pygame.K_RIGHT]:
+            self.con_right = True
+        if keys[pygame.K_UP]:
+            self.con_up = True
+        if keys[pygame.K_DOWN]:
+            self.con_down = True

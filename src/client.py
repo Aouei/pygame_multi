@@ -130,37 +130,19 @@ def get_input() -> tuple[int, int]:
     global CURRENT_STATE, INPUTS
     dx, dy = 0, 0
 
-    if INPUTS.joystick is not None:
-        deadzone = 0.1
-        ax = INPUTS.joystick.get_axis(0)
-        ay = INPUTS.joystick.get_axis(1)
-        if abs(ax) > deadzone:
-            if ax < 0:
-                dx = -PLAYER_SPEED
-                CURRENT_STATE = 'left'
-            else:
-                dx = PLAYER_SPEED
-                CURRENT_STATE = 'right'
-        if abs(ay) > deadzone:
-            if ay < 0:
-                dy = -PLAYER_SPEED
-                CURRENT_STATE = 'up'
-            else:
-                dy = PLAYER_SPEED
-                CURRENT_STATE = 'down'
-    else:
-        if INPUTS.con_left:
-            dx = -PLAYER_SPEED
-            CURRENT_STATE = 'left'
-        if INPUTS.con_right:
-            dx =  PLAYER_SPEED
-            CURRENT_STATE = 'right'
-        if INPUTS.con_up:
-            dy = -PLAYER_SPEED
-            CURRENT_STATE = 'up'
-        if INPUTS.con_down:
-            dy =  PLAYER_SPEED
-            CURRENT_STATE = 'down'
+    if INPUTS.con_left:
+        dx = -PLAYER_SPEED
+        CURRENT_STATE = 'left'
+    if INPUTS.con_right:
+        dx =  PLAYER_SPEED
+        CURRENT_STATE = 'right'
+    if INPUTS.con_up:
+        dy = -PLAYER_SPEED
+        CURRENT_STATE = 'up'
+    if INPUTS.con_down:
+        dy =  PLAYER_SPEED
+        CURRENT_STATE = 'down'
+        
     return dx, dy
 
 
@@ -195,7 +177,7 @@ async def game_loop(websocket) -> None:
 
     while True:
         INPUTS.update()
-        
+
         if INPUTS.quit:
             pygame.quit()
             sys.exit()
