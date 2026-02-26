@@ -61,8 +61,6 @@ class ServerState:
 
         if not self.MAP.is_collision(x + dx, y + dy, player.mask):
             player.move(x + dx, y + dy, state)
-        else:
-            player.move(x - dx, y - dy, state)
 
     def get_players(self):
         return { id : player.dump() for id, player in self.players.items() }

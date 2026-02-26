@@ -78,15 +78,20 @@ class Client:
             if message_type == MESSAGES.HELLO:
                 self.ID = data["id"]
             elif message_type == MESSAGES.PLAYERS_UPDATE:
-                print(data)
-
+                players = {int(k): v for k, v in data.get("players", {}).items()}
                 self.server_positions.clear()
-                self.server_positions.update(data.get("players", {}))
+                self.server_positions.update(players)
 
                 # Initialise render position for newly connected players
                 for pid, pos in self.server_positions.items():
                     if pid not in self.render_positions:
                         self.render_positions[pid] = pos
+                else:
+                    if self.ID in self.server_positions:
+                        x, y, state = self.server_positions[self.ID]['x'], \
+                                      self.server_positions[self.ID]['y'], \
+                                      self.server_positions[self.ID]['state']
+                        self.player.move(x, y, state)
 
                 # Remove players that have disconnected
                 for pid in list(self.render_positions):
@@ -119,9 +124,8 @@ class Client:
 
             window.fill(BACKGROUND_COLOR)
 
-            my_id = str(self.ID)
-            if self.ID >= 0 and my_id in self.render_positions:
-                player_pos = self.render_positions[my_id]
+            if self.ID >= 0 and self.ID in self.render_positions:
+                player_pos = self.render_positions[self.ID]
                 center_x = int(player_pos["x"] + PLAYER_SIZE // 2)
                 center_y = int(player_pos["y"] + PLAYER_SIZE // 2)
             else:
@@ -143,7 +147,8 @@ class Client:
                 self.state.draw(window, -offset_x, -offset_y, pos)
                 minmap_points.append({'x' : pos['x'], 'y' : pos['y'], 'color' : self.state.COLORS[int(pid)]} )
             else:
-                self.state.MAP.draw_mini(window, 16, 16, minmap_points)
+                print(self.player.x, self.player.y)
+                self.state.MAP.draw_mini(window, 16, 16, minmap_points, self.player.x, self.player.y)
 
             pygame.display.flip()
             self.CLOCK.tick(self.FRAME_RATE)
