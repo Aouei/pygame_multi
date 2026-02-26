@@ -124,10 +124,9 @@ class Client:
 
             window.fill(BACKGROUND_COLOR)
 
-            if self.ID >= 0 and self.ID in self.render_positions:
-                player_pos = self.render_positions[self.ID]
-                center_x = int(player_pos["x"] + PLAYER_SIZE // 2)
-                center_y = int(player_pos["y"] + PLAYER_SIZE // 2)
+            if self.ID >= 0:
+                center_x = self.player.x + PLAYER_SIZE // 2
+                center_y = self.player.y + PLAYER_SIZE // 2
             else:
                 center_x = WIDTH // 2
                 center_y = HEIGHT // 2
@@ -147,7 +146,6 @@ class Client:
                 self.state.draw(window, -offset_x, -offset_y, pos)
                 minmap_points.append({'x' : pos['x'], 'y' : pos['y'], 'color' : self.state.COLORS[int(pid)]} )
             else:
-                print(self.player.x, self.player.y)
                 self.state.MAP.draw_mini(window, 16, 16, minmap_points, self.player.x, self.player.y)
 
             pygame.display.flip()

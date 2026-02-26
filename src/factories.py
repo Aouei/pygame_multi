@@ -1,7 +1,10 @@
 import pygame
-import paths
 import os
 
+
+import paths
+
+from enums import STATE, PLAYER_CLASS
 
 
 def load_scale(path : str, size : int):
@@ -22,3 +25,11 @@ def load_tiles(size : int = 64):
     }
     
     return tiles
+
+
+def load_player(class_type : PLAYER_CLASS, size : int = 64):
+    states = [STATE.LEFT, STATE.RIGHT, STATE.UP, STATE.DOWN]
+
+    return {
+        state : load_scale(os.path.join(paths.PLAYER_DIR, class_type.value, f'{state.value}.png'), size) for state in states
+    }

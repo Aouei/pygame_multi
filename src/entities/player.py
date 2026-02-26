@@ -1,19 +1,15 @@
 import pygame
 import os
+
 from enums import PLAYER_CLASS, STATE
+from factories import load_player
 
 
 class Player:
     PLAYER_SIZE = 64
 
     def __init__(self, inputs, folder: str, player_class : PLAYER_CLASS) -> None:
-        self.states = {
-            state : pygame.transform.scale(
-                pygame.image.load(os.path.join(folder, player_class.value, f'{state.value}.png')),
-                (self.PLAYER_SIZE, self.PLAYER_SIZE)
-            ) for state in [STATE.LEFT, STATE.RIGHT, STATE.UP, STATE.DOWN]
-        }
-
+        self.states = load_player(player_class, self.PLAYER_SIZE)
         self.masks = {
             state : pygame.mask.from_surface(surface) for state, surface in self.states.items()
         }
