@@ -24,7 +24,7 @@ class Screen():
 
     def loop(self, window: pygame.Surface, clock, frames) -> PLAYER_CLASS:
         while self.selection is None:
-            window.fill((0, 0, 0))
+            window.fill((132, 226, 150)) 
             self.handle_events()
             self.draw(window)
             pygame.display.update()

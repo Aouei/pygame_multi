@@ -1,98 +1,119 @@
-import pygame, sys
+import pygame
 
 
 class InputHandler:
     def __init__(self) -> None:
         pygame.joystick.init()
-
-        if pygame.joystick.get_count() > 0:
-            self.joystick = pygame.joystick.Joystick(0)
-            self.joystick.init()
-        else:
-            self.joystick = None
-
         self.deadzone = 0.1
         self._reset()
-        self._prev_hat = (0, 0)
+        self._joystick = None
+        self._try_init_joystick()
+        self._prev_hat = 0
+
+    def _try_init_joystick(self):
+        if pygame.joystick.get_count() > 0:
+            self._joystick = pygame.joystick.Joystick(0)
+            self._joystick.init()
 
     def _reset(self):
-        self.quit = False
-        self.k_left = False
-        self.k_right = False
-        self.k_enter = False
-        self.con_left = False
+        self.quit      = False
+        self.k_left    = False   # pulso puntual (menús)
+        self.k_right   = False   # pulso puntual (menús)
+        self.k_enter   = False   # pulso puntual
+        self.con_left  = False   # estado continuo (movimiento)
         self.con_right = False
-        self.con_up = False
-        self.con_down = False
+        self.con_up    = False
+        self.con_down  = False
+        self.shot      = False
 
     def update(self):
         self._reset()
-        self.handle_keyboard()
-        self.handle_joystick()
 
-    def handle_joystick(self):
-        if self.joystick is not None: # meter con_left y con_right
-            hat = self.joystick.get_hat(0) if self.joystick.get_numhats() > 0 else (0, 0)
-            # Detectar solo transición de cruceta
-            if hat[0] == -1 and self._prev_hat[0] != -1:
-                self.k_left = True
-            if hat[0] == 1 and self._prev_hat[0] != 1:
-                self.k_right = True
-            self._prev_hat = hat
+        # Consumir eventos de pygame (necesario siempre para que pygame no se congele)
+        events = pygame.event.get()
 
-            # Botón X (usualmente botón 0 en la mayoría de mandos)
-            if self.joystick.get_numbuttons() > 0:
-                if self.joystick.get_button(0):
-                    self.k_enter = True
+        if self._joystick is not None:
+            self._handle_joystick(events)
+        else:
+            self._handle_keyboard(events)
 
-            # Start (botón 7), Select (botón 6)
-            start = self.joystick.get_button(7) if self.joystick.get_numbuttons() > 7 else False
-            select = self.joystick.get_button(6) if self.joystick.get_numbuttons() > 6 else False
-            if start and select:
-                self.quit = True
-
-            ax = self.joystick.get_axis(0)
-            ay = self.joystick.get_axis(1)
-            if abs(ax) > self.deadzone:
-                if ax < 0:
-                    print('LEFT')
-                    self.con_left = True
-                else:
-                    print('RIGTH')
-                    self.con_right = True
-            if abs(ay) > self.deadzone:
-                if ay < 0:
-                    print('UP')
-                    self.con_up = True
-                else:
-                    print('DOWN')
-                    self.con_down = True
-
-    def handle_keyboard(self):
-        for event in pygame.event.get():
+    # ------------------------------------------------------------------
+    # Keyboard
+    # ------------------------------------------------------------------
+    def _handle_keyboard(self, events):
+        for event in events:
             if event.type == pygame.QUIT:
                 self.quit = True
             elif event.type == pygame.KEYDOWN:
-                print(f"KEYDOWN: {pygame.key.name(event.key)}")
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_ESCAPE:
+                    self.quit = True
+                elif event.key == pygame.K_RETURN:
+                    self.k_enter = True
+                elif event.key == pygame.K_LEFT:
                     self.k_left = True
                 elif event.key == pygame.K_RIGHT:
                     self.k_right = True
-                elif event.key == pygame.K_RETURN:
-                    self.k_enter = True
-                elif event.key == pygame.K_ESCAPE:
-                    self.quit = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    self.shot = True
+            elif event.type == pygame.JOYDEVICEADDED:
+                self._try_init_joystick()
 
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
-            print("con_left activado")
-            self.con_left = True
-        if keys[pygame.K_RIGHT]:
-            print("con_right activado")
-            self.con_right = True
-        if keys[pygame.K_UP]:
-            print("con_up activado")
-            self.con_up = True
-        if keys[pygame.K_DOWN]:
-            print("con_down activado")
-            self.con_down = True
+        if keys[pygame.K_LEFT]:  self.con_left  = True
+        if keys[pygame.K_RIGHT]: self.con_right = True
+        if keys[pygame.K_UP]:    self.con_up    = True
+        if keys[pygame.K_DOWN]:  self.con_down  = True
+
+    # ------------------------------------------------------------------
+    # Joystick
+    # ------------------------------------------------------------------
+    def _handle_joystick(self, events):
+        j = self._joystick
+
+        for event in events:
+            if event.type == pygame.QUIT:
+                self.quit = True
+            elif event.type == pygame.JOYBUTTONDOWN:
+                if event.button == 0:
+                    self.k_enter = True
+                if event.button == 5:
+                    self.shot = True
+            elif event.type == pygame.JOYDEVICEREMOVED:
+                self._joystick = None
+                return
+
+        if self._joystick is None:
+            return
+
+        # Ejes analógicos → movimiento continuo
+        ax = j.get_axis(0) if j.get_numaxes() > 0 else 0.0
+        ay = j.get_axis(1) if j.get_numaxes() > 1 else 0.0
+
+        if ax < -self.deadzone: self.con_left  = True
+        if ax >  self.deadzone: self.con_right = True
+        if ay < -self.deadzone: self.con_up    = True
+        if ay >  self.deadzone: self.con_down  = True
+
+        # Cruceta → estado continuo + pulso para menús
+        if j.get_numhats() > 0:
+            hx, hy = j.get_hat(0)
+            if hx == -1 and self._prev_hat != -1:
+                self.con_left  = True
+                self.k_left    = True
+            elif hx ==  1 and self._prev_hat != 1:
+                self.con_right = True
+                self.k_right   = True
+            else:
+                self._prev_hat = 0
+            if hy ==  1: self.con_up   = True
+            if hy == -1: self.con_down = True
+
+            self._prev_hat = hx
+
+        # Start + Select → salir
+        n = j.get_numbuttons()
+        start  = j.get_button(7) if n > 7 else False
+        select = j.get_button(6) if n > 6 else False
+        if start and select:
+            self.quit = True

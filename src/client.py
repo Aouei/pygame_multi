@@ -11,47 +11,16 @@ from loguru import logger
 
 import messages
 
+import paths
 from levels import game, lobby
 from enums import PLAYER_CLASS, MESSAGES, STATE
 from entities.player import Player
 from inputs import InputHandler
 from states import ClientState
 
-
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
-FRAME_RATE   = 60
-PLAYER_SPEED = 5
-PLAYER_SIZE  = 64
-TILE_SIZE    = 64
-BACKGROUND_COLOR = (127, 64, 0)
-
-# ---------------------------------------------------------------------------
-# Paths (relative to this file so the project is portable)
-# ---------------------------------------------------------------------------
-if getattr(sys, "frozen", False):
-    BASE_DIR = sys._MEIPASS
-else:
-    BASE_DIR = os.path.join(os.path.dirname(__file__), "..")
-ASSETS_DIR  = os.path.join(BASE_DIR, "assets")
-PLAYER_DIR  = os.path.join(ASSETS_DIR, "player")
-TILES_DIR   = os.path.join(ASSETS_DIR, "tiles")
-MAP_PATH    = os.path.join(ASSETS_DIR, "map", "map.csv")
-
-PLAYER = {
-    'up' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, 'mage', "up.png")), (PLAYER_SIZE, PLAYER_SIZE)),
-    'down' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, 'mage', "down.png")), (PLAYER_SIZE, PLAYER_SIZE)),
-    'right' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, 'mage', "right.png")), (PLAYER_SIZE, PLAYER_SIZE)),
-    'left' : pygame.transform.scale(pygame.image.load(os.path.join(PLAYER_DIR, 'mage', "left.png")), (PLAYER_SIZE, PLAYER_SIZE)),
-}
-CURRENT_STATE = 'down'
-
-# ---------------------------------------------------------------------------
-# Pygame setup
-# ---------------------------------------------------------------------------
 pygame.init()
 
+# window = pygame.display.set_mode((500, 500))
 window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 WIDTH, HEIGHT = window.get_size()
 
@@ -112,6 +81,11 @@ class Client:
                 logger.info(f"Sending to server {MESSAGES.WISH_MOVE}")
                 await messages.wish_move(dx, dy, state, websocket) 
 
+            if self.INPUTS.shot:
+                pygame.quit()
+                sys.exit()
+
+
             for pid, srv in self.server_positions.items():
                 rnd = self.render_positions.get(pid)
                 if rnd is None:
@@ -122,11 +96,11 @@ class Client:
                 rnd["y"] = srv["y"]
                 rnd["state"] = srv["state"]
 
-            window.fill(BACKGROUND_COLOR)
+            window.fill((0, 0, 0))
 
             if self.ID >= 0:
-                center_x = self.player.x + PLAYER_SIZE // 2
-                center_y = self.player.y + PLAYER_SIZE // 2
+                center_x = self.player.x + self.player.PLAYER_SIZE // 2
+                center_y = self.player.y + self.player.PLAYER_SIZE // 2
             else:
                 center_x = WIDTH // 2
                 center_y = HEIGHT // 2
@@ -153,7 +127,7 @@ class Client:
             await asyncio.sleep(0)  # Cede el control al event loop para que `update` reciba mensajes del servidor
     
     async def connect(self, player_class : PLAYER_CLASS) -> None:
-        self.player = Player(None, PLAYER_DIR, player_class)
+        self.player = Player(None, paths.PLAYER_DIR, player_class)
 
         async with websockets.connect("ws://25.33.144.47:25565") as websocket:
             logger.info(f"Sending to server: {MESSAGES.PLAYER_CLASS}")
@@ -167,7 +141,7 @@ class Client:
 if __name__ == '__main__':
     client = Client()
 
-    first_screen = lobby.Screen(client.INPUTS, PLAYER_DIR)
+    first_screen = lobby.Screen(client.INPUTS, paths.PLAYER_DIR)
     selection = first_screen.loop(window, client.CLOCK, client.FRAME_RATE)
 
     asyncio.run(client.connect(selection))
