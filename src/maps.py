@@ -1,26 +1,20 @@
 import pandas as pd
 import random
 import pygame
-import os
+
 
 from scipy.spatial import KDTree
 
-import paths
+import factories
 
-
-TILE_SIZE = 64
-TILES = {
-    str(i): pygame.transform.scale(
-        pygame.image.load(os.path.join(paths.TILES_DIR, f"tile_{i}_{'shore' if i <= 5 else 'grass'}.png")),
-        (TILE_SIZE, TILE_SIZE),
-    )
-    for i in range(1, 11)
-}
 
 class Map:
     SOLID_TILES = {2}
-    SPAWN_CODE = 8
+    NO_TILES = {0}
+    SPAWN_CODE = 7
     MINMAP_SCALE = 0.1
+    TILE_SIZE = 64
+    TILES = factories.load_tiles(TILE_SIZE)
     
     def __init__(self, data_path : str) -> None:
         self.__load(data_path)
@@ -30,11 +24,11 @@ class Map:
 
     @property
     def width(self):
-        return self.data.shape[-1] * TILE_SIZE
+        return self.data.shape[-1] * self.TILE_SIZE
 
     @property
     def height(self):
-        return self.data.shape[0] * TILE_SIZE
+        return self.data.shape[0] * self.TILE_SIZE
 
     def __load(self, data_path : str):
         self.data = pd.read_csv(data_path, header=None).values
@@ -44,8 +38,8 @@ class Map:
         for i, row in enumerate(self.data):
             for j, col in enumerate(row):
                 if col in self.SOLID_TILES:
-                    self.solid_positions.append((j * TILE_SIZE + TILE_SIZE // 2, 
-                                                 i * TILE_SIZE + TILE_SIZE // 2))
+                    self.solid_positions.append((j * self.TILE_SIZE + self.TILE_SIZE // 2, 
+                                                 i * self.TILE_SIZE + self.TILE_SIZE // 2))
 
         self.solid_tree = KDTree(self.solid_positions) if self.solid_positions else None
 
@@ -58,8 +52,8 @@ class Map:
 
     def spawn(self) -> tuple[int, int]:
         j, i = random.choice(self.spawn_tiles)
-        x = j * TILE_SIZE + TILE_SIZE // 2  # centro del tile
-        y = i * TILE_SIZE + TILE_SIZE // 2  # centro del tile
+        x = j * self.TILE_SIZE + self.TILE_SIZE // 2  # centro del tile
+        y = i * self.TILE_SIZE + self.TILE_SIZE // 2  # centro del tile
     
         return x, y
 
@@ -70,7 +64,7 @@ class Map:
             return False
 
         player_size = mask.get_size()[0]  # tamaño real de la máscara del jugador
-        search_radius = TILE_SIZE + player_size // 2
+        search_radius = self.TILE_SIZE + player_size // 2
 
         nearby_indices = self.solid_tree.query_ball_point([x, y], search_radius)
 
@@ -79,11 +73,11 @@ class Map:
 
         for idx in nearby_indices:
             sx, sy = self.solid_positions[idx]
-            # sx, sy es el centro del tile → top-left es (sx - TILE_SIZE//2, sy - TILE_SIZE//2)
-            tile_left = sx - TILE_SIZE // 2
-            tile_top  = sy - TILE_SIZE // 2
+            # sx, sy es el centro del tile → top-left es (sx - self.TILE_SIZE//2, sy - self.TILE_SIZE//2)
+            tile_left = sx - self.TILE_SIZE // 2
+            tile_top  = sy - self.TILE_SIZE // 2
 
-            tile_mask = pygame.mask.Mask((TILE_SIZE, TILE_SIZE), fill=True)
+            tile_mask = pygame.mask.Mask((self.TILE_SIZE, self.TILE_SIZE), fill=True)
             offset = (tile_left - player_left, tile_top - player_top)
             if mask.overlap(tile_mask, offset):
                 return True
@@ -91,10 +85,11 @@ class Map:
         return False
     
     def __load_map(self):
-        self.prev_map = pygame.Surface((self.data.shape[-1] * TILE_SIZE, self.data.shape[0] * TILE_SIZE))
+        self.prev_map = pygame.Surface((self.data.shape[-1] * self.TILE_SIZE, self.data.shape[0] * self.TILE_SIZE))
         for i, row in enumerate(self.data):
             for j, col in enumerate(row):
-                self.prev_map.blit(TILES[str(col)], (j * TILE_SIZE, i * TILE_SIZE))
+                if not col in self.NO_TILES:
+                    self.prev_map.blit(self.TILES[col], (j * self.TILE_SIZE, i * self.TILE_SIZE))
     
     def draw(self, surface, position):
         surface.blit(self.prev_map, position)
