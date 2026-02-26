@@ -2,8 +2,15 @@ import pygame, sys
 
 
 class InputHandler:
-    def __init__(self, joystick=None) -> None:
-        self.joystick = joystick
+    def __init__(self) -> None:
+        pygame.joystick.init()
+
+        if pygame.joystick.get_count() > 0:
+            self.joystick = pygame.joystick.Joystick(0)
+            self.joystick.init()
+        else:
+            self.joystick = None
+
         self._reset()
         self._prev_hat = (0, 0)
 
