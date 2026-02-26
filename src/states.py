@@ -75,6 +75,13 @@ class ClientState:
                                                                                    PLAYER_CLASS.MAGE, 
                                                                                    PLAYER_CLASS.MUSKETEER]
     }
+
+    COLORS = {
+        0 : (0, 0, 0),
+        1 : (0, 0, 255),
+        2 : (0, 255, 0),
+        3 : (255, 0, 0),
+    }
     
     def __init__(self) -> None:
         pass

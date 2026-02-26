@@ -20,7 +20,7 @@ TILES = {
 class Map:
     SOLID_TILES = {2}
     SPAWN_CODE = 8
-
+    MINMAP_SCALE = 0.1
     
     def __init__(self, data_path : str) -> None:
         self.__load(data_path)
@@ -63,23 +63,31 @@ class Map:
     
         return x, y
 
-    def is_collision(self, x, y, surface: pygame.mask.Mask):
+    def is_collision(self, x, y, mask: pygame.mask.Mask):
         # x, y es el centro del jugador
-        # La máscara del jugador tiene origen en su esquina top-left: (x - TILE_SIZE//2, y - TILE_SIZE//2)
-        # El offset para mask.overlap es: posición top-left del tile - posición top-left del jugador
-        player_left = x - TILE_SIZE // 2
-        player_top  = y - TILE_SIZE // 2
+        # Solo comprobamos tiles cercanos usando el KDTree
+        if self.solid_tree is None:
+            return False
 
-        for sx, sy in self.solid_positions:
-            # sx, sy es el centro del tile sólido → su top-left es (sx - TILE_SIZE//2, sy - TILE_SIZE//2)
+        player_size = mask.get_size()[0]  # tamaño real de la máscara del jugador
+        search_radius = TILE_SIZE + player_size // 2
+
+        nearby_indices = self.solid_tree.query_ball_point([x, y], search_radius)
+
+        player_left = x - player_size // 2
+        player_top  = y - player_size // 2
+
+        for idx in nearby_indices:
+            sx, sy = self.solid_positions[idx]
+            # sx, sy es el centro del tile → top-left es (sx - TILE_SIZE//2, sy - TILE_SIZE//2)
             tile_left = sx - TILE_SIZE // 2
             tile_top  = sy - TILE_SIZE // 2
 
             tile_mask = pygame.mask.Mask((TILE_SIZE, TILE_SIZE), fill=True)
             offset = (tile_left - player_left, tile_top - player_top)
-            if surface.overlap(tile_mask, offset):
+            if mask.overlap(tile_mask, offset):
                 return True
-                
+
         return False
     
     def __load_map(self):
@@ -90,3 +98,14 @@ class Map:
     
     def draw(self, surface, position):
         surface.blit(self.prev_map, position)
+
+    def draw_mini(self, surface : pygame.Surface, dx, dy, points):
+        temp = self.prev_map.copy()
+    
+        for point in points:
+            pygame.draw.circle(temp, point['color'], (point['x'], point['y']), radius = 32)
+    
+        temp = pygame.transform.scale(temp, (self.width * self.MINMAP_SCALE, self.height * self.MINMAP_SCALE))
+        pygame.draw.rect(temp, (255, 255, 255), temp.get_rect(), width = 5)
+
+        surface.blit(temp, (dx, dy))

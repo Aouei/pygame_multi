@@ -138,9 +138,13 @@ class Client:
 
             self.state.MAP.draw(window, (-offset_x, -offset_y))
 
+            minmap_points = []
             for pid, pos in self.render_positions.items():
                 self.state.draw(window, -offset_x, -offset_y, pos)
-            
+                minmap_points.append({'x' : pos['x'], 'y' : pos['y'], 'color' : self.state.COLORS[int(pid)]} )
+            else:
+                self.state.MAP.draw_mini(window, 16, 16, minmap_points)
+
             pygame.display.flip()
             self.CLOCK.tick(self.FRAME_RATE)
             await asyncio.sleep(0)  # Cede el control al event loop para que `update` reciba mensajes del servidor

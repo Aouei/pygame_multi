@@ -8,10 +8,10 @@ class Player:
 
     def __init__(self, inputs, folder: str, player_class : PLAYER_CLASS) -> None:
         self.states = {
-            state : pygame.image.load(os.path.join(folder, player_class.value, f'{state.value}.png')) for state in [STATE.LEFT, 
-                                                                                                                    STATE.RIGHT, 
-                                                                                                                    STATE.UP, 
-                                                                                                                    STATE.DOWN]
+            state : pygame.transform.scale(
+                pygame.image.load(os.path.join(folder, player_class.value, f'{state.value}.png')),
+                (self.PLAYER_SIZE, self.PLAYER_SIZE)
+            ) for state in [STATE.LEFT, STATE.RIGHT, STATE.UP, STATE.DOWN]
         }
 
         self.masks = {
@@ -68,8 +68,5 @@ class Player:
     def draw(self, surface, dx, dy):
         # x, y es el centro → top-left para blit es (x - PLAYER_SIZE//2, y - PLAYER_SIZE//2)
         position = (self.x - self.PLAYER_SIZE // 2 + dx,
-                    self.y - self.PLAYER_SIZE // 2 + dy,
-                    self.PLAYER_SIZE, self.PLAYER_SIZE)
-        image = pygame.transform.scale(self.states[self.current_state],
-                                       (self.PLAYER_SIZE, self.PLAYER_SIZE))
-        surface.blit(image, position)
+                    self.y - self.PLAYER_SIZE // 2 + dy)
+        surface.blit(self.states[self.current_state], position)

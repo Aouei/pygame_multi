@@ -6,6 +6,7 @@ import json
 from loguru import logger
 
 import messages
+from enums import MESSAGES
 from states import ServerState
 
 pygame.init()
@@ -32,24 +33,19 @@ class Server:
         finally:
             self.state.remove_player(ID)
 
+    # En server.py
     async def loop(self):
         interval = 1.0 / self.TICK_RATE
-        
         while True:
             await asyncio.sleep(interval)
             if not self.state.clients:
                 continue
 
-            dead = []
-            for pid, player in self.state.clients.items():
-                try:
-                    await messages.players_state(self.state, player)
-                    logger.info(f"Sended Update to players")
-                except websockets.exceptions.ConnectionClosed:
-                    dead.append(pid)
-            else:      
-                for pid in dead:
-                    self.state.remove_player(pid)
+            message = json.dumps({
+                'type': MESSAGES.PLAYERS_UPDATE.value,
+                'players': self.state.get_players()
+            })
+            websockets.broadcast(self.state.clients.values(), message)
 
 async def main():
     server = Server()
