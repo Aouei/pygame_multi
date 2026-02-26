@@ -9,9 +9,10 @@ import numpy as np
 from loguru import logger
 
 
-from levels import lobby
+from levels import game, lobby
 from enums import PLAYER_CLASS
 from entities.player import Player
+from inputs import InputHandler
 
 
 # ---------------------------------------------------------------------------
@@ -22,10 +23,6 @@ PLAYER_SPEED = 5
 PLAYER_SIZE  = 64
 TILE_SIZE    = 64
 BACKGROUND_COLOR = (127, 64, 0)
-
-# Interpolation factor: how quickly remote players catch up to their server
-# position each frame.  0.0 = never moves, 1.0 = instant snap.
-LERP_ALPHA = 0.2
 
 # ---------------------------------------------------------------------------
 # Paths (relative to this file so the project is portable)
@@ -51,6 +48,8 @@ CURRENT_STATE = 'down'
 # Pygame setup
 # ---------------------------------------------------------------------------
 pygame.init()
+
+INPUTS = InputHandler()
 pygame.joystick.init()
 window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 WIDTH, HEIGHT = window.get_size()
@@ -78,11 +77,6 @@ MINIMAP_HEIGHT = int(len(map_data) * TILE_SIZE * MINIMAP_SCALE)
 MINIMAP_MARGIN = 20 # Margin from top-left corner
 PLAYER_COLORS = [(255,0,0), (0,255,0), (0,0,255), (255,255,0)]
 
-# Joystick instance (initialized once)
-JOYSTICK = None
-if pygame.joystick.get_count() > 0:
-    JOYSTICK = pygame.joystick.Joystick(0)
-    JOYSTICK.init()
 
 def render_minimap(surface: pygame.Surface, player_positions: dict, my_id: int | None):
     # Draw minimap background
@@ -129,25 +123,17 @@ my_id: int | None = None
 server_positions: dict[str, dict] = {}
 render_positions: dict[str, dict] = {}
 
-# Local predicted position for our own player (updated every frame immediately)
-local_pos: dict = {"x": 0.0, "y": 0.0, "ready": False}
-
-
-def lerp(a: float, b: float, t: float) -> float:
-    return a + (b - a) * t
-
-
 # ---------------------------------------------------------------------------
 # Input
 # ---------------------------------------------------------------------------
 def get_input() -> tuple[int, int]:
-    global CURRENT_STATE
+    global CURRENT_STATE, INPUTS
     dx, dy = 0, 0
 
-    if JOYSTICK is not None:
+    if INPUTS.joystick is not None:
         deadzone = 0.1
-        ax = JOYSTICK.get_axis(0)
-        ay = JOYSTICK.get_axis(1)
+        ax = INPUTS.joystick.get_axis(0)
+        ay = INPUTS.joystick.get_axis(1)
         if abs(ax) > deadzone:
             if ax < 0:
                 dx = -PLAYER_SPEED
@@ -163,17 +149,16 @@ def get_input() -> tuple[int, int]:
                 dy = PLAYER_SPEED
                 CURRENT_STATE = 'down'
     else:
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:  
+        if INPUTS.con_left:
             dx = -PLAYER_SPEED
             CURRENT_STATE = 'left'
-        if keys[pygame.K_RIGHT]: 
+        if INPUTS.con_right:
             dx =  PLAYER_SPEED
             CURRENT_STATE = 'right'
-        if keys[pygame.K_UP]:    
+        if INPUTS.con_up:
             dy = -PLAYER_SPEED
             CURRENT_STATE = 'up'
-        if keys[pygame.K_DOWN]:  
+        if INPUTS.con_down:
             dy =  PLAYER_SPEED
             CURRENT_STATE = 'down'
     return dx, dy
@@ -196,11 +181,6 @@ async def receive_loop(websocket) -> None:
             for pid, pos in server_positions.items():
                 if pid not in render_positions:
                     render_positions[pid] = {"x": float(pos["x"]), "y": float(pos["y"])}
-                # Initialise local prediction from the first server position we receive
-                if str(pid) == str(my_id) and not local_pos["ready"]:
-                    local_pos["x"] = float(pos["x"])
-                    local_pos["y"] = float(pos["y"])
-                    local_pos["ready"] = True
             # Remove players that have disconnected
             for pid in list(render_positions):
                 if pid not in server_positions:
@@ -211,18 +191,14 @@ async def receive_loop(websocket) -> None:
 # Main game loop
 # ---------------------------------------------------------------------------
 async def game_loop(websocket) -> None:
-    global CURRENT_STATE
-    while True:
-        # --- Events ---
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit() # TODO: message to server to quit
+    global CURRENT_STATE, INPUTS
 
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_ESCAPE]:
+    while True:
+        INPUTS.update()
+        
+        if INPUTS.quit:
             pygame.quit()
-            sys.exit() # TODO: message to server to quit
+            sys.exit()
 
         # --- Input & send ---
         dx, dy = get_input()
@@ -282,9 +258,8 @@ async def game_loop(websocket) -> None:
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
-async def main(player_class : PLAYER_CLASS) -> None:
-    global PLAYER
-    PLAYER = Player(PLAYER_DIR, player_class)
+async def game(player_class : PLAYER_CLASS) -> None:
+    demo = Player(PLAYER_DIR, player_class)
 
     async with websockets.connect("ws://25.33.144.47:25565") as websocket:
         msg = {"type": "start", "x": WIDTH, "y": HEIGHT}
@@ -298,9 +273,9 @@ async def main(player_class : PLAYER_CLASS) -> None:
 
 
 if __name__ == '__main__':
-    first_screen = lobby.Screen(size = 20)
+    first_screen = lobby.Screen(INPUTS, PLAYER_DIR)
     selection = first_screen.loop(window, clock, FRAME_RATE)
 
     print(selection)
 
-    asyncio.run(main(selection))
+    asyncio.run(game(selection))
