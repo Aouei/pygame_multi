@@ -58,11 +58,14 @@ class Logic:
 
     def __new_bullet(self, id : int, data : dict):
         player = self.STATE.PLAYERS[id]
-        pos = player.pos
 
         role, dx, dy = *[ data[key] for key in ['role', 'dx', 'dy'] ], 
+        pos = player.pos
+        new_pos = Geometry(pos.x + dx * self.STATE.BULLET_VELOCITY,
+                           pos.y + dy * self.STATE.BULLET_VELOCITY,
+                           radius = 16)
         
-        self.STATE.BULLETS.append(Bullet(pos, dx, dy, ROLE(role)))
+        self.STATE.BULLETS.append(Bullet(new_pos, dx, dy, ROLE(role)))
 
     def __move_bullets(self):
         for bullet in self.STATE.BULLETS[::]:

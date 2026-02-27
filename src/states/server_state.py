@@ -14,7 +14,7 @@ class State:
     BULLETS : list[Bullet] = []
     MAP : Map = Map(paths.MAP_PATH)
 
-    BULLET_VELOCITY = 20
+    BULLET_VELOCITY = 30
 
     @property
     def available_ids(self):
