@@ -84,7 +84,7 @@ class ClientState:
     def __init__(self) -> None:
         pass
 
-    def draw(self, surface, dx, dy, data : dict):
+    def draw_player(self, surface, dx, dy, data : dict):
         x, y, state, type_class = list(data.values())
         type_class = PLAYER_CLASS(type_class)
 

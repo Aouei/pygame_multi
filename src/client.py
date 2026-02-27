@@ -117,7 +117,7 @@ class Client:
 
             minmap_points = []
             for pid, pos in self.render_positions.items():
-                self.state.draw(window, -offset_x, -offset_y, pos)
+                self.state.draw_player(window, -offset_x, -offset_y, pos)
                 minmap_points.append({'x' : pos['x'], 'y' : pos['y'], 'color' : self.state.COLORS[int(pid)]} )
             else:
                 self.state.MAP.draw_mini(window, 16, 16, minmap_points, self.player.x, self.player.y)

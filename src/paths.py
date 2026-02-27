@@ -8,6 +8,6 @@ if __name__ != '__main__':
 
     ASSETS_DIR  = os.path.join(BASE_DIR, "assets")
     PLAYER_DIR  = os.path.join(ASSETS_DIR, "player")
+    BULLET_DIR  = os.path.join(ASSETS_DIR, "bullets")
     TILES_DIR   = os.path.join(ASSETS_DIR, "tiles")
     MAP_PATH    = os.path.join(ASSETS_DIR, "map", "map.csv")
-    SPRITE_PATH = os.path.join(ASSETS_DIR, "nave.png")

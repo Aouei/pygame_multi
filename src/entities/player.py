@@ -2,11 +2,12 @@ import pygame
 import os
 
 from enums import PLAYER_CLASS, STATE
-from factories import load_player
+from factories import load_player, load_bullet
 
 
 class Player:
     PLAYER_SIZE = 64
+    BULLET_SIZE = 32
 
     def __init__(self, inputs, folder: str, player_class : PLAYER_CLASS) -> None:
         self.states = load_player(player_class, self.PLAYER_SIZE)
@@ -19,6 +20,8 @@ class Player:
         self.speed = 5
         self.x = 0
         self.y = 0
+
+        self.bullet = Bullet(player_class, self.BULLET_SIZE)
 
     @property
     def class_type(self):
@@ -62,7 +65,20 @@ class Player:
         return summary
     
     def draw(self, surface, dx, dy):
-        # x, y es el centro → top-left para blit es (x - PLAYER_SIZE//2, y - PLAYER_SIZE//2)
         position = (self.x - self.PLAYER_SIZE // 2 + dx,
                     self.y - self.PLAYER_SIZE // 2 + dy)
         surface.blit(self.states[self.current_state], position)
+
+
+class Bullet:
+    def __init__(self, player_class : PLAYER_CLASS, size : int) -> None:
+        self.image = load_bullet(player_class, size)
+        self.mask = pygame.mask.from_surface(self.image)
+        self.x = 0
+        self.y = 0
+        self.size = size
+
+    def draw(self, surface, dx, dy):
+        position = (self.x - self.size // 2 + dx,
+                    self.y - self.size // 2 + dy)
+        surface.blit(self.image, position)

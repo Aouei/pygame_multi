@@ -33,3 +33,6 @@ def load_player(class_type : PLAYER_CLASS, size : int = 64):
     return {
         state : load_scale(os.path.join(paths.PLAYER_DIR, class_type.value, f'{state.value}.png'), size) for state in states
     }
+
+def load_bullet(class_type : PLAYER_CLASS, size : int = 32):
+    return load_scale(os.path.join(paths.BULLET_DIR, f'{class_type.value}.png'), size)
