@@ -1,6 +1,6 @@
 from websockets import ClientConnection
 
-from server_state.state import State
+from states.server_state import State
 from enums import MESSAGES, ROLE, STATE
 from _entities import Player, Geometry, Live
 

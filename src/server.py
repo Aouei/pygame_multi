@@ -7,7 +7,7 @@ from loguru import logger
 
 import messages
 from enums import MESSAGES
-from server_state.logic import Logic
+from states.server_logic import Logic
 
 
 pygame.init()

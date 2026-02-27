@@ -1,21 +1,17 @@
 import asyncio
 import json
-import os
 import sys
 import pygame
 import websockets
-import pandas as pd
-import numpy as np
 from loguru import logger
 
 
 import messages
 
-import paths
 from levels import game, lobby
 from enums import ROLE, MESSAGES, STATE
 from inputs import InputHandler
-from states import ClientState
+from states.client_state import ClientState
 from _entities import Player, Geometry, Live
 
 pygame.init()
