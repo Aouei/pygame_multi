@@ -1,9 +1,7 @@
-import random
 from websockets import ClientConnection
 
 import paths
 from maps import Map
-from typing import Mapping
 from enums import PLAYER_CLASS, STATE, MESSAGES
 from entities.player import Player
 
@@ -12,7 +10,7 @@ TILE_SIZE = 64
 SPAWN_CODE = 8
 
 PLAYERS = {
-    PLAYER_CLASS.MAGE, Player(None, paths.PLAYER_DIR, PLAYER_CLASS.MAGE)
+    PLAYER_CLASS.MAGE, Player(PLAYER_CLASS.MAGE)
 }
 
 class ServerState:
@@ -51,7 +49,7 @@ class ServerState:
 
     def __set_player_class(self, id : int, data : dict):
         type = PLAYER_CLASS(data['class'])
-        self.players[id] = Player(None, paths.PLAYER_DIR, type)
+        self.players[id] = Player(type)
         self.players[id].move(*self.MAP.spawn(), STATE.DOWN.value)
 
     def __try_move(self, id : int, data : dict):
@@ -68,10 +66,7 @@ class ServerState:
 class ClientState:
     MAP = Map(paths.MAP_PATH)
     PLAYERS = {
-        type_class : Player(None, paths.PLAYER_DIR, type_class) for type_class in [PLAYER_CLASS.ARCHER, 
-                                                                                   PLAYER_CLASS.FARMER, 
-                                                                                   PLAYER_CLASS.MAGE, 
-                                                                                   PLAYER_CLASS.MUSKETEER]
+        type_class : Player(type_class) for type_class in PLAYER_CLASS
     }
 
     COLORS = {

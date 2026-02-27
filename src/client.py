@@ -127,7 +127,7 @@ class Client:
             await asyncio.sleep(0)  # Cede el control al event loop para que `update` reciba mensajes del servidor
     
     async def connect(self, player_class : PLAYER_CLASS) -> None:
-        self.player = Player(None, paths.PLAYER_DIR, player_class)
+        self.player = Player(player_class)
 
         async with websockets.connect("ws://25.33.144.47:25565") as websocket:
             logger.info(f"Sending to server: {MESSAGES.PLAYER_CLASS}")

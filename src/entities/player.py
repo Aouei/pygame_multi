@@ -1,5 +1,4 @@
 import pygame
-import os
 
 from enums import PLAYER_CLASS, STATE
 from factories import load_player, load_bullet
@@ -9,7 +8,7 @@ class Player:
     PLAYER_SIZE = 64
     BULLET_SIZE = 32
 
-    def __init__(self, inputs, folder: str, player_class : PLAYER_CLASS) -> None:
+    def __init__(self, player_class : PLAYER_CLASS) -> None:
         self.states = load_player(player_class, self.PLAYER_SIZE)
         self.masks = {
             state : pygame.mask.from_surface(surface) for state, surface in self.states.items()
@@ -20,8 +19,6 @@ class Player:
         self.speed = 5
         self.x = 0
         self.y = 0
-
-        self.bullet = Bullet(player_class, self.BULLET_SIZE)
 
     @property
     def class_type(self):
