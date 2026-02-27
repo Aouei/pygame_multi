@@ -1,5 +1,7 @@
 import pygame
 
+from dataclasses import dataclass
+
 from enums import PLAYER_CLASS, STATE
 from factories import load_player, load_bullet
 

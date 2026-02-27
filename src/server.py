@@ -7,45 +7,47 @@ from loguru import logger
 
 import messages
 from enums import MESSAGES
-from states import ServerState
+from server_state.logic import Logic
+
 
 pygame.init()
 
 class Server:
     TICK_RATE = 20
+    LOGIC = Logic()
 
-    def __init__(self) -> None:
-        self.state = ServerState()
 
     async def handle_client(self, socket):
-        ID = self.state.new_player(socket)
-        
+        ID = self.LOGIC.new_player(socket)
+        # TODO: handle ID = -1
         try:
             await messages.hello(ID, socket)
             logger.info(f"Sended Hello to player {ID}")
 
             async for message in socket:
                 data = json.loads(message)
-                self.state.handle_message(ID, data)
+                self.LOGIC.handle_message(ID, data)
 
         except websockets.exceptions.ConnectionClosed:
             pass
         finally:
-            self.state.remove_player(ID)
+            self.LOGIC.remove_player(ID)
 
     # En server.py
     async def loop(self):
         interval = 1.0 / self.TICK_RATE
         while True:
             await asyncio.sleep(interval)
-            if not self.state.clients:
+            if not self.LOGIC.CLIENTS:
                 continue
 
             message = json.dumps({
                 'type': MESSAGES.PLAYERS_UPDATE.value,
-                'players': self.state.get_players()
+                'players': self.LOGIC.get_players()
             })
-            websockets.broadcast(self.state.clients.values(), message)
+
+            logger.info(f"Sended UPDATE to players {message}")
+            websockets.broadcast(self.LOGIC.CLIENTS.values(), message)
 
 async def main():
     server = Server()

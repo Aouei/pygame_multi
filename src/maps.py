@@ -5,6 +5,7 @@ import pygame
 from scipy.spatial import KDTree
 
 import factories
+from _entities import Geometry
 
 
 class Map:
@@ -99,26 +100,22 @@ class Map:
         return (j * self.TILE_SIZE + self.TILE_SIZE // 2,
                 i * self.TILE_SIZE + self.TILE_SIZE // 2)
 
-    def is_collision(self, x, y, mask: pygame.mask.Mask):
+    def is_collision(self, pos : Geometry):
         if self.solid_tree is None:
             return False
 
-        player_size   = mask.get_size()[0]
-        search_radius = self.TILE_SIZE + player_size // 2
+            
+        x, y = pos.x, pos.y
+        search_radius = self.TILE_SIZE + pos.radius // 2
         nearby_indices = self.solid_tree.query_ball_point([x, y], search_radius)
-
-        player_left = x - player_size // 2
-        player_top  = y - player_size // 2
 
         for idx in nearby_indices:
             sx, sy = self.solid_positions[idx]
-            tile_left = sx - self.TILE_SIZE // 2
-            tile_top  = sy - self.TILE_SIZE // 2
-            tile_mask = pygame.mask.Mask((self.TILE_SIZE, self.TILE_SIZE), fill=True)
-            offset = (tile_left - player_left, tile_top - player_top)
-            if mask.overlap(tile_mask, offset):
+            dx, dy = pos.x - sx, pos.y - sy
+            
+            if dx * dx + dy * dy <= (pos.radius + pos.radius) ** 2:
                 return True
-
+            
         return False
 
     # ------------------------------------------------------------------

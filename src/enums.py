@@ -1,4 +1,11 @@
-from enum import Enum, auto
+from enum import Enum
+
+
+class ROLE(Enum):
+    ARCHER = 'archer'
+    FARMER = 'farmer'
+    MAGE = 'mage'
+    MUSKETEER = 'musketeer'
 
 
 class PLAYER_CLASS(Enum):
@@ -13,7 +20,6 @@ class STATE(Enum):
     DOWN = 'down'
     LEFT = 'left'
     RIGHT = 'right'
-    SHOT = 'shot'
     
 class MESSAGES(Enum):
     HELLO = 'hello'
