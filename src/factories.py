@@ -4,7 +4,7 @@ import os
 
 import paths
 
-from enums import STATE, PLAYER_CLASS
+from enums import STATE, ROLE
 
 
 def load_scale(path : str, size : int):
@@ -27,12 +27,12 @@ def load_tiles(size : int = 64):
     return tiles
 
 
-def load_player(class_type : PLAYER_CLASS, size : int = 64):
+def load_player(role : ROLE, size : int = 64):
     return {
-        state : load_scale(os.path.join(paths.PLAYER_DIR, class_type.value, f'{state.value}.png'), size) for state in STATE
+        state : load_scale(os.path.join(paths.PLAYER_DIR, role.value, f'{state.value}.png'), size) for state in STATE
     }
 
 def load_bullet(size : int = 32):
     return {
-        class_type : load_scale(os.path.join(paths.BULLET_DIR, f'{class_type.value}.png'), size) for class_type in PLAYER_CLASS
+        role : load_scale(os.path.join(paths.BULLET_DIR, f'{role.value}.png'), size) for role in ROLE
     }

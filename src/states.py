@@ -1,25 +1,16 @@
-from websockets import ClientConnection
-
 import paths
 from maps import Map
-from enums import PLAYER_CLASS, STATE, MESSAGES
-from entities.player import Player
-from factories import load_bullet
+from enums import ROLE, STATE
+from factories import load_bullet, load_player
 
 
 PLAYER_SIZE = 64
 TILE_SIZE = 64
 SPAWN_CODE = 8
 
-PLAYERS = {
-    PLAYER_CLASS.MAGE, Player(PLAYER_CLASS.MAGE)
-}
-
 class ClientState:
     MAP = Map(paths.MAP_PATH)
-    PLAYERS = {
-        type_class : Player(type_class) for type_class in PLAYER_CLASS
-    }
+    PLAYERS = { role : load_player(role, PLAYER_SIZE) for role in ROLE }
     BULLETS = load_bullet()
 
     COLORS = {
@@ -28,14 +19,9 @@ class ClientState:
         2 : (0, 255, 0),
         3 : (255, 0, 0),
     }
-    
-    def __init__(self) -> None:
-        pass
 
     def draw_player(self, surface, dx, dy, data : dict):
-        x, y, state, type_class = list(data.values())
-        type_class = PLAYER_CLASS(type_class)
-
-        player = self.PLAYERS[type_class]
-        player.move(x, y, state)
-        player.draw(surface, dx, dy)
+        x, y, state, role = list(data.values())
+        role = ROLE(role)
+        surface.blit(self.PLAYERS[ROLE(role)][STATE(state)], 
+                     (x - PLAYER_SIZE // 2 + dx, y - PLAYER_SIZE // 2 + dy))

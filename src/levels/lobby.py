@@ -1,28 +1,30 @@
 import pygame, sys, os
 
-from enums import PLAYER_CLASS
+import paths
+
+from enums import ROLE
 from inputs import InputHandler
 
 
 class Screen():
-    def __init__(self, inputs : InputHandler, folder : str):
+    def __init__(self, inputs : InputHandler):
         self.inputs = inputs
         self.classes = [
-            (PLAYER_CLASS.ARCHER, 
-                pygame.image.load( os.path.join(folder, r"archer\down.png"))),
-            (PLAYER_CLASS.MAGE, 
-                pygame.image.load(os.path.join(folder, r"mage\down.png"))),
-            (PLAYER_CLASS.FARMER, 
-                pygame.image.load(os.path.join(folder, r"farmer\down.png"))),
-            (PLAYER_CLASS.MUSKETEER, 
-                pygame.image.load(os.path.join(folder, r"musketeer\down.png"))),
+            (ROLE.ARCHER, 
+                pygame.image.load(os.path.join(paths.PLAYER_DIR, r"archer\down.png"))),
+            (ROLE.MAGE, 
+                pygame.image.load(os.path.join(paths.PLAYER_DIR, r"mage\down.png"))),
+            (ROLE.FARMER, 
+                pygame.image.load(os.path.join(paths.PLAYER_DIR, r"farmer\down.png"))),
+            (ROLE.MUSKETEER, 
+                pygame.image.load(os.path.join(paths.PLAYER_DIR, r"musketeer\down.png"))),
         ]
 
         self.current_class : int = 0
         self.size = 20 * self.classes[0][-1].get_rect().width
-        self.selection : PLAYER_CLASS | None = None
+        self.selection : ROLE | None = None
 
-    def loop(self, window: pygame.Surface, clock, frames) -> PLAYER_CLASS:
+    def loop(self, window: pygame.Surface, clock, frames) -> ROLE:
         while self.selection is None:
             window.fill((132, 226, 150)) 
             self.handle_events()

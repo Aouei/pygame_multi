@@ -13,10 +13,10 @@ import messages
 
 import paths
 from levels import game, lobby
-from enums import PLAYER_CLASS, MESSAGES, STATE
-from entities.player import Player
+from enums import ROLE, MESSAGES, STATE
 from inputs import InputHandler
 from states import ClientState
+from _entities import Player, Geometry, Live
 
 pygame.init()
 
@@ -60,7 +60,9 @@ class Client:
                         x, y, state = self.server_positions[self.ID]['x'], \
                                       self.server_positions[self.ID]['y'], \
                                       self.server_positions[self.ID]['state']
-                        self.player.move(x, y, state)
+                        self.player.pos.x = x
+                        self.player.pos.y = y
+                        self.player.state = STATE(state)
 
                 # Remove players that have disconnected
                 for pid in list(self.render_positions):
@@ -99,8 +101,8 @@ class Client:
             window.fill((0, 0, 0))
 
             if self.ID >= 0:
-                center_x = self.player.x + self.player.PLAYER_SIZE // 2
-                center_y = self.player.y + self.player.PLAYER_SIZE // 2
+                center_x = self.player.pos.x + self.player.radius
+                center_y = self.player.pos.y + self.player.radius
             else:
                 center_x = WIDTH // 2
                 center_y = HEIGHT // 2
@@ -117,21 +119,22 @@ class Client:
 
             minmap_points = []
             for pid, pos in self.render_positions.items():
+                print(pos)
                 self.state.draw_player(window, -offset_x, -offset_y, pos)
                 minmap_points.append({'x' : pos['x'], 'y' : pos['y'], 'color' : self.state.COLORS[int(pid)]} )
             else:
-                self.state.MAP.draw_mini(window, 16, 16, minmap_points, self.player.x, self.player.y)
+                self.state.MAP.draw_mini(window, 16, 16, minmap_points, self.player.pos.x, self.player.pos.y)
 
             pygame.display.flip()
             self.CLOCK.tick(self.FRAME_RATE)
             await asyncio.sleep(0)  # Cede el control al event loop para que `update` reciba mensajes del servidor
     
-    async def connect(self, player_class : PLAYER_CLASS) -> None:
-        self.player = Player(player_class)
+    async def connect(self, role : ROLE) -> None:
+        self.player = Player(role, Geometry(0, 0, 32), Live(5))
 
         async with websockets.connect("ws://25.33.144.47:25565") as websocket:
-            logger.info(f"Sending to server: {MESSAGES.PLAYER_CLASS}")
-            await messages.player_class(self.player.class_type, websocket)
+            logger.info(f"Sending to server: {role}")
+            await messages.set_role(role, websocket)
             
             await asyncio.gather(
                 self.update(websocket),
@@ -141,7 +144,7 @@ class Client:
 if __name__ == '__main__':
     client = Client()
 
-    first_screen = lobby.Screen(client.INPUTS, paths.PLAYER_DIR)
-    selection = first_screen.loop(window, client.CLOCK, client.FRAME_RATE)
+    first_screen = lobby.Screen(client.INPUTS)
+    role = first_screen.loop(window, client.CLOCK, client.FRAME_RATE)
 
-    asyncio.run(client.connect(selection))
+    asyncio.run(client.connect(role))

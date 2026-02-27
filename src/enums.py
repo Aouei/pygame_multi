@@ -7,14 +7,6 @@ class ROLE(Enum):
     MAGE = 'mage'
     MUSKETEER = 'musketeer'
 
-
-class PLAYER_CLASS(Enum):
-    ARCHER = 'archer'
-    FARMER = 'farmer'
-    MAGE = 'mage'
-    MUSKETEER = 'musketeer'
-
-
 class STATE(Enum):
     UP = 'up'
     DOWN = 'down'
@@ -23,7 +15,7 @@ class STATE(Enum):
     
 class MESSAGES(Enum):
     HELLO = 'hello'
-    PLAYER_CLASS = 'player_class'
+    ROLE = 'role'
     WISH_MOVE = 'wish_mode'
     MOVE = 'move'
     PLAYERS_UPDATE = 'players_update'

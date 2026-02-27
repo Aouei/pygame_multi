@@ -26,7 +26,7 @@ class Logic:
     def handle_message(self, id : int, data : dict):
         message_type = MESSAGES(data['type'])
 
-        if message_type == MESSAGES.PLAYER_CLASS:
+        if message_type == MESSAGES.ROLE:
             self.__set_player_class(id, data)
         elif message_type == MESSAGES.WISH_MOVE:
             self.__try_move(id, data)

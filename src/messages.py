@@ -1,7 +1,7 @@
 import json
 
 from websockets import ClientConnection
-from enums import MESSAGES
+from enums import MESSAGES, ROLE
 
 
 def hello(id : int, socket : ClientConnection):
@@ -12,10 +12,10 @@ def hello(id : int, socket : ClientConnection):
 
     return socket.send(json.dumps(message))
 
-def player_class(role : str, socket : ClientConnection):
+def set_role(role : ROLE, socket : ClientConnection):
     message = {
-        'type' : MESSAGES.PLAYER_CLASS.value,
-        'role' : role
+        'type' : MESSAGES.ROLE.value,
+        'role' : role.value
     }
 
     return socket.send(json.dumps(message))
