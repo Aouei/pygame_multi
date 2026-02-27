@@ -1,8 +1,10 @@
 from websockets import ClientConnection
+from loguru import logger
+
 
 from states.server_state import State
 from enums import MESSAGES, ROLE, STATE
-from _entities import Player, Geometry, Live
+from entities import Player, Geometry, Live, Bullet
 
 
 class Logic:
@@ -27,9 +29,14 @@ class Logic:
         message_type = MESSAGES(data['type'])
 
         if message_type == MESSAGES.ROLE:
+            logger.info('new player')
             self.__set_player_class(id, data)
         elif message_type == MESSAGES.WISH_MOVE:
+            logger.info('move player')
             self.__try_move(id, data)
+        elif message_type == MESSAGES.SHOT:
+            logger.info('new bullet')
+            self.__new_bullet(id, data)
 
     def __set_player_class(self, id : int, data : dict):
         x, y = self.STATE.MAP.spawn()
@@ -49,5 +56,33 @@ class Logic:
         if not self.STATE.MAP.is_collision(new_pos):
             player.pos = new_pos
 
-    def get_players(self):
-        return { id : player.dump() for id, player in self.STATE.PLAYERS.items() }
+    def __new_bullet(self, id : int, data : dict):
+        player = self.STATE.PLAYERS[id]
+        pos = player.pos
+
+        role, dx, dy = *[ data[key] for key in ['role', 'dx', 'dy'] ], 
+        
+        self.STATE.BULLETS.append(Bullet(pos, dx, dy, ROLE(role)))
+
+    def __move_bullets(self):
+        for bullet in self.STATE.BULLETS[::]:
+            new_pos = Geometry(bullet.pos.x, bullet.pos.y, bullet.pos.radius)
+            new_pos.x += bullet.dx * self.STATE.BULLET_VELOCITY
+            new_pos.y += bullet.dy * self.STATE.BULLET_VELOCITY
+
+            if not self.STATE.MAP.is_collision(new_pos):
+                bullet.pos = new_pos
+            else:
+                self.STATE.BULLETS.remove(bullet)
+
+    def tick(self):
+        self.__move_bullets()
+
+
+    def serialize(self):
+        return { 
+                'players' : {            
+                                id : player.dump() for id, player in self.STATE.PLAYERS.items() 
+                            },
+                'bullets' : [ bullet.dump() for bullet in self.STATE.BULLETS ]
+               }

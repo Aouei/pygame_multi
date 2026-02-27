@@ -22,14 +22,6 @@ class Player():
     speed : int = 5
     state : STATE = STATE.DOWN
 
-    def dump(self) -> dict:
-        return {
-            'x' : self.pos.x, 
-            'y' : self.pos.y, 
-            'state' : self.state.value,
-            'role' : self.role.value,
-        }
-
     def wish_to_move(self, inputs) -> tuple[int, int, str]:
         dx, dy = 0, 0
 
@@ -47,3 +39,28 @@ class Player():
             self.state = STATE.DOWN
 
         return dx, dy, self.state.value
+    
+    def dump(self) -> dict:
+        return {
+            'x' : self.pos.x, 
+            'y' : self.pos.y, 
+            'state' : self.state.value,
+            'role' : self.role.value,
+        }
+    
+
+@dataclass
+class Bullet:
+    pos : Geometry
+    dx : int
+    dy : int
+    owner : ROLE
+
+    def dump(self) -> dict:
+        return {
+            'x' : self.pos.x, 
+            'y' : self.pos.y, 
+            'dx' : self.dx, 
+            'dy' : self.dy, 
+            'role' : self.owner.value,
+        }

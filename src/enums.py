@@ -19,3 +19,4 @@ class MESSAGES(Enum):
     WISH_MOVE = 'wish_mode'
     MOVE = 'move'
     PLAYERS_UPDATE = 'players_update'
+    SHOT = 'shot'

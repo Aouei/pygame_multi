@@ -41,13 +41,9 @@ class Server:
             if not self.LOGIC.CLIENTS:
                 continue
 
-            message = json.dumps({
-                'type': MESSAGES.PLAYERS_UPDATE.value,
-                'players': self.LOGIC.get_players()
-            })
-
-            logger.info(f"Sended UPDATE to players {message}")
-            websockets.broadcast(self.LOGIC.CLIENTS.values(), message)
+            self.LOGIC.tick()
+            logger.info(f"Sended UPDATE to players")
+            messages.update_clients(self.LOGIC.serialize(), list(self.LOGIC.CLIENTS.values()))
 
 async def main():
     server = Server()

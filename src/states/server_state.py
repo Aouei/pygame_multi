@@ -3,7 +3,7 @@ from websockets import ClientConnection
 
 import paths
 
-from _entities import Player
+from entities import Player, Bullet
 from maps import Map
 
 
@@ -11,7 +11,10 @@ class State:
     IDS = {0, 1, 2, 3}
     CLIENTS : dict[int, ClientConnection] = {}
     PLAYERS : dict[int, Player] = {}
+    BULLETS : list[Bullet] = []
     MAP : Map = Map(paths.MAP_PATH)
+
+    BULLET_VELOCITY = 20
 
     @property
     def available_ids(self):

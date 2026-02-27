@@ -5,7 +5,7 @@ import pygame
 from scipy.spatial import KDTree
 
 import factories
-from _entities import Geometry
+from entities import Geometry
 
 
 class Map:
