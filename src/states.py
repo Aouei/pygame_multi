@@ -4,6 +4,8 @@ import paths
 from maps import Map
 from enums import PLAYER_CLASS, STATE, MESSAGES
 from entities.player import Player
+from factories import load_bullet
+
 
 PLAYER_SIZE = 64
 TILE_SIZE = 64
@@ -68,6 +70,7 @@ class ClientState:
     PLAYERS = {
         type_class : Player(type_class) for type_class in PLAYER_CLASS
     }
+    BULLETS = load_bullet()
 
     COLORS = {
         0 : (0, 0, 0),

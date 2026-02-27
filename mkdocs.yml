@@ -1,46 +1,60 @@
-site_name: 'Documentación Pygame Multi'
+site_name: 'Pygame Multi — Documentación'
 theme:
   name: material
   language: es
+  palette:
+    - scheme: slate
+      primary: deep purple
+      accent: amber
   features:
     - navigation.tabs
     - navigation.top
-    - content.code.annotate
-    - content.tabs.link
     - navigation.sections
     - navigation.expand
+    - navigation.indexes
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
     - toc.integrate
     - search.suggest
     - search.highlight
-    - content.action.edit
-    - content.action.view
-    - content.code.copy
+
 markdown_extensions:
   - admonition
-  - codehilite
-  - pymdownx.superfences
-  - pymdownx.tabbed
+  - attr_list
+  - md_in_html
+  - tables
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.details
-  - pymdownx.emoji
-  - pymdownx.tasklist
-  - pymdownx.highlight
+  - pymdownx.highlight:
+      anchor_linenums: true
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.keys
   - pymdownx.mark
   - pymdownx.tilde
   - pymdownx.caret
-  - pymdownx.progressbar
   - pymdownx.magiclink
   - pymdownx.betterem
   - pymdownx.critic
-  - pymdownx.arithmatex
   - pymdownx.smartsymbols
-  - pymdownx.escapes
-  - pymdownx.extra
-  - pymdownx.tasklist
   - pymdownx.saneheaders
-  - pymdownx.striphtml
-  - pymdownx.mermaid
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
 nav:
   - Inicio: index.md
+  - Diagramas:
+    - diagramas/index.md
+    - Clases: diagramas/clases.md
+    - Paso de Mensajes: diagramas/mensajes.md
+    - ServerState & ClientState: diagramas/server-client.md

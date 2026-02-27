@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"c:/Users/sergi/Documents/repos/pygame_multi/docs/index.md\":*)"
+    ]
+  }
+}

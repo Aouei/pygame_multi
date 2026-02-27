@@ -1,74 +1,75 @@
-# Documentación de Comunicación Cliente-Servidor
+# Pygame Multi
 
-Este proyecto utiliza una arquitectura cliente-servidor para gestionar la lógica del juego y la interacción entre los jugadores. A continuación se describen los pasos y mensajes clave intercambiados entre el cliente y el servidor.
+Juego multijugador 2D en tiempo real construido con **Python + Pygame + WebSockets**.
 
-## Índice
-- [Introducción](#introducción)
-- [Arquitectura General](#arquitectura-general)
-- [Flujo de Mensajes](#flujo-de-mensajes)
-- [Ejemplo de Secuencia](#ejemplo-de-secuencia)
-- [Referencias](#referencias)
+## Stack tecnológico
 
-## Introducción
-El sistema está compuesto por un cliente (jugador) y un servidor (gestor del juego). Ambos se comunican mediante mensajes estructurados, generalmente en formato JSON, a través de sockets.
+| Capa | Tecnología |
+|---|---|
+| Renderizado | Pygame |
+| Red | websockets (asyncio) |
+| Servidor | Python asyncio |
+| Mapa / Colisiones | Pandas (CSV) + SciPy KDTree |
+| Build | PyInstaller |
 
-## Arquitectura General
+## Arquitectura general
+
+El sistema sigue un modelo **cliente-servidor autoritativo**: el servidor es la única fuente de verdad sobre las posiciones de los jugadores. Los clientes envían *intenciones* de movimiento y el servidor decide si son válidas.
+
 ```mermaid
-graph TD
-    Cliente --&gt; Servidor: Enviar acción del jugador
-    Servidor --&gt; Cliente: Actualización del estado del juego
+graph LR
+    subgraph SERVER["Servidor (server.py)"]
+        S[Server] --> SS[ServerState]
+        SS --> MAP_S[Map — autoridad]
+        SS --> PL[Players dict]
+    end
+
+    subgraph CLIENT_A["Cliente A (client.py)"]
+        CA[Client] --> CSA[ClientState]
+        CSA --> MAP_CA[Map — render]
+        CA --> INA[InputHandler]
+    end
+
+    subgraph CLIENT_B["Cliente B (client.py)"]
+        CB[Client] --> CSB[ClientState]
+        CB --> INB[InputHandler]
+    end
+
+    INA -->|WISH_MOVE| S
+    INB -->|WISH_MOVE| S
+    S -->|PLAYERS_UPDATE broadcast| CA
+    S -->|PLAYERS_UPDATE broadcast| CB
 ```
 
-## Flujo de Mensajes
-1. **Conexión Inicial**
-    - El cliente se conecta al servidor.
-    - El servidor responde con un mensaje de bienvenida o estado inicial.
+## Flujo de vida de una sesión
 
-2. **Envío de Acciones**
-    - El cliente envía mensajes con las acciones del jugador (moverse, atacar, etc.).
-    - Ejemplo:
-      ```json
-      {
-        "type": "action",
-        "action": "move",
-        "direction": "up"
-      }
-      ```
-
-3. **Procesamiento en el Servidor**
-    - El servidor recibe la acción, actualiza el estado del juego y genera una respuesta.
-
-4. **Actualización del Estado**
-    - El servidor envía al cliente el nuevo estado del juego o eventos relevantes.
-    - Ejemplo:
-      ```json
-      {
-        "type": "state_update",
-        "players": [...],
-        "entities": [...],
-        "events": [...]
-      }
-      ```
-
-5. **Desconexión**
-    - El cliente puede enviar un mensaje de desconexión.
-    - El servidor limpia los recursos asociados.
-
-## Ejemplo de Secuencia
 ```mermaid
-sequenceDiagram
-    participant C as Cliente
-    participant S as Servidor
-    C-&gt;>S: Conexión
-    S-->>C: Estado inicial
-    C-&gt;>S: Acción (mover)
-    S-->>C: Actualización de estado
-    C-&gt;>S: Acción (atacar)
-    S-->>C: Actualización de estado
-    C-&gt;>S: Desconexión
-    S-->>C: Confirmación
+stateDiagram-v2
+    [*] --> Lobby : iniciar client.exe
+    Lobby --> Conectando : seleccionar clase
+    Conectando --> EnPartida : recibir HELLO
+    EnPartida --> EnPartida : loop 60fps + recv async
+    EnPartida --> [*] : quit o desconexion
 ```
 
-## Referencias
-- [Documentación oficial de Python sockets](https://docs.python.org/3/library/socket.html)
-- [MkDocs](https://www.mkdocs.org/)
+## Módulos del proyecto
+
+| Archivo | Responsabilidad |
+|---|---|
+| `server.py` | Entry-point servidor, WebSocket listener, broadcast loop |
+| `client.py` | Entry-point cliente, render loop, conexión WS |
+| `states.py` | `ServerState` (lógica) y `ClientState` (render) |
+| `messages.py` | Funciones de serialización JSON de cada mensaje |
+| `enums.py` | `PLAYER_CLASS`, `STATE`, `MESSAGES` |
+| `entities/player.py` | `Player` y `Bullet` |
+| `maps.py` | `Map` — carga CSV, colisiones KDTree, minimap |
+| `factories.py` | Carga de sprites y tiles desde disco |
+| `inputs.py` | `InputHandler` — teclado y mando |
+| `levels/lobby.py` | Pantalla de selección de personaje |
+| `paths.py` | Rutas de assets (compatible PyInstaller) |
+
+## Navegación
+
+- **[Diagramas de Clases](diagramas/clases.md)** — jerarquía completa de clases
+- **[Paso de Mensajes](diagramas/mensajes.md)** — secuencias WebSocket y formato JSON
+- **[ServerState & ClientState](diagramas/server-client.md)** — diseño e interacción en profundidad
