@@ -19,7 +19,8 @@ class Map:
     MINI_RADIUS  = MINI_SIZE // 2
     WORLD_RADIUS = 320          # radio visible en coordenadas world (px)
     # Escala: MINI_RADIUS px en pantalla = WORLD_RADIUS px en world
-    MINI_SCALE   = MINI_RADIUS / WORLD_RADIUS
+    MINI_SCALE   = 0.1
+    # MINI_SCALE   = MINI_RADIUS / WORLD_RADIUS
 
     TILES = factories.load_tiles(TILE_SIZE)
 
@@ -190,7 +191,7 @@ class Map:
             py = int(R + rel_y)
             # Solo si cae dentro del círculo
             if (px - R) ** 2 + (py - R) ** 2 <= R ** 2:
-                pygame.draw.circle(mini_surf, point['color'], (px, py), radius=16)
+                pygame.draw.circle(mini_surf, point['color'], (px, py), radius=8)
 
         # --- 3. Aplicar máscara circular ---
         # Creamos una surface SRCALPHA y bliteamos el contenido solo donde la máscara es blanca

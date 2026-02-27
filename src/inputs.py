@@ -119,7 +119,4 @@ class InputHandler:
 
         # Start + Select → salir
         n = j.get_numbuttons()
-        start  = j.get_button(7) if n > 7 else False
-        select = j.get_button(6) if n > 6 else False
-        if start and select:
-            self.quit = True
+        self.quit = j.get_button(6) if n > 6 else False

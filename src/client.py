@@ -175,6 +175,7 @@ class Client:
 if __name__ == '__main__':
     client = Client()
 
+    
     first_screen = lobby.Screen(client.INPUTS)
     role = first_screen.loop(window, client.CLOCK, client.FRAME_RATE)
 
