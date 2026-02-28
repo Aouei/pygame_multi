@@ -1,3 +1,4 @@
+import heapq
 import pandas as pd
 import numpy as np
 import random
@@ -7,7 +8,7 @@ from scipy.spatial import KDTree
 
 import factories
 from entities import Geometry
-from enums import COLLISIONS
+from enums import COLLISIONS, STATE
 
 
 class MapData:
@@ -19,12 +20,15 @@ class MapData:
         COLLISIONS.SHIP : {3},
     }
     NO_TILES = {0}
-    SPAWN_CODES = {14}
+    PLAYER_SPAWN_CODES = {14}
+    SHIP_SPAWN_CODES = {4}
 
     def __init__(self, background: str, foreground : str | None = None) -> None:
         self.__load(background, foreground)
         self.__set_collision_tiles()
-        self.__set_spawn_positions()
+        self.__set_player_spawn_positions()
+        self.__set_ship_spawn_positions()
+        self.__set_blocked_tiles()
 
     @property
     def width(self):
@@ -61,15 +65,106 @@ class MapData:
                             i * self.TILE_SIZE + self.TILE_SIZE // 2,
                         ))
                     
-    def __set_spawn_positions(self):
-        self.spawn_tiles = []
+    def __set_player_spawn_positions(self):
+        self.player_spawn_tiles = []
         for i, row in enumerate(self.background):
             for j, col in enumerate(row):
-                if col in self.SPAWN_CODES:
-                    self.spawn_tiles.append((j, i))
+                if col in self.PLAYER_SPAWN_CODES:
+                    self.player_spawn_tiles.append((j, i))
+                    self.player_spawn_tiles.append((j, i))
                     
-    def spawn(self) -> tuple[int, int]:
-        j, i = random.choice(self.spawn_tiles)
+    def __set_ship_spawn_positions(self):
+        self.ship_spawn_tiles = []
+        for i, row in enumerate(self.background):
+            for j, col in enumerate(row):
+                if col in self.SHIP_SPAWN_CODES:
+                    self.ship_spawn_tiles.append((j, i))
+                    self.ship_spawn_tiles.append((j, i))
+                    
+    def __set_blocked_tiles(self):
+        self._blocked_by_collision: dict[COLLISIONS, set] = {}
+        for collision in COLLISIONS:
+            blocked: set[tuple[int, int]] = set()
+            self.__collect_blocked(collision, self.background, blocked)
+            if self.foreground is not None:
+                self.__collect_blocked(collision, self.foreground, blocked)
+            self._blocked_by_collision[collision] = blocked
+
+    def __collect_blocked(self, collision: COLLISIONS, data, blocked: set):
+        for i, row in enumerate(data):
+            for j, col in enumerate(row):
+                if col in self.COLLISION_TILES[collision]:
+                    blocked.add((j, i))
+
+    def find_path(self, sx: int, sy: int, tx: int, ty: int,
+                  collision: COLLISIONS = COLLISIONS.PLAYER) -> list[STATE]:
+        """
+        A* sobre el grid de tiles de (sx, sy) a (tx, ty) en coordenadas world (píxeles).
+        Devuelve una lista de STATE (UP/DOWN/LEFT/RIGHT) que lleva al destino,
+        o [] si no hay camino o ya se está en el destino.
+        """
+        cols = self.background.shape[1]
+        rows = self.background.shape[0]
+        blocked = self._blocked_by_collision[collision]
+
+        start = (sx // self.TILE_SIZE, sy // self.TILE_SIZE)
+        goal  = (tx // self.TILE_SIZE, ty // self.TILE_SIZE)
+
+        if start == goal:
+            return []
+
+        _DIRS = [
+            (STATE.UP,    ( 0, -1)),
+            (STATE.DOWN,  ( 0,  1)),
+            (STATE.LEFT,  (-1,  0)),
+            (STATE.RIGHT, ( 1,  0)),
+        ]
+
+        # heapq: (f, g, tile)  — f=g+h, g=coste acumulado, tile=(col, row)
+        open_heap: list[tuple] = []
+        heapq.heappush(open_heap, (0, 0, start))
+        came_from: dict[tuple, tuple] = {}   # tile → (prev_tile, STATE)
+        g_score:   dict[tuple, int]   = {start: 0}
+
+        while open_heap:
+            _, g, current = heapq.heappop(open_heap)
+
+            if current == goal:
+                path: list[STATE] = []
+                node = current
+                while node in came_from:
+                    prev, direction = came_from[node]
+                    path.append(direction)
+                    node = prev
+                path.reverse()
+                return path
+
+            if g > g_score.get(current, float('inf')):
+                continue
+
+            cx, cy = current
+            for state, (dx, dy) in _DIRS:
+                neighbor = (cx + dx, cy + dy)
+                nc, nr = neighbor
+                if nc < 0 or nc >= cols or nr < 0 or nr >= rows:
+                    continue
+                if neighbor in blocked:
+                    continue
+                new_g = g + 1
+                if new_g < g_score.get(neighbor, float('inf')):
+                    g_score[neighbor] = new_g
+                    h = abs(nc - goal[0]) + abs(nr - goal[1])
+                    heapq.heappush(open_heap, (new_g + h, new_g, neighbor))
+                    came_from[neighbor] = (current, state)
+
+        return []
+
+    def spawn(self, is_player = True) -> tuple[int, int]:
+        if is_player:
+            j, i = random.choice(self.player_spawn_tiles)
+        else:
+            j, i = random.choice(self.ship_spawn_tiles)
+
         return (j * self.TILE_SIZE + self.TILE_SIZE // 2, i * self.TILE_SIZE + self.TILE_SIZE // 2)
 
     def is_collision(self, pos : Geometry, collision : COLLISIONS):

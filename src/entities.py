@@ -110,3 +110,21 @@ class Bullet:
             'dy' : self.dy, 
             'role' : self.owner.value,
         }
+    
+
+@dataclass
+class Ship():
+    x : int
+    y : int
+    live : int
+    radius : int =  32
+    speed : int = 15
+    state : STATE = STATE.DOWN
+
+    def dump(self) -> dict:
+        return {
+            'x' : self.x, 
+            'y' : self.y,
+            'state' : self.state.value,
+        }
+    

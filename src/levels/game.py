@@ -36,6 +36,7 @@ class Game:
             elif message_type == MESSAGES.PLAYERS_UPDATE:
                 self.LOGIC.update_players({int(k): v for k, v in data.get("players", {}).items()})
                 self.LOGIC.update_bullets(data.get('bullets', []))
+                self.LOGIC.update_ships(data.get('ships', []))
 
     async def loop(self, websocket) -> None:
         while True and not self.inputs.quit:

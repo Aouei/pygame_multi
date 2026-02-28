@@ -2,11 +2,7 @@ import math
 import pygame
 from enums import ROLE, STATE
 from states.client_state import State
-
-
-PLAYER_SIZE = 64
-TILE_SIZE = 64
-SPAWN_CODE = 8
+from factories import PLAYER_SIZE, SHIP_SIZE
 
 class Logic:
     STATE = State()
@@ -14,6 +10,7 @@ class Logic:
     def reset(self):
         self.STATE.players_positions.clear()
         self.STATE.bullets_positions.clear()
+        self.STATE.ships_positions.clear()
         self.STATE.ID = -1
 
     @property
@@ -33,13 +30,19 @@ class Logic:
 
         self.player.update(self.STATE.players_positions.get(self.ID, {}))
 
-    def update_bullets(self, bullets : dict):
+    def update_bullets(self, bullets : list):
         self.STATE.bullets_positions = bullets
+
+    def update_ships(self, ships : list):
+        self.STATE.ships_positions = ships
 
     def draw(self, surface, dx, dy):
         self.STATE.MAP.draw(surface, (dx, dy))
         for player in self.STATE.players_positions.copy().values():
             self.draw_player(surface, dx, dy, player)
+
+        for ship in self.STATE.ships_positions.copy():
+            self.draw_ship(surface, dx, dy, ship)
 
         for bullet in self.STATE.bullets_positions.copy():
             x, y, role, vx, vy = bullet['x'], bullet['y'], bullet['role'], bullet['dx'], bullet['dy']
@@ -65,3 +68,11 @@ class Logic:
 
         surface.blit(self.STATE.PLAYERS[role][state], 
                      (x - PLAYER_SIZE // 2 + dx, y - PLAYER_SIZE // 2 + dy))
+
+    def draw_ship(self, surface, dx, dy, data : dict):
+        x = data['x']
+        y = data['y']
+        state = STATE(data['state'])
+
+        surface.blit(self.STATE.SHIPS[state], 
+                     (x - SHIP_SIZE // 2 + dx, y - SHIP_SIZE // 2 + dy))

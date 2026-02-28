@@ -4,11 +4,16 @@ from loguru import logger
 
 from states.server_state import State
 from enums import MESSAGES, ROLE, STATE, COLLISIONS
-from entities import Player, Geometry, Live, Bullet
+from entities import Player, Geometry, Live, Bullet, Ship
 
 
 class Logic:
     STATE : State =  State()
+
+    def __init__(self) -> None:
+        self.colddown = 0
+        self.colddown_max = 5
+        self.colddown_step = 0.1
 
     @property
     def CLIENTS(self):
@@ -78,7 +83,20 @@ class Logic:
             else:
                 self.STATE.BULLETS.remove(bullet)
 
+    def __check_round(self):
+        if not self.STATE.SHIPS:
+            if self.colddown < self.colddown_max:
+                self.colddown += self.colddown_step
+            else:
+                self.colddown = 0
+                x, y = self.STATE.MAP.spawn(is_player = False)
+                self.STATE.SHIPS.append(Ship(x, y, 50))
+
+    def __move_ships(self):
+        pass
+
     def tick(self):
+        self.__check_round()
         self.__move_bullets()
 
 
@@ -87,5 +105,6 @@ class Logic:
                 'players' : {            
                                 id : player.dump() for id, player in self.STATE.PLAYERS.items() 
                             },
-                'bullets' : [ bullet.dump() for bullet in self.STATE.BULLETS ]
+                'bullets' : [ bullet.dump() for bullet in self.STATE.BULLETS ],
+                'ships' : [ ship.dump() for ship in self.STATE.SHIPS ],
                }
