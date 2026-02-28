@@ -1,5 +1,5 @@
 import paths
-from maps import Map
+from map import MapRender
 from enums import ROLE
 from factories import load_bullet, load_player
 from entities import Player, Geometry, Live
@@ -10,7 +10,7 @@ TILE_SIZE = 64
 SPAWN_CODE = 8
 
 class State:
-    _MAP = Map(paths.MAP_L1_PATH)
+    _MAP = MapRender(paths.MAP_L1_PATH, paths.MAP_L2_PATH)
     _PLAYERS = { role : load_player(role, PLAYER_SIZE) for role in ROLE }
     _BULLETS = load_bullet()
 

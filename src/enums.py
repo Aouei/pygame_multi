@@ -20,3 +20,8 @@ class MESSAGES(Enum):
     MOVE = 'move'
     PLAYERS_UPDATE = 'players_update'
     SHOT = 'shot'
+
+class COLLISIONS(Enum):
+    PLAYER = 'player'
+    BULLET = 'bullet'
+    SHIP = 'ship'

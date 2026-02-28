@@ -4,7 +4,7 @@ from websockets import ClientConnection
 import paths
 
 from entities import Player, Bullet
-from maps import Map
+from map import MapData
 
 
 class State:
@@ -12,7 +12,7 @@ class State:
     CLIENTS : dict[int, ClientConnection] = {}
     PLAYERS : dict[int, Player] = {}
     BULLETS : list[Bullet] = []
-    MAP : Map = Map(paths.MAP_L1_PATH)
+    MAP : MapData = MapData(paths.MAP_L1_PATH, paths.MAP_L2_PATH)
 
     BULLET_VELOCITY = 30
 

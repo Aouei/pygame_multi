@@ -42,7 +42,6 @@ class Logic:
             self.draw_player(surface, dx, dy, player)
 
         for bullet in self.STATE.bullets_positions.copy():
-            print(bullet)
             x, y, role, vx, vy = bullet['x'], bullet['y'], bullet['role'], bullet['dx'], bullet['dy']
             self.draw_bullet(surface, x + dx, y + dy, role, vx, vy)
 

@@ -22,15 +22,11 @@ if __name__ == '__main__':
         LOBBY.reset()
         role = LOBBY.loop(window, CLOCK)
         if role is None:
-            print(f'{role=}')
             break
 
         result = asyncio.run(GAME.run(role))
         if result == 'quit':
-            print(f'{result=}')
             break
-    
-    print('out')
 
-    # pygame.quit()
-    # sys.exit()
+    pygame.quit()
+    sys.exit()

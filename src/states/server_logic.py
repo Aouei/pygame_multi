@@ -3,7 +3,7 @@ from loguru import logger
 
 
 from states.server_state import State
-from enums import MESSAGES, ROLE, STATE
+from enums import MESSAGES, ROLE, STATE, COLLISIONS
 from entities import Player, Geometry, Live, Bullet
 
 
@@ -41,7 +41,7 @@ class Logic:
     def __set_player_class(self, id : int, data : dict):
         x, y = self.STATE.MAP.spawn()
         self.STATE.PLAYERS[id] = Player(role = ROLE(data['role']),
-                                        pos = Geometry(x = x, y = y, radius = 32),
+                                        pos = Geometry(x = x, y = y, radius = 25),
                                         live = Live(5))
 
     def __try_move(self, id : int, data : dict):
@@ -53,7 +53,7 @@ class Logic:
         new_pos.y += dy
 
         player.state = STATE(state)
-        if not self.STATE.MAP.is_collision(new_pos):
+        if not self.STATE.MAP.is_collision(new_pos, COLLISIONS.PLAYER):
             player.pos = new_pos
 
     def __new_bullet(self, id : int, data : dict):
@@ -63,7 +63,7 @@ class Logic:
         pos = player.pos
         new_pos = Geometry(pos.x + dx * self.STATE.BULLET_VELOCITY,
                            pos.y + dy * self.STATE.BULLET_VELOCITY,
-                           radius = 16)
+                           radius = 8)
         
         self.STATE.BULLETS.append(Bullet(new_pos, dx, dy, ROLE(role)))
 
@@ -73,7 +73,7 @@ class Logic:
             new_pos.x += bullet.dx * self.STATE.BULLET_VELOCITY
             new_pos.y += bullet.dy * self.STATE.BULLET_VELOCITY
 
-            if not self.STATE.MAP.is_collision(new_pos):
+            if not self.STATE.MAP.is_collision(new_pos, COLLISIONS.BULLET):
                 bullet.pos = new_pos
             else:
                 self.STATE.BULLETS.remove(bullet)
