@@ -97,15 +97,17 @@ class Player():
 
 @dataclass
 class Bullet:
-    pos : Geometry
+    x : int
+    y : int
     dx : float
     dy : float
     owner : ROLE
+    radius : int  = 16
 
     def dump(self) -> dict:
         return {
-            'x' : self.pos.x, 
-            'y' : self.pos.y, 
+            'x' : self.x, 
+            'y' : self.y, 
             'dx' : self.dx, 
             'dy' : self.dy, 
             'role' : self.owner.value,
@@ -116,8 +118,8 @@ class Bullet:
 class Ship():
     x : int
     y : int
-    live : int
     path : list[STATE]
+    live : int = 10
     radius : int  = 32
     speed : int   = 15
     state : STATE = STATE.DOWN

@@ -9,12 +9,22 @@ from enums import MESSAGES, ROLE, STATE, COLLISIONS
 from entities import Player, Geometry, Live, Bullet, Ship
 
 
-class Logic:
+def check_intersection_by_radius(obj1, obj2):
+    """
+    Comprueba si dos objetos intersectan basándose en sus posiciones y radios.
+    Se asume que cada objeto tiene los atributos 'x', 'y' y 'radius'.
+    """
+    dx = obj1.x - obj2.x
+    dy = obj1.y - obj2.y
+    distance = math.hypot(dx, dy)
+    return distance <= (obj1.radius + obj2.radius)
+
+class Logic:    
     STATE : State =  State()
 
     def __init__(self) -> None:
         self.colddown = 0
-        self.colddown_max = 5
+        self.colddown_max = 20
         self.colddown_step = 0.1
 
     @property
@@ -68,22 +78,28 @@ class Logic:
 
         role, dx, dy = *[ data[key] for key in ['role', 'dx', 'dy'] ], 
         pos = player.pos
-        new_pos = Geometry(pos.x + dx * self.STATE.BULLET_VELOCITY,
-                           pos.y + dy * self.STATE.BULLET_VELOCITY,
-                           radius = 16)
+        x, y = pos.x + dx * self.STATE.BULLET_VELOCITY, pos.y + dy * self.STATE.BULLET_VELOCITY
         
-        self.STATE.BULLETS.append(Bullet(new_pos, dx, dy, ROLE(role)))
+        self.STATE.BULLETS.append(Bullet(x, y, dx, dy, ROLE(role)))
 
     def __move_bullets(self):
         for bullet in self.STATE.BULLETS[::]:
-            new_pos = Geometry(bullet.pos.x, bullet.pos.y, bullet.pos.radius)
-            new_pos.x += bullet.dx * self.STATE.BULLET_VELOCITY
-            new_pos.y += bullet.dy * self.STATE.BULLET_VELOCITY
+            new_x = bullet.x + bullet.dx * self.STATE.BULLET_VELOCITY
+            new_y = bullet.y + bullet.dy * self.STATE.BULLET_VELOCITY
 
-            if self.STATE.MAP.is_collision(new_pos, COLLISIONS.BULLET):
-                self.STATE.BULLETS.remove(bullet)
+            for ship in self.STATE.SHIPS.copy():
+                if check_intersection_by_radius(bullet, ship) and not ship.path:
+                    ship.live -= 1
+                    if ship.live <= 0:
+                        self.STATE.SHIPS.remove(ship) 
+                    self.STATE.BULLETS.remove(bullet)
+                    break
             else:
-                bullet.pos = new_pos
+                if self.STATE.MAP.is_collision(Geometry(new_x, new_y, bullet.radius), COLLISIONS.BULLET):
+                    self.STATE.BULLETS.remove(bullet)
+                else:
+                    bullet.x = new_x
+                    bullet.y = new_y
 
     def __check_round(self):
         if self.STATE.SHIPS:
@@ -117,7 +133,7 @@ class Logic:
                 target_y   = (srow + drow) * TILE + TILE // 2
 
             self.STATE.SHIPS.append(
-                Ship(x=sx, y=sy, live=50, path=path, target_x=target_x, target_y=target_y)
+                Ship(x=sx, y=sy, path=path, target_x=target_x, target_y=target_y)
             )
 
     def __move_ships(self):
