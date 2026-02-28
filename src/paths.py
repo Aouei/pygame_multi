@@ -10,4 +10,5 @@ if __name__ != '__main__':
     PLAYER_DIR  = os.path.join(ASSETS_DIR, "player")
     BULLET_DIR  = os.path.join(ASSETS_DIR, "bullets")
     TILES_DIR   = os.path.join(ASSETS_DIR, "tiles")
-    MAP_PATH    = os.path.join(ASSETS_DIR, "map", "map.csv")
+    MAP_L1_PATH    = os.path.join(ASSETS_DIR, "map", "agua.csv")
+    MAP_L2_PATH    = os.path.join(ASSETS_DIR, "map", "objetos.csv")

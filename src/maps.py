@@ -11,7 +11,7 @@ from entities import Geometry
 class Map:
     SOLID_TILES = {2, 3}
     NO_TILES = {0}
-    SPAWN_CODE = 7
+    SPAWN_CODE = 11
     TILE_SIZE = 64
 
     # Minimap: tamaño fijo y radio de visión en world pixels
