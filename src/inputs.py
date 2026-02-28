@@ -74,6 +74,8 @@ class InputHandler:
             elif event.type == pygame.JOYBUTTONDOWN:
                 if event.button == 0:
                     self.k_enter = True
+                elif event.button == 6:
+                    self.quit = True
             elif event.type == pygame.JOYDEVICEREMOVED:
                 self._joystick = None
                 return
@@ -117,6 +119,3 @@ class InputHandler:
 
             self._prev_hat = hx
 
-        # Start + Select → salir
-        n = j.get_numbuttons()
-        self.quit = j.get_button(6) if n > 6 else False

@@ -11,6 +11,11 @@ SPAWN_CODE = 8
 class Logic:
     STATE = State()
 
+    def reset(self):
+        self.STATE.players_positions.clear()
+        self.STATE.bullets_positions.clear()
+        self.STATE.ID = -1
+
     @property
     def player(self):
         return self.STATE.player
