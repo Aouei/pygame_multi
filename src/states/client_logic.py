@@ -46,6 +46,12 @@ class Logic:
             x, y, role, vx, vy = bullet['x'], bullet['y'], bullet['role'], bullet['dx'], bullet['dy']
             self.draw_bullet(surface, x + dx, y + dy, role, vx, vy)
 
+        minmap_points = []
+        for data in self.STATE.players_positions.copy().values():
+            minmap_points.append({'x' : data['x'], 'y' : data['y'], 'image' : self.STATE.PLAYERS[ROLE(data['role'])][STATE.DOWN]} )
+
+        self.STATE.MAP.draw_mini(surface, 16, 16, minmap_points, self.player.pos.x, self.player.pos.y)
+
     def draw_bullet(self, surface, x: int, y: int, role: str, vx: float, vy: float):
         angle = math.degrees(math.atan2(-vy, vx)) - 90
         rotated = pygame.transform.rotate(self.STATE.BULLETS[ROLE(role)], angle)

@@ -191,7 +191,9 @@ class Map:
             py = int(R + rel_y)
             # Solo si cae dentro del círculo
             if (px - R) ** 2 + (py - R) ** 2 <= R ** 2:
-                pygame.draw.circle(mini_surf, point['color'], (px, py), radius=8)
+                image = point['image']
+                new_size = image.get_rect().width // 2
+                mini_surf.blit(pygame.transform.scale(image, (new_size, new_size)), (px - new_size, py - new_size))
 
         # --- 3. Aplicar máscara circular ---
         # Creamos una surface SRCALPHA y bliteamos el contenido solo donde la máscara es blanca
