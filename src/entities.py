@@ -33,15 +33,13 @@ class Geometry:
     def __setitem__(self, key, value):
         self.__setattr__(key, value)
 
-@dataclass
-class Live:
-    hp : int
 
 @dataclass
 class Player():
     role : ROLE
-    pos : Geometry
-    live : Live
+    x : int
+    y : int
+    live : int = 10
     radius : int = 32
     speed : int = 5
     state : STATE = STATE.DOWN
@@ -81,8 +79,8 @@ class Player():
                 dx = float(rx / length)
                 dy = float(ry / length)
         else:
-            player_sx = self.pos.x - offset_x
-            player_sy = self.pos.y - offset_y
+            player_sx = self.x - offset_x
+            player_sy = self.y - offset_y
             mx, my = inputs.mouse_pos
             dx, dy = mx - player_sx, my - player_sy
             length = math.hypot(dx, dy)
@@ -98,19 +96,17 @@ class Player():
                 self.state = STATE(value)
             elif key == 'role':
                 self.role = ROLE(value)
-            elif key in ['x', 'y', 'radius']:
-                self.pos[key] = value
-            elif key == 'live':
-                self.live = Live(int(value))
-    
+            else:
+                self.__setattr__(key, value)
+                
     def dump(self) -> dict:
         return {
-            'x' : self.pos.x, 
-            'y' : self.pos.y, 
-            'radius' : self.pos.radius,
+            'x' : self.x, 
+            'y' : self.y, 
+            'live' : self.live,
+            'radius' : self.radius,
             'state' : self.state.value,
             'role' : self.role.value,
-            'live' : self.live.hp
         }
     
 

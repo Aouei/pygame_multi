@@ -2,7 +2,7 @@ import paths
 from map import MapRender
 from enums import ROLE
 from factories import load_bullet, load_player, load_ship
-from entities import Player, Geometry, Live
+from entities import Player
 
 
 PLAYER_SIZE = 64
@@ -27,7 +27,7 @@ class State:
         self.players_positions = {}
         self.bullets_positions = []
         self.ships_positions = []
-        self._current_player : Player = Player(ROLE.MAGE, Geometry(0, 0, 0), Live(5))
+        self._current_player : Player = Player(ROLE.MAGE, 0, 0)
         self._ID = -1
     
     @property

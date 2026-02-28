@@ -57,9 +57,12 @@ class Logic:
                                   pygame.transform.scale(self.STATE.PLAYERS[ROLE(data['role'])][STATE(data['state'])], (16, 16))}, ) 
         for data in self.STATE.ships_positions.copy():
             minmap_points.append({'x' : data['x'], 'y' : data['y'], 'image' : 
-                                  pygame.transform.scale(self.STATE.SHIPS[STATE(data['state'])], (16, 16))} )
+                                  pygame.transform.scale(self.STATE.SHIPS[STATE(data['state'])], (32, 32))} )
+        
+        minmap_points.append({'x' : self.player.x, 'y' : self.player.y, 'image' : 
+                                  pygame.transform.scale(self.STATE.PLAYERS[self.player.role][self.player.state], (16, 16))}, )
 
-        self.STATE.MAP.draw_mini(surface, 16, 16, minmap_points, self.player.pos.x, self.player.pos.y)
+        self.STATE.MAP.draw_mini(surface, 16, 16, minmap_points, self.player.x, self.player.y)
 
     def draw_bullet(self, surface, x: int, y: int, role: str, vx: float, vy: float):
         angle = math.degrees(math.atan2(-vy, vx)) - 90

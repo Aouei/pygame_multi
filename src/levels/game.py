@@ -65,8 +65,8 @@ class Game:
     def __center_screen(self):
 
         if self.LOGIC.ID >= 0:
-            center_x = self.LOGIC.player.pos.x + self.LOGIC.player.radius
-            center_y = self.LOGIC.player.pos.y + self.LOGIC.player.radius
+            center_x = self.LOGIC.player.x + self.LOGIC.player.radius
+            center_y = self.LOGIC.player.y + self.LOGIC.player.radius
         else:
             center_x = self.WIDTH // 2
             center_y = self.HEIGHT // 2

@@ -6,7 +6,7 @@ from loguru import logger
 
 from states.server_state import State
 from enums import MESSAGES, ROLE, STATE, COLLISIONS
-from entities import Player, Geometry, Live, Bullet, Ship, Counter
+from entities import Player, Geometry, Bullet, Ship, Counter
 
 
 def check_intersection_by_radius(obj1, obj2):
@@ -19,7 +19,7 @@ def check_intersection_by_radius(obj1, obj2):
     distance = math.hypot(dx, dy)
     return distance <= (obj1.radius + obj2.radius)
 
-class Logic:    
+class Logic:
     STATE : State =  State()
 
     def __init__(self) -> None:
@@ -55,28 +55,25 @@ class Logic:
 
     def __set_player_class(self, id : int, data : dict):
         x, y = self.STATE.MAP.spawn()
-        self.STATE.PLAYERS[id] = Player(role = ROLE(data['role']),
-                                        pos = Geometry(x = x, y = y, radius = 25),
-                                        live = Live(5))
+        self.STATE.PLAYERS[id] = Player(role = ROLE(data['role']), x = x, y = y)
 
     def __try_move(self, id : int, data : dict):
         dx, dy, state = data['dx'], data['dy'], data['state']
 
         player = self.STATE.PLAYERS[id]
-        new_pos = Geometry(player.pos.x, player.pos.y, player.pos.radius)
-        new_pos.x += dx
-        new_pos.y += dy
+        new_x = player.x + dx
+        new_y = player.y + dy
 
         player.state = STATE(state)
-        if not self.STATE.MAP.is_collision(new_pos, COLLISIONS.PLAYER):
-            player.pos = new_pos
+        if not self.STATE.MAP.is_collision(Geometry(new_x, new_y, player.radius), COLLISIONS.PLAYER):
+            player.x = new_x
+            player.y = new_y
 
     def __new_bullet(self, id : int, data : dict):
         player = self.STATE.PLAYERS[id]
 
         role, dx, dy = *[ data[key] for key in ['role', 'dx', 'dy'] ], 
-        pos = player.pos
-        x, y = pos.x + dx * self.STATE.BULLET_VELOCITY, pos.y + dy * self.STATE.BULLET_VELOCITY
+        x, y = player.x + dx * self.STATE.BULLET_VELOCITY, player.y + dy * self.STATE.BULLET_VELOCITY
         
         self.STATE.BULLETS.append(Bullet(x, y, dx, dy, ROLE(role)))
 
