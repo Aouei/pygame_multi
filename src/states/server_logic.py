@@ -6,7 +6,7 @@ from loguru import logger
 
 from states.server_state import State
 from enums import MESSAGES, ROLE, STATE, COLLISIONS
-from entities import Player, Geometry, Live, Bullet, Ship
+from entities import Player, Geometry, Live, Bullet, Ship, Counter
 
 
 def check_intersection_by_radius(obj1, obj2):
@@ -23,9 +23,7 @@ class Logic:
     STATE : State =  State()
 
     def __init__(self) -> None:
-        self.colddown = 0
-        self.colddown_max = 20
-        self.colddown_step = 0.1
+        self.spawn_timer = Counter(seconds=10)
 
     @property
     def CLIENTS(self):
@@ -103,13 +101,12 @@ class Logic:
 
     def __check_round(self):
         if self.STATE.SHIPS:
+            self.spawn_timer.reset()
             return
 
-        if self.colddown < self.colddown_max:
-            self.colddown += self.colddown_step
+        if not self.spawn_timer.tick():
             return
 
-        self.colddown = 0
         map_data  = self.STATE.MAP
         TILE      = map_data.TILE_SIZE
         _DELTA    = {STATE.UP:(0,-1), STATE.DOWN:(0,1), STATE.LEFT:(-1,0), STATE.RIGHT:(1,0)}
@@ -149,7 +146,6 @@ class Logic:
                 dist = math.hypot(dx, dy)
 
                 if dist <= ship.speed:
-                    # Llega al waypoint: snap y avanza en el path
                     ship.x = ship.target_x
                     ship.y = ship.target_y
                     ship.path.pop(0)
@@ -164,11 +160,14 @@ class Logic:
                     ship.x += int(dx / dist * ship.speed)
                     ship.y += int(dy / dist * ship.speed)
 
-    def tick(self):
-        self.__check_round()
-        self.__move_bullets()
-        self.__move_ships()
+    def __spawn_enemies(self):
+        pass
 
+    def tick(self):
+        if self.STATE.CLIENTS:
+            self.__check_round()
+            self.__move_ships()
+            self.__move_bullets()
 
     def serialize(self):
         return { 

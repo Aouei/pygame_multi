@@ -1,8 +1,27 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import math
 
 from enums import ROLE, STATE
 from inputs import InputHandler
+
+
+@dataclass
+class Counter:
+    """Contador de tiempo basado en ticks del servidor."""
+    seconds : float
+    rate    : int = 20  # ticks/segundo — debe coincidir con el tick rate del servidor
+    _count  : int = field(default=0, init=False, repr=False)
+
+    def tick(self) -> bool:
+        """Incrementa un tick. Devuelve True (y se autoreset) al llegar al tiempo máximo."""
+        self._count += 1
+        if self._count >= self.seconds * self.rate:
+            self._count = 0
+            return True
+        return False
+
+    def reset(self):
+        self._count = 0
 
 
 @dataclass
