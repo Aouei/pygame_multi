@@ -12,7 +12,7 @@ class State:
     CLIENTS : dict[int, ClientConnection] = {}
     PLAYERS : dict[int, Player] = {}
     BULLETS : list[Bullet] = []
-    MAP : Map = Map(paths.MAP_PATH)
+    MAP : Map = Map(paths.MAP_L1_PATH)
 
     BULLET_VELOCITY = 30
 

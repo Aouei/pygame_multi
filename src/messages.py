@@ -30,7 +30,7 @@ def wish_move(dx : int, dy : int, state : str, socket : ClientConnection):
 
     return socket.send(json.dumps(message))
 
-def wish_shot(role : ROLE, dx : int, dy : int, socket : ClientConnection):
+def wish_shot(role : ROLE, dx : float, dy : float, socket : ClientConnection):
     message = {
         'type' : MESSAGES.SHOT.value,
         'dx' : dx,
