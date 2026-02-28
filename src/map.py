@@ -6,14 +6,13 @@ import pygame
 
 from scipy.spatial import KDTree
 
-import factories
+from factories import TILE_SIZE, load_tiles
 from entities import Geometry
 from enums import COLLISIONS, STATE
 
 
 class MapData:
     COMMON_COLLISIONS = {15, 18, 25, 27, 28, 32, 42, 44, 45, 50, 69}
-    TILE_SIZE = 64
     COLLISION_TILES = {
         COLLISIONS.PLAYER : {4, 9, *COMMON_COLLISIONS},
         COLLISIONS.BULLET : {4, *COMMON_COLLISIONS},
@@ -34,11 +33,11 @@ class MapData:
 
     @property
     def width(self):
-        return self.background.shape[-1] * self.TILE_SIZE
+        return self.background.shape[-1] * TILE_SIZE
 
     @property
     def height(self):
-        return self.background.shape[0] * self.TILE_SIZE
+        return self.background.shape[0] * TILE_SIZE
 
 
     def __load(self, background: str, foreground : str | None):
@@ -63,8 +62,8 @@ class MapData:
             for j, col in enumerate(row):
                 if col in self.COLLISION_TILES[collision]:
                     positions.append((
-                            j * self.TILE_SIZE + self.TILE_SIZE // 2,
-                            i * self.TILE_SIZE + self.TILE_SIZE // 2,
+                            j * TILE_SIZE + TILE_SIZE // 2,
+                            i * TILE_SIZE + TILE_SIZE // 2,
                         ))
                     
     def __set_player_spawn_positions(self):
@@ -116,7 +115,7 @@ class MapData:
                             if (nj, ni) not in blocked:
                                 near_shore.add((nj, ni))
 
-        T = self.TILE_SIZE
+        T = TILE_SIZE
         self.disembark_tiles = [
             (col * T + T // 2, row * T + T // 2)
             for col, row in near_shore
@@ -133,8 +132,8 @@ class MapData:
         rows = self.background.shape[0]
         blocked = self._blocked_by_collision[collision]
 
-        start = (sx // self.TILE_SIZE, sy // self.TILE_SIZE)
-        goal  = (tx // self.TILE_SIZE, ty // self.TILE_SIZE)
+        start = (sx // TILE_SIZE, sy // TILE_SIZE)
+        goal  = (tx // TILE_SIZE, ty // TILE_SIZE)
 
         if start == goal:
             return []
@@ -191,21 +190,22 @@ class MapData:
         else:
             j, i = random.choice(self.ship_spawn_tiles)
 
-        return (j * self.TILE_SIZE + self.TILE_SIZE // 2, i * self.TILE_SIZE + self.TILE_SIZE // 2)
+        return (j * TILE_SIZE + TILE_SIZE // 2, i * TILE_SIZE + TILE_SIZE // 2)
 
     def is_collision(self, pos : Geometry, collision : COLLISIONS):
         if self.solid_tree_by_collision[collision] is None:
             return False
-            
+        
+        reduction = 2
         x, y = pos.x, pos.y
-        search_radius = self.TILE_SIZE + pos.radius // 2
+        search_radius = TILE_SIZE + pos.radius // 2
         nearby_indices = self.solid_tree_by_collision[collision].query_ball_point([x, y], search_radius)
 
         for idx in nearby_indices:
             sx, sy = self.solid_positions_by_collision[collision][idx]
             dx, dy = pos.x - sx, pos.y - sy
             
-            if dx * dx + dy * dy <= (pos.radius + pos.radius) ** 2:
+            if dx * dx + dy * dy <= ((pos.radius + pos.radius) ** 2) / reduction:
                 return True
             
         return False
@@ -219,7 +219,7 @@ class MapRender:
 
     def __init__(self, background: str, foreground : str | None = None) -> None:
         self.map = MapData(background, foreground)
-        self.TILES = factories.load_tiles(self.map.TILE_SIZE)
+        self.TILES = load_tiles(TILE_SIZE)
 
         self.background = self.__load_map(self.map.background)
         self.foreground = self.__load_map(self.map.foreground, True) if self.map.foreground is not None else None
@@ -236,20 +236,20 @@ class MapRender:
     def __load_map(self, data, alpha = False):
         if alpha:
             surface = pygame.Surface(
-                (data.shape[-1] * self.map.TILE_SIZE,
-                data.shape[0]  * self.map.TILE_SIZE),
+                (data.shape[-1] * TILE_SIZE,
+                data.shape[0]  * TILE_SIZE),
                 pygame.SRCALPHA
             )
         else:
             surface = pygame.Surface(
-                (data.shape[-1] * self.map.TILE_SIZE,
-                data.shape[0]  * self.map.TILE_SIZE),
+                (data.shape[-1] * TILE_SIZE,
+                data.shape[0]  * TILE_SIZE),
             )
 
         for i, row in enumerate(data):
             for j, col in enumerate(row):
                 if col not in self.map.NO_TILES:
-                    surface.blit(self.TILES[col], (j * self.map.TILE_SIZE, i * self.map.TILE_SIZE))
+                    surface.blit(self.TILES[col], (j * TILE_SIZE, i * TILE_SIZE))
 
         return surface
 

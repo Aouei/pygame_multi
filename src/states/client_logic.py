@@ -6,6 +6,7 @@ from factories import PLAYER_SIZE, SHIP_SIZE
 
 class Logic:
     STATE = State()
+    DEBUG = True
 
     def reset(self):
         self.STATE.players_positions.clear()
@@ -37,7 +38,8 @@ class Logic:
         self.STATE.ships_positions = ships
 
     def draw(self, surface, dx, dy):
-        self.STATE.MAP.draw(surface, (dx, dy))
+        self.STATE.MAP.draw_layer(surface, (dx, dy), self.STATE.MAP.background)
+
         for player in self.STATE.players_positions.copy().values():
             self.draw_player(surface, dx, dy, player)
 
@@ -47,6 +49,8 @@ class Logic:
         for bullet in self.STATE.bullets_positions.copy():
             x, y, role, vx, vy = bullet['x'], bullet['y'], bullet['role'], bullet['dx'], bullet['dy']
             self.draw_bullet(surface, x + dx, y + dy, role, vx, vy)
+
+        self.STATE.MAP.draw_layer(surface, (dx, dy), self.STATE.MAP.foreground)
 
         self.draw_minimap(surface)
 
@@ -76,13 +80,16 @@ class Logic:
         state = STATE(data['state'])
         role = ROLE(data['role'])
 
-        surface.blit(self.STATE.PLAYERS[role][state], 
+        surface.blit(self.STATE.PLAYERS[role][state],
                      (x - PLAYER_SIZE // 2 + dx, y - PLAYER_SIZE // 2 + dy))
+
+        if self.DEBUG:
+            pygame.draw.circle(surface, (255, 0, 0), (x + dx, y + dy), data['radius'], 1)
 
     def draw_ship(self, surface, dx, dy, data : dict):
         x = data['x']
         y = data['y']
         state = STATE(data['state'])
 
-        surface.blit(self.STATE.SHIPS[state], 
+        surface.blit(self.STATE.SHIPS[state],
                      (x - SHIP_SIZE // 2 + dx, y - SHIP_SIZE // 2 + dy))

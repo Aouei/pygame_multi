@@ -7,6 +7,7 @@ from loguru import logger
 from states.server_state import State
 from enums import MESSAGES, ROLE, STATE, COLLISIONS
 from entities import Player, Geometry, Bullet, Ship, Counter
+from factories import TILE_SIZE
 
 
 def check_intersection_by_radius(obj1, obj2):
@@ -104,34 +105,31 @@ class Logic:
         if not self.spawn_timer.tick():
             return
 
-        map_data  = self.STATE.MAP
-        TILE      = map_data.TILE_SIZE
         _DELTA    = {STATE.UP:(0,-1), STATE.DOWN:(0,1), STATE.LEFT:(-1,0), STATE.RIGHT:(1,0)}
 
         n       = min(self.STATE.MAX_SHIPS,
-                      len(map_data.ship_spawn_tiles),
-                      len(map_data.disembark_tiles))
-        spawns  = random.sample(map_data.ship_spawn_tiles, n)   # list of (col, row)
-        targets = random.sample(map_data.disembark_tiles,  n)   # list of (world_x, world_y)
+                      len(self.STATE.MAP.ship_spawn_tiles),
+                      len(self.STATE.MAP.disembark_tiles))
+        spawns  = random.sample(self.STATE.MAP.ship_spawn_tiles, n)   # list of (col, row)
+        targets = random.sample(self.STATE.MAP.disembark_tiles,  n)   # list of (world_x, world_y)
 
         for (scol, srow), (tx, ty) in zip(spawns, targets):
-            sx = scol * TILE + TILE // 2
-            sy = srow * TILE + TILE // 2
+            sx = scol * TILE_SIZE + TILE_SIZE // 2
+            sy = srow * TILE_SIZE + TILE_SIZE // 2
 
-            path = map_data.find_path(sx, sy, tx, ty, COLLISIONS.SHIP)
+            path = self.STATE.MAP.find_path(sx, sy, tx, ty, COLLISIONS.SHIP)
 
             target_x, target_y = sx, sy
             if path:
                 dcol, drow = _DELTA[path[0]]
-                target_x   = (scol + dcol) * TILE + TILE // 2
-                target_y   = (srow + drow) * TILE + TILE // 2
+                target_x   = (scol + dcol) * TILE_SIZE + TILE_SIZE // 2
+                target_y   = (srow + drow) * TILE_SIZE + TILE_SIZE // 2
 
             self.STATE.SHIPS.append(
                 Ship(x=sx, y=sy, path=path, target_x=target_x, target_y=target_y)
             )
 
     def __move_ships(self):
-        TILE   = self.STATE.MAP.TILE_SIZE
         _DELTA = {STATE.UP:(0,-1), STATE.DOWN:(0,1), STATE.LEFT:(-1,0), STATE.RIGHT:(1,0)}
 
         for ship in list(self.STATE.SHIPS):
@@ -149,10 +147,10 @@ class Logic:
 
                     if ship.path:
                         dcol, drow  = _DELTA[ship.path[0]]
-                        cur_col     = ship.x // TILE
-                        cur_row     = ship.y // TILE
-                        ship.target_x = (cur_col + dcol) * TILE + TILE // 2
-                        ship.target_y = (cur_row + drow) * TILE + TILE // 2
+                        cur_col     = ship.x // TILE_SIZE
+                        cur_row     = ship.y // TILE_SIZE
+                        ship.target_x = (cur_col + dcol) * TILE_SIZE + TILE_SIZE // 2
+                        ship.target_y = (cur_row + drow) * TILE_SIZE + TILE_SIZE // 2
                 else:
                     ship.x += int(dx / dist * ship.speed)
                     ship.y += int(dy / dist * ship.speed)

@@ -40,7 +40,7 @@ class Player():
     x : int
     y : int
     live : int = 10
-    radius : int = 32
+    radius : int = 25
     speed : int = 5
     state : STATE = STATE.DOWN
 
