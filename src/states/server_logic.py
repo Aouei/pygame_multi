@@ -1,3 +1,5 @@
+import math
+import random
 from websockets import ClientConnection
 from loguru import logger
 
@@ -78,26 +80,78 @@ class Logic:
             new_pos.x += bullet.dx * self.STATE.BULLET_VELOCITY
             new_pos.y += bullet.dy * self.STATE.BULLET_VELOCITY
 
-            if not self.STATE.MAP.is_collision(new_pos, COLLISIONS.BULLET):
-                bullet.pos = new_pos
-            else:
+            if self.STATE.MAP.is_collision(new_pos, COLLISIONS.BULLET):
                 self.STATE.BULLETS.remove(bullet)
+            else:
+                bullet.pos = new_pos
 
     def __check_round(self):
-        if not self.STATE.SHIPS:
-            if self.colddown < self.colddown_max:
-                self.colddown += self.colddown_step
-            else:
-                self.colddown = 0
-                x, y = self.STATE.MAP.spawn(is_player = False)
-                self.STATE.SHIPS.append(Ship(x, y, 50))
+        if self.STATE.SHIPS:
+            return
+
+        if self.colddown < self.colddown_max:
+            self.colddown += self.colddown_step
+            return
+
+        self.colddown = 0
+        map_data  = self.STATE.MAP
+        TILE      = map_data.TILE_SIZE
+        _DELTA    = {STATE.UP:(0,-1), STATE.DOWN:(0,1), STATE.LEFT:(-1,0), STATE.RIGHT:(1,0)}
+
+        n       = min(self.STATE.MAX_SHIPS,
+                      len(map_data.ship_spawn_tiles),
+                      len(map_data.disembark_tiles))
+        spawns  = random.sample(map_data.ship_spawn_tiles, n)   # list of (col, row)
+        targets = random.sample(map_data.disembark_tiles,  n)   # list of (world_x, world_y)
+
+        for (scol, srow), (tx, ty) in zip(spawns, targets):
+            sx = scol * TILE + TILE // 2
+            sy = srow * TILE + TILE // 2
+
+            path = map_data.find_path(sx, sy, tx, ty, COLLISIONS.SHIP)
+
+            target_x, target_y = sx, sy
+            if path:
+                dcol, drow = _DELTA[path[0]]
+                target_x   = (scol + dcol) * TILE + TILE // 2
+                target_y   = (srow + drow) * TILE + TILE // 2
+
+            self.STATE.SHIPS.append(
+                Ship(x=sx, y=sy, live=50, path=path, target_x=target_x, target_y=target_y)
+            )
 
     def __move_ships(self):
-        pass
+        TILE   = self.STATE.MAP.TILE_SIZE
+        _DELTA = {STATE.UP:(0,-1), STATE.DOWN:(0,1), STATE.LEFT:(-1,0), STATE.RIGHT:(1,0)}
+
+        for ship in list(self.STATE.SHIPS):
+            if ship.path:
+                ship.state = ship.path[0]
+
+                dx   = ship.target_x - ship.x
+                dy   = ship.target_y - ship.y
+                dist = math.hypot(dx, dy)
+
+                if dist <= ship.speed:
+                    # Llega al waypoint: snap y avanza en el path
+                    ship.x = ship.target_x
+                    ship.y = ship.target_y
+                    ship.path.pop(0)
+
+                    if ship.path:
+                        dcol, drow  = _DELTA[ship.path[0]]
+                        cur_col     = ship.x // TILE
+                        cur_row     = ship.y // TILE
+                        ship.target_x = (cur_col + dcol) * TILE + TILE // 2
+                        ship.target_y = (cur_row + drow) * TILE + TILE // 2
+                else:
+                    ship.x += int(dx / dist * ship.speed)
+                    ship.y += int(dy / dist * ship.speed)
 
     def tick(self):
         self.__check_round()
         self.__move_bullets()
+        self.__move_ships()
 
 
     def serialize(self):

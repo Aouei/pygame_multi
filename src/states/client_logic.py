@@ -48,9 +48,16 @@ class Logic:
             x, y, role, vx, vy = bullet['x'], bullet['y'], bullet['role'], bullet['dx'], bullet['dy']
             self.draw_bullet(surface, x + dx, y + dy, role, vx, vy)
 
+        self.draw_minimap(surface)
+
+    def draw_minimap(self, surface):
         minmap_points = []
         for data in self.STATE.players_positions.copy().values():
-            minmap_points.append({'x' : data['x'], 'y' : data['y'], 'image' : self.STATE.PLAYERS[ROLE(data['role'])][STATE.DOWN]} )
+            minmap_points.append({'x' : data['x'], 'y' : data['y'], 'image' : 
+                                  pygame.transform.scale(self.STATE.PLAYERS[ROLE(data['role'])][STATE(data['state'])], (16, 16))}, ) 
+        for data in self.STATE.ships_positions.copy():
+            minmap_points.append({'x' : data['x'], 'y' : data['y'], 'image' : 
+                                  pygame.transform.scale(self.STATE.SHIPS[STATE(data['state'])], (16, 16))} )
 
         self.STATE.MAP.draw_mini(surface, 16, 16, minmap_points, self.player.pos.x, self.player.pos.y)
 

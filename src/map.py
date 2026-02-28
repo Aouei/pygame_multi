@@ -17,11 +17,12 @@ class MapData:
     COLLISION_TILES = {
         COLLISIONS.PLAYER : {2, 3, 9, *COMMON_COLLISIONS},
         COLLISIONS.BULLET : {4, *COMMON_COLLISIONS},
-        COLLISIONS.SHIP : {3},
+        COLLISIONS.SHIP : {1, 2},
     }
     NO_TILES = {0}
     PLAYER_SPAWN_CODES = {14}
-    SHIP_SPAWN_CODES = {4}
+    SHIP_SPAWN_CODES = {5}
+    SHIP_DISEMBARK_CODES = {2}
 
     def __init__(self, background: str, foreground : str | None = None) -> None:
         self.__load(background, foreground)
@@ -29,6 +30,7 @@ class MapData:
         self.__set_player_spawn_positions()
         self.__set_ship_spawn_positions()
         self.__set_blocked_tiles()
+        self.__set_disembark_positions()
 
     @property
     def width(self):
@@ -95,6 +97,30 @@ class MapData:
             for j, col in enumerate(row):
                 if col in self.COLLISION_TILES[collision]:
                     blocked.add((j, i))
+
+    def __set_disembark_positions(self):
+        """
+        Tiles de agua (no bloqueados para ships) adyacentes a tiles de desembarco.
+        Son los puntos donde los ships terminan su recorrido.
+        """
+        blocked = self._blocked_by_collision[COLLISIONS.SHIP]
+        rows, cols = self.background.shape
+        near_shore: set[tuple[int, int]] = set()
+
+        for i, row in enumerate(self.background):
+            for j, tile in enumerate(row):
+                if tile in self.SHIP_DISEMBARK_CODES:
+                    for di, dj in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                        ni, nj = i + di, j + dj
+                        if 0 <= ni < rows and 0 <= nj < cols:
+                            if (nj, ni) not in blocked:
+                                near_shore.add((nj, ni))
+
+        T = self.TILE_SIZE
+        self.disembark_tiles = [
+            (col * T + T // 2, row * T + T // 2)
+            for col, row in near_shore
+        ]
 
     def find_path(self, sx: int, sy: int, tx: int, ty: int,
                   collision: COLLISIONS = COLLISIONS.PLAYER) -> list[STATE]:
@@ -320,9 +346,7 @@ class MapRender:
             py = int(R + rel_y)
             # Solo si cae dentro del círculo
             if (px - R) ** 2 + (py - R) ** 2 <= R ** 2:
-                image = point['image']
-                new_size = image.get_rect().width // 2
-                mini_surf.blit(pygame.transform.scale(image, (new_size, new_size)), (px - new_size, py - new_size))
+                mini_surf.blit(point['image'], (px, py))
 
         # --- 3. Aplicar máscara circular ---
         # Creamos una surface SRCALPHA y bliteamos el contenido solo donde la máscara es blanca

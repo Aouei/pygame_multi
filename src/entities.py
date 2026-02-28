@@ -117,9 +117,12 @@ class Ship():
     x : int
     y : int
     live : int
-    radius : int =  32
-    speed : int = 15
+    path : list[STATE]
+    radius : int  = 32
+    speed : int   = 15
     state : STATE = STATE.DOWN
+    target_x : int = 0
+    target_y : int = 0
 
     def dump(self) -> dict:
         return {
