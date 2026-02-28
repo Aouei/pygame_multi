@@ -63,7 +63,7 @@ class Logic:
         pos = player.pos
         new_pos = Geometry(pos.x + dx * self.STATE.BULLET_VELOCITY,
                            pos.y + dy * self.STATE.BULLET_VELOCITY,
-                           radius = 8)
+                           radius = 16)
         
         self.STATE.BULLETS.append(Bullet(new_pos, dx, dy, ROLE(role)))
 
