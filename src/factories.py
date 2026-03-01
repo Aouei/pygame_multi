@@ -12,7 +12,7 @@ PLAYER_SIZE = 64
 ENEMY_SIZE = 64
 SHIP_SIZE = 128
 BULLET_SIZE = 32
-ENEMY_VARIANTS = 3
+ENEMY_VARIANTS = 4
 HEALTH_BAR_HEIGHT = 16
 
 def load_scale(path : str, size : int):
