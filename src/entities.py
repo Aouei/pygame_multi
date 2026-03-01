@@ -165,3 +165,33 @@ class Ship():
             'live' : self.live
         }
     
+
+@dataclass
+class Enemy():
+    x : int
+    y : int
+    path : list[STATE]
+    live : int = 5
+    max_live : int = 5
+    radius : int  = 25
+    speed : int   = 15
+    state : STATE = STATE.LEFT
+    target_x : int = 0
+    target_y : int = 0
+
+    def update(self, data : dict):
+        for key, value in data.items():
+            if key == 'state':
+                if not value in [STATE.DOWN.value, STATE.UP.value]:
+                    self.state = STATE(value)
+            else:
+                self.__setattr__(key, value)
+    
+
+    def dump(self) -> dict:
+        return {
+            'x' : self.x, 
+            'y' : self.y,
+            'state' : self.state.value,
+            'live' : self.live
+        }

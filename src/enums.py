@@ -25,3 +25,4 @@ class COLLISIONS(Enum):
     PLAYER = 'player'
     BULLET = 'bullet'
     SHIP = 'ship'
+    ENEMY = 'enemy'

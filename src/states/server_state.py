@@ -3,7 +3,7 @@ from websockets import ClientConnection
 
 import paths
 
-from entities import Player, Bullet, Ship
+from entities import Player, Bullet, Ship, Enemy
 from map import MapData
 
 
@@ -13,6 +13,7 @@ class State:
     PLAYERS : dict[int, Player] = {}
     BULLETS : list[Bullet] = []
     SHIPS : list[Ship] = []
+    ENEMIES : list[Enemy] = []
     MAX_SHIPS : int = 16
     MAP : MapData = MapData(paths.MAP_L1_PATH, paths.MAP_L2_PATH)
 

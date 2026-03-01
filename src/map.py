@@ -17,11 +17,13 @@ class MapData:
         COLLISIONS.PLAYER : {4, 9, *COMMON_COLLISIONS},
         COLLISIONS.BULLET : {4, *COMMON_COLLISIONS},
         COLLISIONS.SHIP : {1, 2},
+        COLLISIONS.ENEMY : {4, 5, 9, *COMMON_COLLISIONS},
     }
     NO_TILES = {0}
     PLAYER_SPAWN_CODES = {14}
     SHIP_SPAWN_CODES = {5}
     SHIP_DISEMBARK_CODES = {2}
+    ENEMY_TARGET_CODES = {1, 12}
 
     def __init__(self, background: str, foreground : str | None = None) -> None:
         self.__load(background, foreground)
@@ -30,6 +32,7 @@ class MapData:
         self.__set_ship_spawn_positions()
         self.__set_blocked_tiles()
         self.__set_disembark_positions()
+        self.__set_enemy_target_positions()
 
     @property
     def width(self):
@@ -117,6 +120,30 @@ class MapData:
 
         T = TILE_SIZE
         self.disembark_tiles = [
+            (col * T + T // 2, row * T + T // 2)
+            for col, row in near_shore
+        ]
+
+    def __set_enemy_target_positions(self):
+        """
+        Tiles de agua (no bloqueados para ships) adyacentes a tiles de desembarco.
+        Son los puntos donde los ships terminan su recorrido.
+        """
+        blocked = self._blocked_by_collision[COLLISIONS.ENEMY]
+        rows, cols = self.background.shape
+        near_shore: set[tuple[int, int]] = set()
+
+        for i, row in enumerate(self.background):
+            for j, tile in enumerate(row):
+                if tile in self.ENEMY_TARGET_CODES:
+                    for di, dj in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                        ni, nj = i + di, j + dj
+                        if 0 <= ni < rows and 0 <= nj < cols:
+                            if (nj, ni) not in blocked:
+                                near_shore.add((nj, ni))
+
+        T = TILE_SIZE
+        self.enemy_target_tiles = [
             (col * T + T // 2, row * T + T // 2)
             for col, row in near_shore
         ]

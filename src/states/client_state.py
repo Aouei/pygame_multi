@@ -1,8 +1,8 @@
 import paths
 from map import MapRender
 from enums import ROLE
-from factories import load_bullet, load_player, load_ship
-from entities import Player, Ship, Bullet
+from factories import load_bullet, load_player, load_ship, load_enemy
+from entities import Player, Ship, Bullet, Enemy
 
 
 PLAYER_SIZE = 64
@@ -14,6 +14,7 @@ class State:
     _PLAYERS = { role : load_player(role, PLAYER_SIZE) for role in ROLE }
     _BULLETS = load_bullet()
     _SHIPS = load_ship()
+    _ENEMIES = load_enemy()
 
     _COLORS = {
         0 : (0, 0, 0),
@@ -26,6 +27,7 @@ class State:
         self.received_players : dict[int, Player] = {}
         self.received_bullets : list[Bullet] = []
         self.received_ships : list[Ship] = []
+        self.received_enemies : list[Enemy] = []
         self._current_player : Player = Player(ROLE.MAGE, 0, 0)
         self._ID = -1
     
@@ -44,6 +46,10 @@ class State:
     @property
     def SHIPS(self):
         return self._SHIPS
+    
+    @property
+    def ENEMIES(self):
+        return self._ENEMIES
     
     @property
     def COLORS(self):

@@ -9,8 +9,10 @@ from enums import STATE, ROLE
 
 TILE_SIZE = 64
 PLAYER_SIZE = 64
-BULLET_SIZE = 32
+ENEMY_SIZE = 64
 SHIP_SIZE = 128
+BULLET_SIZE = 32
+
 HEALTH_BAR_HEIGHT = 16
 
 def load_scale(path : str, size : int):
@@ -32,4 +34,9 @@ def load_bullet(size : int = BULLET_SIZE):
 def load_ship(size : int = SHIP_SIZE):
     return {
         state : load_scale(os.path.join(paths.SHIP_DIR, f'{state.value}.png'), size) for state in STATE
+    }
+
+def load_enemy(size : int = ENEMY_SIZE):
+    return {
+        state : load_scale(os.path.join(paths.ENEMY_DIR, f'{state.value}.png'), size) for state in [STATE.LEFT, STATE.RIGHT]
     }

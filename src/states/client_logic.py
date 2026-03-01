@@ -2,9 +2,10 @@ import math
 import pygame
 from enums import ROLE, STATE
 from states.client_state import State
-from factories import PLAYER_SIZE, SHIP_SIZE, HEALTH_BAR_HEIGHT
+from factories import PLAYER_SIZE, SHIP_SIZE, HEALTH_BAR_HEIGHT, ENEMY_SIZE
 from protocols import LivingEntity
-from entities import Player, Ship, Bullet
+from entities import Player, Ship, Bullet, Enemy
+
 
 class Logic:
     STATE = State()
@@ -51,6 +52,14 @@ class Logic:
             self.STATE.received_ships.append(Ship(0, 0, []))
             self.STATE.received_ships[-1].update(ship)
 
+
+    def update_enemies(self, enemies : list):
+        self.STATE.received_enemies.clear()
+
+        for enemy in enemies:
+            self.STATE.received_enemies.append(Enemy(0, 0, []))
+            self.STATE.received_enemies[-1].update(enemy)
+
     def draw(self, surface, dx, dy):
         self.STATE.MAP.draw_layer(surface, (dx, dy), self.STATE.MAP.background)
 
@@ -74,6 +83,16 @@ class Logic:
                                      ship.y - SHIP_SIZE // 2 - HEALTH_BAR_HEIGHT + dy, 
                                      SHIP_SIZE, HEALTH_BAR_HEIGHT,
                                      ship)
+        
+        for enemy in self.STATE.received_enemies.copy():
+            self.draw_enenmy(surface, dx, dy, enemy)
+
+            if isinstance(enemy, LivingEntity):
+                self.draw_health_bar(surface, 
+                                     enemy.x - ENEMY_SIZE // 2 + dx, 
+                                     enemy.y - ENEMY_SIZE // 2 - HEALTH_BAR_HEIGHT + dy, 
+                                     ENEMY_SIZE, HEALTH_BAR_HEIGHT,
+                                     enemy)
 
         for bullet in self.STATE.received_bullets.copy():
             self.draw_bullet(surface, bullet.x + dx, bullet.y + dy, bullet.role, bullet.dx, bullet.dy)
@@ -115,6 +134,13 @@ class Logic:
     
         if self.DEBUG:
             pygame.draw.circle(surface, (255, 0, 0), (ship.x + dx, ship.y + dy), ship.radius, 1)
+        
+    def draw_enenmy(self, surface, dx, dy, enemy : Enemy):
+        surface.blit(self.STATE.ENEMIES[enemy.state],
+                     (enemy.x - ENEMY_SIZE // 2 + dx, enemy.y - ENEMY_SIZE // 2 + dy))
+    
+        if self.DEBUG:
+            pygame.draw.circle(surface, (255, 0, 0), (enemy.x + dx, enemy.y + dy), enemy.radius, 1)
         
     def draw_health_bar(self, surface, x, y, width, height, entity : LivingEntity):
         base_rect = (x, y,  width, height)

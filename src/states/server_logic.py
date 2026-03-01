@@ -6,7 +6,7 @@ from loguru import logger
 
 from states.server_state import State
 from enums import MESSAGES, ROLE, STATE, COLLISIONS
-from entities import Player, Geometry, Bullet, Ship, Counter
+from entities import Player, Geometry, Bullet, Ship, Counter, Enemy
 from factories import TILE_SIZE
 from protocols import LivingEntity
 
@@ -33,7 +33,8 @@ class Logic:
     STATE : State =  State()
 
     def __init__(self) -> None:
-        self.spawn_timer = Counter(seconds=10)
+        self.spawn_ship_timer = Counter(seconds=30)
+        self.spawn_enemy_timer = Counter(seconds=10)
 
     @property
     def CLIENTS(self):
@@ -99,13 +100,17 @@ class Logic:
 
             pos = Geometry(new_x, new_y, bullet.radius)
 
-            collision = check_collision_with_entities(pos, self.STATE.SHIPS.copy())
+            collision = check_collision_with_entities(pos, self.STATE.SHIPS.copy() + self.STATE.ENEMIES.copy())
             if collision:
                 if isinstance(collision, (Ship, LivingEntity)) and not collision.path:
                     collision.live -= 1
-                    
                     if collision.live <= 0:
                         self.STATE.SHIPS.remove(collision) 
+
+                elif isinstance(collision, (Enemy, LivingEntity)):
+                    collision.live -= 1
+                    if collision.live <= 0:
+                        self.STATE.ENEMIES.remove(collision) 
 
                 self.STATE.BULLETS.remove(bullet)
             elif self.STATE.MAP.is_collision(pos, COLLISIONS.BULLET):
@@ -115,11 +120,11 @@ class Logic:
                 bullet.y = new_y
 
     def __check_round(self):
-        if self.STATE.SHIPS:
-            self.spawn_timer.reset()
+        if self.STATE.SHIPS and self.STATE.ENEMIES:
+            self.spawn_ship_timer.reset()
             return
 
-        if not self.spawn_timer.tick():
+        if not self.spawn_ship_timer.tick():
             return
 
         _DELTA    = {STATE.UP:(0,-1), STATE.DOWN:(0,1), STATE.LEFT:(-1,0), STATE.RIGHT:(1,0)}
@@ -146,39 +151,69 @@ class Logic:
                 Ship(x=sx, y=sy, path=path, target_x=target_x, target_y=target_y)
             )
 
-    def __move_ships(self):
+    def __move(self, enemies : list[Ship] | list[Enemy]):
         _DELTA = {STATE.UP:(0,-1), STATE.DOWN:(0,1), STATE.LEFT:(-1,0), STATE.RIGHT:(1,0)}
 
-        for ship in list(self.STATE.SHIPS):
-            if ship.path:
-                ship.state = ship.path[0]
+        for enemy in list(enemies):
+            if enemy.path:
+                enemy.state = enemy.path[0]
 
-                dx   = ship.target_x - ship.x
-                dy   = ship.target_y - ship.y
+                dx   = enemy.target_x - enemy.x
+                dy   = enemy.target_y - enemy.y
                 dist = math.hypot(dx, dy)
 
-                if dist <= ship.speed:
-                    ship.x = ship.target_x
-                    ship.y = ship.target_y
-                    ship.path.pop(0)
+                if dist <= enemy.speed:
+                    enemy.x = enemy.target_x
+                    enemy.y = enemy.target_y
+                    enemy.path.pop(0)
 
-                    if ship.path:
-                        dcol, drow  = _DELTA[ship.path[0]]
-                        cur_col     = ship.x // TILE_SIZE
-                        cur_row     = ship.y // TILE_SIZE
-                        ship.target_x = (cur_col + dcol) * TILE_SIZE + TILE_SIZE // 2
-                        ship.target_y = (cur_row + drow) * TILE_SIZE + TILE_SIZE // 2
+                    if enemy.path:
+                        dcol, drow  = _DELTA[enemy.path[0]]
+                        cur_col     = enemy.x // TILE_SIZE
+                        cur_row     = enemy.y // TILE_SIZE
+                        enemy.target_x = (cur_col + dcol) * TILE_SIZE + TILE_SIZE // 2
+                        enemy.target_y = (cur_row + drow) * TILE_SIZE + TILE_SIZE // 2
                 else:
-                    ship.x += int(dx / dist * ship.speed)
-                    ship.y += int(dy / dist * ship.speed)
+                    enemy.x += int(dx / dist * enemy.speed)
+                    enemy.y += int(dy / dist * enemy.speed)
 
     def __spawn_enemies(self):
-        pass
+        for ship in self.STATE.SHIPS:
+            if not ship.path and self.spawn_enemy_timer.tick():
+                self.spawn_enemy_timer.reset()
+
+                x, y = ship.x, ship.y
+                target_x, target_y = random.sample(self.STATE.MAP.enemy_target_tiles, 1)[0]
+                path = self.STATE.MAP.find_path(x, y, target_x, target_y, COLLISIONS.ENEMY)
+
+                self.STATE.ENEMIES.append( Enemy(x, y, path, target_x = target_x, target_y = target_y) )
+
+    def __redirect_enemies(self):
+        for enemy in self.STATE.ENEMIES:
+            if not enemy.path:
+                x, y = enemy.x, enemy.y
+                target_x, target_y = random.sample(self.STATE.MAP.enemy_target_tiles, 1)[0]
+                path = self.STATE.MAP.find_path(x, y, target_x, target_y, COLLISIONS.ENEMY)
+                enemy.path = path
+    
+    def __check_enemy_hit_with_player(self):
+        for enemy in self.STATE.ENEMIES:
+            collision = check_collision_with_entities(enemy, self.STATE.PLAYERS.values())
+
+            if collision and isinstance(collision, LivingEntity):
+                collision.live -= 1
+             
+                if collision.live <= 0: # TODO: desconectar personaje
+                    pass
 
     def tick(self):
         if self.STATE.CLIENTS:
             self.__check_round()
-            self.__move_ships()
+            self.__move(self.STATE.SHIPS)
+            self.__spawn_enemies()
+            self.__redirect_enemies()
+            self.__move(self.STATE.ENEMIES)
+            self.__check_enemy_hit_with_player()
             self.__move_bullets()
 
     def serialize(self):
@@ -188,4 +223,5 @@ class Logic:
                             },
                 'bullets' : [ bullet.dump() for bullet in self.STATE.BULLETS ],
                 'ships' : [ ship.dump() for ship in self.STATE.SHIPS ],
+                'enemies' : [ enemy.dump() for enemy in self.STATE.ENEMIES ],
                }
