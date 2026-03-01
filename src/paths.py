@@ -14,3 +14,5 @@ if __name__ != '__main__':
     TILES_DIR   = os.path.join(ASSETS_DIR, "tiles")
     MAP_L1_PATH    = os.path.join(ASSETS_DIR, "map", "agua.csv")
     MAP_L2_PATH    = os.path.join(ASSETS_DIR, "map", "objetos.csv")
+    BACKGROND_MUSIC_PATH    = os.path.join(ASSETS_DIR, "music", "Goblins_Den_(Regular).wav")
+    BATTLE_MUSIC_PATH    = os.path.join(ASSETS_DIR, "music", "Goblins_Dance_(Battle).wav")

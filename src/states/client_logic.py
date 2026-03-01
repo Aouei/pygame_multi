@@ -1,6 +1,7 @@
 import math
 import pygame
 
+import paths
 from enums import ROLE
 from states.client_state import State
 from factories import PLAYER_SIZE, SHIP_SIZE, HEALTH_BAR_HEIGHT, ENEMY_SIZE
@@ -11,6 +12,7 @@ from entities import Player, Ship, Bullet, Enemy
 class Logic:
     STATE = State()
     DEBUG = False
+    _in_battle = False
 
     def reset(self):
         self.STATE.received_players.clear()
@@ -100,10 +102,27 @@ class Logic:
         self.STATE.MAP.draw_layer(surface, (dx, dy), self.STATE.MAP.foreground)
 
         self.draw_minimap(surface)
-        self.draw_UI()
+        self._update_music()
 
-    def draw_UI(self):
-        pass
+    def start_music(self):
+        pygame.mixer.music.load(paths.BACKGROND_MUSIC_PATH)
+        pygame.mixer.music.play(loops=-1)
+        self._in_battle = False
+
+    def stop_music(self):
+        pygame.mixer.music.stop()
+
+    def _update_music(self):
+        round_active = bool(self.STATE.received_ships or self.STATE.received_enemies)
+
+        if round_active and not self._in_battle:
+            pygame.mixer.music.load(paths.BATTLE_MUSIC_PATH)
+            pygame.mixer.music.play(loops=-1)
+            self._in_battle = True
+        elif not round_active and self._in_battle:
+            pygame.mixer.music.load(paths.BACKGROND_MUSIC_PATH)
+            pygame.mixer.music.play(loops=-1)
+            self._in_battle = False
 
     def draw_minimap(self, surface):
         minmap_points = []

@@ -83,7 +83,8 @@ class Game:
         self.offset_y = max(0, min(self.offset_y, map_pixel_height - self.HEIGHT))
     
     async def run(self, role : ROLE) -> str:
-        self.LOGIC.reset()                         # ← también falta esto
+        self.LOGIC.reset()
+        self.LOGIC.start_music()
         async with websockets.connect("ws://25.33.144.47:25565") as websocket:
             self.connected = True
             
@@ -94,4 +95,5 @@ class Game:
             await self.loop(websocket)
             recv_task.cancel()
 
+        self.LOGIC.stop_music()
         return 'lobby'
