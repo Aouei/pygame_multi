@@ -8,7 +8,7 @@ from entities import Player, Ship, Bullet
 
 class Logic:
     STATE = State()
-    DEBUG = False
+    DEBUG = True
 
     def reset(self):
         self.STATE.received_players.clear()
@@ -112,6 +112,9 @@ class Logic:
     def draw_ship(self, surface, dx, dy, ship : Ship):
         surface.blit(self.STATE.SHIPS[ship.state],
                      (ship.x - SHIP_SIZE // 2 + dx, ship.y - SHIP_SIZE // 2 + dy))
+    
+        if self.DEBUG:
+            pygame.draw.circle(surface, (255, 0, 0), (ship.x + dx, ship.y + dy), ship.radius, 1)
         
     def draw_health_bar(self, surface, x, y, width, height, entity : LivingEntity):
         base_rect = (x, y,  width, height)
