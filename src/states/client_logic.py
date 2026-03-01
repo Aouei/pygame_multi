@@ -128,11 +128,8 @@ class Logic:
         minmap_points = []
         for player in self.STATE.received_players.copy().values():
             minmap_points.append({'x' : player.x, 'y' : player.y, 'image' : 
-                                  pygame.transform.scale(self.STATE.PLAYERS[player.role][player.state], (16, 16))}, ) 
-        for ship in self.STATE.received_ships.copy():
-            minmap_points.append({'x' : ship.x, 'y' : ship.y, 'image' : 
-                                  pygame.transform.scale(self.STATE.SHIPS[ship.state], (32, 32))} )
-        
+                                  pygame.transform.scale(self.STATE.PLAYERS[player.role][player.state], (16, 16))}, )
+            
         minmap_points.append({'x' : self.player.x, 'y' : self.player.y, 'image' : 
                                   pygame.transform.scale(self.STATE.PLAYERS[self.player.role][self.player.state], (16, 16))}, )
 

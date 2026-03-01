@@ -193,19 +193,20 @@ class Logic:
             if not ship.path and self.spawn_enemy_timer.tick():
                 self.spawn_enemy_timer.reset()
 
-                x, y = ship.x, ship.y
-                final_tx, final_ty = random.sample(self.STATE.MAP.enemy_target_tiles, 1)[0]
-                path = self.STATE.MAP.find_path(x, y, final_tx, final_ty, COLLISIONS.ENEMY)
+                for _ in range(random.randint(1, self.STATE.MAX_ENEMIES)):
+                    x, y = ship.x, ship.y
+                    final_tx, final_ty = random.sample(self.STATE.MAP.enemy_target_tiles, 1)[0]
+                    path = self.STATE.MAP.find_path(x, y, final_tx, final_ty, COLLISIONS.ENEMY)
 
-                target_x, target_y = x, y
-                if path:
-                    dcol, drow = _DELTA[path[0]]
-                    scol, srow = x // TILE_SIZE, y // TILE_SIZE
-                    target_x = (scol + dcol) * TILE_SIZE + TILE_SIZE // 2
-                    target_y = (srow + drow) * TILE_SIZE + TILE_SIZE // 2
+                    target_x, target_y = x, y
+                    if path:
+                        dcol, drow = _DELTA[path[0]]
+                        scol, srow = x // TILE_SIZE, y // TILE_SIZE
+                        target_x = (scol + dcol) * TILE_SIZE + TILE_SIZE // 2
+                        target_y = (srow + drow) * TILE_SIZE + TILE_SIZE // 2
 
-                enemy = Enemy(x, y, path, target_x=target_x, target_y=target_y, variant = random.randint(0, ENEMY_VARIANTS - 1))
-                self.STATE.ENEMIES.append( enemy )
+                    enemy = Enemy(x, y, path, target_x=target_x, target_y=target_y, variant = random.randint(0, ENEMY_VARIANTS - 1))
+                    self.STATE.ENEMIES.append( enemy )
 
     def __redirect_enemies(self):
         _DELTA = {STATE.UP:(0,-1), STATE.DOWN:(0,1), STATE.LEFT:(-1,0), STATE.RIGHT:(1,0)}
