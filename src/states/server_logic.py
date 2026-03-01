@@ -1,6 +1,6 @@
 import math
 import random
-from websockets import ClientConnection, exceptions
+from websockets import ClientConnection
 from loguru import logger
 
 
@@ -9,7 +9,6 @@ from enums import MESSAGES, ROLE, STATE, COLLISIONS
 from entities import Player, Geometry, Bullet, Ship, Counter, Enemy
 from factories import TILE_SIZE, ENEMY_VARIANTS
 from protocols import LivingEntity
-import messages
 
 
 def check_intersection_by_radius(obj1, obj2):
@@ -37,6 +36,7 @@ class Logic:
         self.spawn_ship_timer = Counter(seconds=30)
         self.spawn_enemy_timer = Counter(seconds=15)
         self.died_players : set = set()
+        self.new_round : bool = False
 
     @property
     def CLIENTS(self):
@@ -135,6 +135,7 @@ class Logic:
         if not self.spawn_ship_timer.tick():
             return
 
+        self.new_round = True
         _DELTA    = {STATE.UP:(0,-1), STATE.DOWN:(0,1), STATE.LEFT:(-1,0), STATE.RIGHT:(1,0)}
 
         n       = min(self.STATE.MAX_SHIPS * len(self.STATE.PLAYERS),
@@ -233,6 +234,8 @@ class Logic:
                         self.died_players.add(idd)
 
     def tick(self):
+        self.new_round = False
+
         if self.STATE.CLIENTS:
             self.__check_round()
             self.__move(self.STATE.SHIPS)
@@ -241,8 +244,8 @@ class Logic:
             self.__move(self.STATE.ENEMIES)
             self.__check_enemy_hit_with_player()
             self.__move_bullets()
-        
-        return self.died_players
+
+        return self.died_players, self.new_round
 
     def serialize(self):
         return { 

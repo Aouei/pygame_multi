@@ -20,6 +20,7 @@ class MESSAGES(Enum):
     PLAYERS_UPDATE = 'players_update'
     SHOT = 'shot'
     QUIT = 'quit'
+    ROUND_START = 'round_start'
 
 class COLLISIONS(Enum):
     PLAYER = 'player'

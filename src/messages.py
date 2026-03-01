@@ -54,3 +54,7 @@ def quit(socket : ClientConnection):
     }
 
     return socket.send(json.dumps(message))
+
+def round_start(sockets : list[ClientConnection]):
+    message = json.dumps({'type': MESSAGES.ROUND_START.value})
+    broadcast(sockets, message)

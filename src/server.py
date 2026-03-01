@@ -42,11 +42,15 @@ class Server:
             if not self.LOGIC.CLIENTS:
                 continue
 
-            died_players = self.LOGIC.tick()
+            died_players, new_round = self.LOGIC.tick()
+
+            if new_round:
+                messages.round_start(list(self.LOGIC.CLIENTS.values()))
 
             for idd in died_players.copy():
-                await messages.quit(self.LOGIC.CLIENTS[idd])
-                self.LOGIC.remove_player(idd)
+                if idd in self.LOGIC.CLIENTS:
+                    await messages.quit(self.LOGIC.CLIENTS[idd])
+                    self.LOGIC.remove_player(idd)
                 self.LOGIC.died_players.discard(idd)
 
             message = self.LOGIC.serialize()

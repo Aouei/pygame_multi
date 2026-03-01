@@ -100,6 +100,10 @@ class Logic:
         self.STATE.MAP.draw_layer(surface, (dx, dy), self.STATE.MAP.foreground)
 
         self.draw_minimap(surface)
+        self.draw_UI()
+
+    def draw_UI(self):
+        pass
 
     def draw_minimap(self, surface):
         minmap_points = []

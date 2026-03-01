@@ -223,7 +223,6 @@ class MapData:
         if self.solid_tree_by_collision[collision] is None:
             return False
         
-        reduction = 2
         x, y = pos.x, pos.y
         search_radius = TILE_SIZE + pos.radius // 2
         nearby_indices = self.solid_tree_by_collision[collision].query_ball_point([x, y], search_radius)
@@ -232,7 +231,7 @@ class MapData:
             sx, sy = self.solid_positions_by_collision[collision][idx]
             dx, dy = pos.x - sx, pos.y - sy
             
-            if dx * dx + dy * dy <= ((pos.radius + pos.radius) ** 2) / reduction:
+            if dx * dx + dy * dy <= ((pos.radius + pos.radius) ** 2):
                 return True
             
         return False
