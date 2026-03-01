@@ -10,8 +10,8 @@ class InputHandler:
         self._try_init_joystick()
         self._prev_hat = 0
         self._prev_trigger = False
-        self._shot_timer   = 0
-        self.SHOT_RATE     = 10  # frames entre disparos al mantener pulsado
+        self._shot_timer = 0
+        self.SHOT_RATE = 10  # frames entre disparos al mantener pulsado
 
     def _try_init_joystick(self):
         if pygame.joystick.get_count() > 0:
@@ -19,19 +19,19 @@ class InputHandler:
             self._joystick.init()
 
     def _reset(self):
-        self.quit            = False
-        self.k_left          = False   # pulso puntual (menús)
-        self.k_right         = False   # pulso puntual (menús)
-        self.k_enter         = False   # pulso puntual
-        self.con_left        = False   # estado continuo (movimiento)
-        self.con_right       = False
-        self.con_up          = False
-        self.con_down        = False
-        self.shot            = False
-        self.shot_direction  = (0, 0)
-        self.right_stick     = (0.0, 0.0)
-        self.current_char    = ''
-        self.delete_char     =  False
+        self.quit = False
+        self.k_left = False  # pulso puntual (menús)
+        self.k_right = False  # pulso puntual (menús)
+        self.k_enter = False  # pulso puntual
+        self.con_left = False  # estado continuo (movimiento)
+        self.con_right = False
+        self.con_up = False
+        self.con_down = False
+        self.shot = False
+        self.shot_direction = (0, 0)
+        self.right_stick = (0.0, 0.0)
+        self.current_char = ""
+        self.delete_char = False
 
     def update(self):
         self._reset()
@@ -70,10 +70,14 @@ class InputHandler:
                 self._try_init_joystick()
 
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_a]:  self.con_left  = True
-        if keys[pygame.K_d]: self.con_right = True
-        if keys[pygame.K_w]:    self.con_up    = True
-        if keys[pygame.K_s]:  self.con_down  = True
+        if keys[pygame.K_a]:
+            self.con_left = True
+        if keys[pygame.K_d]:
+            self.con_right = True
+        if keys[pygame.K_w]:
+            self.con_up = True
+        if keys[pygame.K_s]:
+            self.con_down = True
 
     def _handle_joystick(self, events):
         for event in events:
@@ -104,14 +108,14 @@ class InputHandler:
 
         rx = j.get_axis(2) if j.get_numaxes() > 2 else 0.0
         ry = j.get_axis(3) if j.get_numaxes() > 3 else 0.0
-        
+
         trigger = j.get_axis(5) > -0.5 if j.get_numaxes() > 5 else False
 
         if not trigger:
             self._shot_timer = 0
             self.shot = False
         elif not self._prev_trigger:
-            self.shot = True   # primer pulso — dispara inmediatamente
+            self.shot = True  # primer pulso — dispara inmediatamente
             self._shot_timer = 0
         else:
             self._shot_timer += 1
@@ -123,24 +127,29 @@ class InputHandler:
 
         self.right_stick = (rx, ry)
 
-        if ax < -self.deadzone: self.con_left  = True
-        if ax >  self.deadzone: self.con_right = True
-        if ay < -self.deadzone: self.con_up    = True
-        if ay >  self.deadzone: self.con_down  = True
+        if ax < -self.deadzone:
+            self.con_left = True
+        if ax > self.deadzone:
+            self.con_right = True
+        if ay < -self.deadzone:
+            self.con_up = True
+        if ay > self.deadzone:
+            self.con_down = True
 
         # Cruceta → estado continuo + pulso para menús
         if j.get_numhats() > 0:
             hx, hy = j.get_hat(0)
             if hx == -1 and self._prev_hat != -1:
-                self.con_left  = True
-                self.k_left    = True
-            elif hx ==  1 and self._prev_hat != 1:
+                self.con_left = True
+                self.k_left = True
+            elif hx == 1 and self._prev_hat != 1:
                 self.con_right = True
-                self.k_right   = True
+                self.k_right = True
             else:
                 self._prev_hat = 0
-            if hy ==  1: self.con_up   = True
-            if hy == -1: self.con_down = True
+            if hy == 1:
+                self.con_up = True
+            if hy == -1:
+                self.con_down = True
 
             self._prev_hat = hx
-

@@ -2,28 +2,31 @@ from enum import Enum
 
 
 class ROLE(Enum):
-    ARCHER = 'archer'
-    FARMER = 'farmer'
-    MAGE = 'mage'
-    MUSKETEER = 'musketeer'
+    ARCHER = "archer"
+    FARMER = "farmer"
+    MAGE = "mage"
+    MUSKETEER = "musketeer"
+
 
 class STATE(Enum):
-    UP = 'up'
-    DOWN = 'down'
-    LEFT = 'left'
-    RIGHT = 'right'
-    
+    UP = "up"
+    DOWN = "down"
+    LEFT = "left"
+    RIGHT = "right"
+
+
 class MESSAGES(Enum):
-    HELLO = 'hello'
-    ROLE = 'role'
-    WISH_MOVE = 'wish_mode'
-    PLAYERS_UPDATE = 'players_update'
-    SHOT = 'shot'
-    QUIT = 'quit'
-    ROUND_START = 'round_start'
+    HELLO = "hello"
+    ROLE = "role"
+    WISH_MOVE = "wish_mode"
+    PLAYERS_UPDATE = "players_update"
+    SHOT = "shot"
+    QUIT = "quit"
+    ROUND_START = "round_start"
+
 
 class COLLISIONS(Enum):
-    PLAYER = 'player'
-    BULLET = 'bullet'
-    SHIP = 'ship'
-    ENEMY = 'enemy'
+    PLAYER = "player"
+    BULLET = "bullet"
+    SHIP = "ship"
+    ENEMY = "enemy"

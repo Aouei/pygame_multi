@@ -27,35 +27,35 @@ class Logic:
     @property
     def ID(self):
         return self.STATE.ID
-    
+
     @ID.setter
     def ID(self, value):
         self.STATE.ID = value
 
-    def update_players(self, players : dict):
+    def update_players(self, players: dict):
         self.STATE.received_players.clear()
 
         for idd, player in players.items():
             self.STATE.received_players[idd] = Player(ROLE.MAGE, 0, 0)
             self.STATE.received_players[idd].update(player)
-            
+
         self.player.update(players.get(self.ID, {}))
 
-    def update_bullets(self, bullets : list):
+    def update_bullets(self, bullets: list):
         self.STATE.received_bullets.clear()
 
         for bullet in bullets:
             self.STATE.received_bullets.append(Bullet(0, 0, 0, 0, ROLE.MAGE))
             self.STATE.received_bullets[-1].update(bullet)
 
-    def update_ships(self, ships : list):
+    def update_ships(self, ships: list):
         self.STATE.received_ships.clear()
 
         for ship in ships:
             self.STATE.received_ships.append(Ship(0, 0, []))
             self.STATE.received_ships[-1].update(ship)
 
-    def update_enemies(self, enemies : list):
+    def update_enemies(self, enemies: list):
         self.STATE.received_enemies.clear()
 
         for enemy in enemies:
@@ -69,35 +69,45 @@ class Logic:
             self.draw_player(surface, dx, dy, player)
 
             if isinstance(player, LivingEntity):
-                self.draw_health_bar(surface, 
-                                     player.x - PLAYER_SIZE // 2 + dx, 
-                                     player.y - PLAYER_SIZE // 2 - HEALTH_BAR_HEIGHT + dy, 
-                                     PLAYER_SIZE,
-                                     HEALTH_BAR_HEIGHT,
-                                     player)
+                self.draw_health_bar(
+                    surface,
+                    player.x - PLAYER_SIZE // 2 + dx,
+                    player.y - PLAYER_SIZE // 2 - HEALTH_BAR_HEIGHT + dy,
+                    PLAYER_SIZE,
+                    HEALTH_BAR_HEIGHT,
+                    player,
+                )
 
         for ship in self.STATE.received_ships.copy():
             self.draw_ship(surface, dx, dy, ship)
 
             if isinstance(ship, LivingEntity):
-                self.draw_health_bar(surface, 
-                                     ship.x - SHIP_SIZE // 2 + dx, 
-                                     ship.y - SHIP_SIZE // 2 - HEALTH_BAR_HEIGHT + dy, 
-                                     SHIP_SIZE, HEALTH_BAR_HEIGHT,
-                                     ship)
-        
+                self.draw_health_bar(
+                    surface,
+                    ship.x - SHIP_SIZE // 2 + dx,
+                    ship.y - SHIP_SIZE // 2 - HEALTH_BAR_HEIGHT + dy,
+                    SHIP_SIZE,
+                    HEALTH_BAR_HEIGHT,
+                    ship,
+                )
+
         for enemy in self.STATE.received_enemies.copy():
             self.draw_enenmy(surface, dx, dy, enemy)
 
             if isinstance(enemy, LivingEntity):
-                self.draw_health_bar(surface, 
-                                     enemy.x - ENEMY_SIZE // 2 + dx, 
-                                     enemy.y - ENEMY_SIZE // 2 - HEALTH_BAR_HEIGHT + dy, 
-                                     ENEMY_SIZE, HEALTH_BAR_HEIGHT,
-                                     enemy)
+                self.draw_health_bar(
+                    surface,
+                    enemy.x - ENEMY_SIZE // 2 + dx,
+                    enemy.y - ENEMY_SIZE // 2 - HEALTH_BAR_HEIGHT + dy,
+                    ENEMY_SIZE,
+                    HEALTH_BAR_HEIGHT,
+                    enemy,
+                )
 
         for bullet in self.STATE.received_bullets.copy():
-            self.draw_bullet(surface, bullet.x + dx, bullet.y + dy, bullet.role, bullet.dx, bullet.dy)
+            self.draw_bullet(
+                surface, bullet.x + dx, bullet.y + dy, bullet.role, bullet.dx, bullet.dy
+            )
 
         self.STATE.MAP.draw_layer(surface, (dx, dy), self.STATE.MAP.foreground)
 
@@ -127,13 +137,29 @@ class Logic:
     def draw_minimap(self, surface):
         minmap_points = []
         for player in self.STATE.received_players.copy().values():
-            minmap_points.append({'x' : player.x, 'y' : player.y, 'image' : 
-                                  pygame.transform.scale(self.STATE.PLAYERS[player.role][player.state], (16, 16))}, )
-            
-        minmap_points.append({'x' : self.player.x, 'y' : self.player.y, 'image' : 
-                                  pygame.transform.scale(self.STATE.PLAYERS[self.player.role][self.player.state], (16, 16))}, )
+            minmap_points.append(
+                {
+                    "x": player.x,
+                    "y": player.y,
+                    "image": pygame.transform.scale(
+                        self.STATE.PLAYERS[player.role][player.state], (16, 16)
+                    ),
+                },
+            )
 
-        self.STATE.MAP.draw_mini(surface, 16, 16, minmap_points, self.player.x, self.player.y)
+        minmap_points.append(
+            {
+                "x": self.player.x,
+                "y": self.player.y,
+                "image": pygame.transform.scale(
+                    self.STATE.PLAYERS[self.player.role][self.player.state], (16, 16)
+                ),
+            },
+        )
+
+        self.STATE.MAP.draw_mini(
+            surface, 16, 16, minmap_points, self.player.x, self.player.y
+        )
 
     def draw_bullet(self, surface, x: int, y: int, role: ROLE, dx: float, dy: float):
         angle = math.degrees(math.atan2(-dy, dx)) - 90
@@ -141,31 +167,43 @@ class Logic:
         rect = rotated.get_rect(center=(x, y))
         surface.blit(rotated, rect)
 
-    def draw_player(self, surface, dx, dy, player : Player):
-        surface.blit(self.STATE.PLAYERS[player.role][player.state],
-                     (player.x - PLAYER_SIZE // 2 + dx, player.y - PLAYER_SIZE // 2 + dy))
+    def draw_player(self, surface, dx, dy, player: Player):
+        surface.blit(
+            self.STATE.PLAYERS[player.role][player.state],
+            (player.x - PLAYER_SIZE // 2 + dx, player.y - PLAYER_SIZE // 2 + dy),
+        )
 
         if self.DEBUG:
-            pygame.draw.circle(surface, (255, 0, 0), (player.x + dx, player.y + dy), player.radius, 1)
+            pygame.draw.circle(
+                surface, (255, 0, 0), (player.x + dx, player.y + dy), player.radius, 1
+            )
 
-    def draw_ship(self, surface, dx, dy, ship : Ship):
-        surface.blit(self.STATE.SHIPS[ship.state],
-                     (ship.x - SHIP_SIZE // 2 + dx, ship.y - SHIP_SIZE // 2 + dy))
-    
+    def draw_ship(self, surface, dx, dy, ship: Ship):
+        surface.blit(
+            self.STATE.SHIPS[ship.state],
+            (ship.x - SHIP_SIZE // 2 + dx, ship.y - SHIP_SIZE // 2 + dy),
+        )
+
         if self.DEBUG:
-            pygame.draw.circle(surface, (255, 0, 0), (ship.x + dx, ship.y + dy), ship.radius, 1)
-        
-    def draw_enenmy(self, surface, dx, dy, enemy : Enemy):
-        surface.blit(self.STATE.ENEMIES[enemy.variant][enemy.state],
-                     (enemy.x - ENEMY_SIZE // 2 + dx, enemy.y - ENEMY_SIZE // 2 + dy))
-    
+            pygame.draw.circle(
+                surface, (255, 0, 0), (ship.x + dx, ship.y + dy), ship.radius, 1
+            )
+
+    def draw_enenmy(self, surface, dx, dy, enemy: Enemy):
+        surface.blit(
+            self.STATE.ENEMIES[enemy.variant][enemy.state],
+            (enemy.x - ENEMY_SIZE // 2 + dx, enemy.y - ENEMY_SIZE // 2 + dy),
+        )
+
         if self.DEBUG:
-            pygame.draw.circle(surface, (255, 0, 0), (enemy.x + dx, enemy.y + dy), enemy.radius, 1)
-        
-    def draw_health_bar(self, surface, x, y, width, height, entity : LivingEntity):
-        base_rect = (x, y,  width, height)
+            pygame.draw.circle(
+                surface, (255, 0, 0), (enemy.x + dx, enemy.y + dy), enemy.radius, 1
+            )
+
+    def draw_health_bar(self, surface, x, y, width, height, entity: LivingEntity):
+        base_rect = (x, y, width, height)
         current_rect = (x, y, width * (entity.live / entity.max_live), height)
 
         pygame.draw.rect(surface, (0, 0, 0), base_rect)
         pygame.draw.rect(surface, (248, 117, 117), current_rect)
-        pygame.draw.rect(surface, (255, 255, 255), base_rect, width = 2)
+        pygame.draw.rect(surface, (255, 255, 255), base_rect, width=2)

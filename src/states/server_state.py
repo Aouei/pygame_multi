@@ -9,14 +9,14 @@ from map import MapData
 
 class State:
     IDS = {0, 1, 2, 3}
-    CLIENTS : dict[int, ClientConnection] = {}
-    PLAYERS : dict[int, Player] = {}
-    BULLETS : list[Bullet] = []
-    SHIPS : list[Ship] = []
-    ENEMIES : list[Enemy] = []
-    MAX_SHIPS : int = 5
-    MAX_ENEMIES : int = 5
-    MAP : MapData = MapData(paths.MAP_L1_PATH, paths.MAP_L2_PATH)
+    CLIENTS: dict[int, ClientConnection] = {}
+    PLAYERS: dict[int, Player] = {}
+    BULLETS: list[Bullet] = []
+    SHIPS: list[Ship] = []
+    ENEMIES: list[Enemy] = []
+    MAX_SHIPS: int = 5
+    MAX_ENEMIES: int = 5
+    MAP: MapData = MapData(paths.MAP_L1_PATH, paths.MAP_L2_PATH)
 
     BULLET_VELOCITY = 30
 

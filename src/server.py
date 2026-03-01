@@ -12,10 +12,10 @@ from states.server_logic import Logic
 
 pygame.init()
 
+
 class Server:
     TICK_RATE = 20
     LOGIC = Logic()
-
 
     async def handle_client(self, socket):
         ID = self.LOGIC.new_player(socket)
@@ -56,6 +56,7 @@ class Server:
             message = self.LOGIC.serialize()
             logger.info(f"Sended UPDATE to players {message}")
             messages.update_clients(message, list(self.LOGIC.CLIENTS.values()))
+
 
 async def main():
     server = Server()

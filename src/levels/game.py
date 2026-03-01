@@ -17,7 +17,9 @@ class Game:
     LOGIC = Logic()
     FRAME_RATE = 60
 
-    def __init__(self, window : pygame.Surface, inputs : InputHandler, clock : Clock) -> None:
+    def __init__(
+        self, window: pygame.Surface, inputs: InputHandler, clock: Clock
+    ) -> None:
         self.offset_x = 0
         self.offset_y = 0
         self.inputs = inputs
@@ -31,14 +33,16 @@ class Game:
             data = json.loads(raw)
 
             message_type = MESSAGES(data["type"])
-            
+
             if message_type == MESSAGES.HELLO:
                 self.LOGIC.ID = data["id"]
             elif message_type == MESSAGES.PLAYERS_UPDATE:
-                self.LOGIC.update_players({int(k): v for k, v in data.get("players", {}).items()})
-                self.LOGIC.update_bullets(data.get('bullets', []))
-                self.LOGIC.update_ships(data.get('ships', []))
-                self.LOGIC.update_enemies(data.get('enemies', []))
+                self.LOGIC.update_players(
+                    {int(k): v for k, v in data.get("players", {}).items()}
+                )
+                self.LOGIC.update_bullets(data.get("bullets", []))
+                self.LOGIC.update_ships(data.get("ships", []))
+                self.LOGIC.update_enemies(data.get("enemies", []))
             elif message_type == MESSAGES.QUIT:
                 self.connected = False
 
@@ -52,7 +56,7 @@ class Game:
 
             pygame.display.flip()
             self.clock.tick(self.FRAME_RATE)
-            await asyncio.sleep(0) 
+            await asyncio.sleep(0)
 
     async def __handle_player_actions(self, websocket):
         self.inputs.update()
@@ -60,9 +64,11 @@ class Game:
         dx, dy, state = self.LOGIC.player.wish_to_move(self.inputs)
         if dx != 0 or dy != 0:
             logger.info(f"Sending to server {MESSAGES.WISH_MOVE}")
-            await messages.wish_move(dx, dy, state, websocket) 
-            
-        dx, dy = self.LOGIC.player.wish_to_shoot(self.inputs, self.offset_x, self.offset_y)
+            await messages.wish_move(dx, dy, state, websocket)
+
+        dx, dy = self.LOGIC.player.wish_to_shoot(
+            self.inputs, self.offset_x, self.offset_y
+        )
         if dx != 0 or dy != 0:
             await messages.wish_shot(self.LOGIC.player.role, dx, dy, websocket)
 
@@ -81,19 +87,19 @@ class Game:
         self.offset_y = center_y - self.HEIGHT // 2
         self.offset_x = max(0, min(self.offset_x, map_pixel_width - self.WIDTH))
         self.offset_y = max(0, min(self.offset_y, map_pixel_height - self.HEIGHT))
-    
-    async def run(self, role : ROLE) -> str:
+
+    async def run(self, role: ROLE) -> str:
         self.LOGIC.reset()
         self.LOGIC.start_music()
         async with websockets.connect("ws://25.33.144.47:25565") as websocket:
             self.connected = True
-            
+
             logger.info(f"Sending to server: {role}")
             await messages.set_role(role, websocket)
-            
+
             recv_task = asyncio.create_task(self.receive_from_server(websocket))
             await self.loop(websocket)
             recv_task.cancel()
 
         self.LOGIC.stop_music()
-        return 'lobby'
+        return "lobby"
