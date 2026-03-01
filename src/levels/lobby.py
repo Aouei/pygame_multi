@@ -5,6 +5,7 @@ import paths
 
 from enums import ROLE
 from inputs import InputHandler
+from UI import TextInput
 
 pygame.font.init()
 
@@ -30,6 +31,7 @@ class Screen():
         self.current_class : int = 0
         self.size = 20 * self.classes[0][-1].get_rect().width
         self.selection : ROLE | None = None
+        self.text_box = TextInput('hola', self.ROLE_TEXT_FONT, pygame.Rect(0, 0, 100, 32))
 
     def reset(self):
         self.selection = None
@@ -59,6 +61,8 @@ class Screen():
         if self.inputs.k_enter:
             self.selection = self.classes[self.current_class][0]
 
+        self.text_box.update(self.inputs)
+
     def draw(self, surface):
         center = list(surface.get_rect().center)
 
@@ -68,6 +72,7 @@ class Screen():
 
 
         self.draw_role_name(surface, center.copy())
+        self.text_box.draw(surface)
 
         new_surface = pygame.transform.scale(self.classes[self.current_class][-1], (self.size, self.size))
         surface.blit(new_surface, image_pos)

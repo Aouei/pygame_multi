@@ -29,13 +29,16 @@ class InputHandler:
         self.con_down        = False
         self.shot            = False
         self.shot_direction  = (0, 0)
-        self.right_stick  = (0.0, 0.0)
+        self.right_stick     = (0.0, 0.0)
+        self.current_char    = ''
+        self.delete_char     =  False
 
     def update(self):
         self._reset()
 
         # Consumir eventos de pygame (necesario siempre para que pygame no se congele)
         events = pygame.event.get()
+        self.mouse_pos = pygame.mouse.get_pos()
 
         if self._joystick is not None:
             self._handle_joystick(events)
@@ -47,6 +50,11 @@ class InputHandler:
             if event.type == pygame.QUIT:
                 self.quit = True
             elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE:
+                    self.delete_char = True
+                else:
+                    self.current_char = event.unicode
+
                 if event.key == pygame.K_ESCAPE:
                     self.quit = True
                 elif event.key == pygame.K_RETURN:
@@ -60,8 +68,6 @@ class InputHandler:
                     self.shot = True
             elif event.type == pygame.JOYDEVICEADDED:
                 self._try_init_joystick()
-
-        self.mouse_pos = pygame.mouse.get_pos()
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a]:  self.con_left  = True
@@ -81,6 +87,11 @@ class InputHandler:
             elif event.type == pygame.JOYDEVICEREMOVED:
                 self._joystick = None
                 return
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE:
+                    self.delete_char = True
+                else:
+                    self.current_char = event.unicode
 
         if self._joystick is None:
             return
