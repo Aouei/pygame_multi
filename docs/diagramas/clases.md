@@ -236,9 +236,9 @@ classDiagram
         +BULLETS: dict
         +SHIPS: dict
         +COLORS: dict
-        +players_positions: dict
-        +bullets_positions: list
-        +ships_positions: list
+        +received_players: dict
+        +received_bullets: list
+        +received_ships: list
         +player: Player
         +ID: int
     }

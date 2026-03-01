@@ -38,7 +38,7 @@ flowchart LR
     subgraph CLI["Cliente"]
         direction TB
         CL["client_logic.Logic\n— update_players/bullets/ships()\n— draw()"]
-        CS["client_state.State\n— players_positions\n— bullets_positions\n— ships_positions\n— MAP: MapRender\n— sprites PLAYERS/SHIPS/BULLETS"]
+        CS["client_state.State\n— received_players\n— received_bullets\n— received_ships\n— MAP: MapRender\n— sprites PLAYERS/SHIPS/BULLETS"]
         CL -- accede --> CS
     end
 
@@ -161,9 +161,9 @@ flowchart TD
 flowchart TD
     DR["Logic.draw(surface, dx, dy)"]
     DR --> M["MAP.draw(surface, offset)"]
-    DR --> P["por cada player en players_positions\ndraw_player(surface, dx, dy, data)"]
-    DR --> SH["por cada ship en ships_positions\ndraw_ship(surface, dx, dy, data)"]
-    DR --> BU["por cada bullet en bullets_positions\ndraw_bullet(surface, x+dx, y+dy, role, vx, vy)"]
+    DR --> P["por cada player en received_players\ndraw_player(surface, dx, dy, data)"]
+    DR --> SH["por cada ship en received_ships\ndraw_ship(surface, dx, dy, data)"]
+    DR --> BU["por cada bullet en received_bullets\ndraw_bullet(surface, x+dx, y+dy, role, vx, vy)"]
     DR --> MM["draw_minimap(surface)"]
 
     P --> P1["PLAYERS[ROLE][STATE].blit(surface, x+dx, y+dy)"]

@@ -40,6 +40,7 @@ class Player():
     x : int
     y : int
     live : int = 10
+    max_live : int = 10
     radius : int = 25
     speed : int = 5
     state : STATE = STATE.DOWN
@@ -104,7 +105,6 @@ class Player():
             'x' : self.x, 
             'y' : self.y, 
             'live' : self.live,
-            'radius' : self.radius,
             'state' : self.state.value,
             'role' : self.role.value,
         }
@@ -118,6 +118,13 @@ class Bullet:
     dy : float
     owner : ROLE
     radius : int  = 16
+
+    def update(self, data : dict):
+        for key, value in data.items():
+            if key == 'role':
+                self.role = ROLE(value)
+            else:
+                self.__setattr__(key, value)
 
     def dump(self) -> dict:
         return {
@@ -134,17 +141,27 @@ class Ship():
     x : int
     y : int
     path : list[STATE]
-    live : int = 10
+    live : int = 20
+    max_live : int = 20
     radius : int  = 32
     speed : int   = 15
     state : STATE = STATE.DOWN
     target_x : int = 0
     target_y : int = 0
 
+    def update(self, data : dict):
+        for key, value in data.items():
+            if key == 'state':
+                self.state = STATE(value)
+            else:
+                self.__setattr__(key, value)
+    
+
     def dump(self) -> dict:
         return {
             'x' : self.x, 
             'y' : self.y,
             'state' : self.state.value,
+            'live' : self.live
         }
     

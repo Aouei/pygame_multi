@@ -2,16 +2,18 @@ import math
 import pygame
 from enums import ROLE, STATE
 from states.client_state import State
-from factories import PLAYER_SIZE, SHIP_SIZE
+from factories import PLAYER_SIZE, SHIP_SIZE, HEALTH_BAR_HEIGHT
+from protocols import LivingEntity
+from entities import Player, Ship, Bullet
 
 class Logic:
     STATE = State()
-    DEBUG = True
+    DEBUG = False
 
     def reset(self):
-        self.STATE.players_positions.clear()
-        self.STATE.bullets_positions.clear()
-        self.STATE.ships_positions.clear()
+        self.STATE.received_players.clear()
+        self.STATE.received_bullets.clear()
+        self.STATE.received_ships.clear()
         self.STATE.ID = -1
 
     @property
@@ -27,28 +29,54 @@ class Logic:
         self.STATE.ID = value
 
     def update_players(self, players : dict):
-        self.STATE.players_positions = players
+        self.STATE.received_players.clear()
 
-        self.player.update(self.STATE.players_positions.get(self.ID, {}))
+        for idd, player in players.items():
+            self.STATE.received_players[idd] = Player(ROLE.MAGE, 0, 0)
+            self.STATE.received_players[idd].update(player)
+            
+        self.player.update(players.get(self.ID, {}))
 
     def update_bullets(self, bullets : list):
-        self.STATE.bullets_positions = bullets
+        self.STATE.received_bullets.clear()
+
+        for bullet in bullets:
+            self.STATE.received_bullets.append(Bullet(0, 0, 0, 0, ROLE.MAGE))
+            self.STATE.received_bullets[-1].update(bullet)
 
     def update_ships(self, ships : list):
-        self.STATE.ships_positions = ships
+        self.STATE.received_ships.clear()
+
+        for ship in ships:
+            self.STATE.received_ships.append(Ship(0, 0, []))
+            self.STATE.received_ships[-1].update(ship)
 
     def draw(self, surface, dx, dy):
         self.STATE.MAP.draw_layer(surface, (dx, dy), self.STATE.MAP.background)
 
-        for player in self.STATE.players_positions.copy().values():
+        for player in self.STATE.received_players.copy().values():
             self.draw_player(surface, dx, dy, player)
 
-        for ship in self.STATE.ships_positions.copy():
+            if isinstance(player, LivingEntity):
+                self.draw_health_bar(surface, 
+                                     player.x - PLAYER_SIZE // 2 + dx, 
+                                     player.y - PLAYER_SIZE // 2 - HEALTH_BAR_HEIGHT + dy, 
+                                     PLAYER_SIZE,
+                                     HEALTH_BAR_HEIGHT,
+                                     player)
+
+        for ship in self.STATE.received_ships.copy():
             self.draw_ship(surface, dx, dy, ship)
 
-        for bullet in self.STATE.bullets_positions.copy():
-            x, y, role, vx, vy = bullet['x'], bullet['y'], bullet['role'], bullet['dx'], bullet['dy']
-            self.draw_bullet(surface, x + dx, y + dy, role, vx, vy)
+            if isinstance(ship, LivingEntity):
+                self.draw_health_bar(surface, 
+                                     ship.x - SHIP_SIZE // 2 + dx, 
+                                     ship.y - SHIP_SIZE // 2 - HEALTH_BAR_HEIGHT + dy, 
+                                     SHIP_SIZE, HEALTH_BAR_HEIGHT,
+                                     ship)
+
+        for bullet in self.STATE.received_bullets.copy():
+            self.draw_bullet(surface, bullet.x + dx, bullet.y + dy, bullet.role, bullet.dx, bullet.dy)
 
         self.STATE.MAP.draw_layer(surface, (dx, dy), self.STATE.MAP.foreground)
 
@@ -56,40 +84,39 @@ class Logic:
 
     def draw_minimap(self, surface):
         minmap_points = []
-        for data in self.STATE.players_positions.copy().values():
-            minmap_points.append({'x' : data['x'], 'y' : data['y'], 'image' : 
-                                  pygame.transform.scale(self.STATE.PLAYERS[ROLE(data['role'])][STATE(data['state'])], (16, 16))}, ) 
-        for data in self.STATE.ships_positions.copy():
-            minmap_points.append({'x' : data['x'], 'y' : data['y'], 'image' : 
-                                  pygame.transform.scale(self.STATE.SHIPS[STATE(data['state'])], (32, 32))} )
+        for player in self.STATE.received_players.copy().values():
+            minmap_points.append({'x' : player.x, 'y' : player.y, 'image' : 
+                                  pygame.transform.scale(self.STATE.PLAYERS[player.role][player.state], (16, 16))}, ) 
+        for ship in self.STATE.received_ships.copy():
+            minmap_points.append({'x' : ship.x, 'y' : ship.y, 'image' : 
+                                  pygame.transform.scale(self.STATE.SHIPS[ship.state], (32, 32))} )
         
         minmap_points.append({'x' : self.player.x, 'y' : self.player.y, 'image' : 
                                   pygame.transform.scale(self.STATE.PLAYERS[self.player.role][self.player.state], (16, 16))}, )
 
         self.STATE.MAP.draw_mini(surface, 16, 16, minmap_points, self.player.x, self.player.y)
 
-    def draw_bullet(self, surface, x: int, y: int, role: str, vx: float, vy: float):
-        angle = math.degrees(math.atan2(-vy, vx)) - 90
-        rotated = pygame.transform.rotate(self.STATE.BULLETS[ROLE(role)], angle)
+    def draw_bullet(self, surface, x: int, y: int, role: ROLE, dx: float, dy: float):
+        angle = math.degrees(math.atan2(-dy, dx)) - 90
+        rotated = pygame.transform.rotate(self.STATE.BULLETS[role], angle)
         rect = rotated.get_rect(center=(x, y))
         surface.blit(rotated, rect)
 
-    def draw_player(self, surface, dx, dy, data : dict):
-        x = data['x']
-        y = data['y']
-        state = STATE(data['state'])
-        role = ROLE(data['role'])
-
-        surface.blit(self.STATE.PLAYERS[role][state],
-                     (x - PLAYER_SIZE // 2 + dx, y - PLAYER_SIZE // 2 + dy))
+    def draw_player(self, surface, dx, dy, player : Player):
+        surface.blit(self.STATE.PLAYERS[player.role][player.state],
+                     (player.x - PLAYER_SIZE // 2 + dx, player.y - PLAYER_SIZE // 2 + dy))
 
         if self.DEBUG:
-            pygame.draw.circle(surface, (255, 0, 0), (x + dx, y + dy), data['radius'], 1)
+            pygame.draw.circle(surface, (255, 0, 0), (player.x + dx, player.y + dy), player.radius, 1)
 
-    def draw_ship(self, surface, dx, dy, data : dict):
-        x = data['x']
-        y = data['y']
-        state = STATE(data['state'])
+    def draw_ship(self, surface, dx, dy, ship : Ship):
+        surface.blit(self.STATE.SHIPS[ship.state],
+                     (ship.x - SHIP_SIZE // 2 + dx, ship.y - SHIP_SIZE // 2 + dy))
+        
+    def draw_health_bar(self, surface, x, y, width, height, entity : LivingEntity):
+        base_rect = (x, y,  width, height)
+        current_rect = (x, y, width * (entity.live / entity.max_live), height)
 
-        surface.blit(self.STATE.SHIPS[state],
-                     (x - SHIP_SIZE // 2 + dx, y - SHIP_SIZE // 2 + dy))
+        pygame.draw.rect(surface, (0, 0, 0), base_rect)
+        pygame.draw.rect(surface, (248, 117, 117), current_rect)
+        pygame.draw.rect(surface, (255, 255, 255), base_rect, width = 2)

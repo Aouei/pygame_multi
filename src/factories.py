@@ -11,6 +11,7 @@ TILE_SIZE = 64
 PLAYER_SIZE = 64
 BULLET_SIZE = 32
 SHIP_SIZE = 128
+HEALTH_BAR_HEIGHT = 16
 
 def load_scale(path : str, size : int):
     return pygame.transform.scale(pygame.image.load(path), (size, size))
