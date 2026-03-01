@@ -64,10 +64,10 @@ class InputHandler:
         self.mouse_pos = pygame.mouse.get_pos()
 
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:  self.con_left  = True
-        if keys[pygame.K_RIGHT]: self.con_right = True
-        if keys[pygame.K_UP]:    self.con_up    = True
-        if keys[pygame.K_DOWN]:  self.con_down  = True
+        if keys[pygame.K_a]:  self.con_left  = True
+        if keys[pygame.K_d]: self.con_right = True
+        if keys[pygame.K_w]:    self.con_up    = True
+        if keys[pygame.K_s]:  self.con_down  = True
 
     def _handle_joystick(self, events):
         for event in events:
