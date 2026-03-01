@@ -39,8 +39,8 @@ class Player():
     role : ROLE
     x : int
     y : int
-    live : int = 10
-    max_live : int = 10
+    live : int = 20
+    max_live : int = 20
     radius : int = 25
     speed : int = 5
     state : STATE = STATE.DOWN

@@ -10,6 +10,8 @@ class InputHandler:
         self._try_init_joystick()
         self._prev_hat = 0
         self._prev_trigger = False
+        self._shot_timer   = 0
+        self.SHOT_RATE     = 10  # frames entre disparos al mantener pulsado
 
     def _try_init_joystick(self):
         if pygame.joystick.get_count() > 0:
@@ -93,7 +95,19 @@ class InputHandler:
         ry = j.get_axis(3) if j.get_numaxes() > 3 else 0.0
         
         trigger = j.get_axis(5) > -0.5 if j.get_numaxes() > 5 else False
-        self.shot = trigger and not self._prev_trigger
+
+        if not trigger:
+            self._shot_timer = 0
+            self.shot = False
+        elif not self._prev_trigger:
+            self.shot = True   # primer pulso — dispara inmediatamente
+            self._shot_timer = 0
+        else:
+            self._shot_timer += 1
+            self.shot = self._shot_timer >= self.SHOT_RATE
+            if self.shot:
+                self._shot_timer = 0
+
         self._prev_trigger = trigger
 
         self.right_stick = (rx, ry)

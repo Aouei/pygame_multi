@@ -17,9 +17,9 @@ class MESSAGES(Enum):
     HELLO = 'hello'
     ROLE = 'role'
     WISH_MOVE = 'wish_mode'
-    MOVE = 'move'
     PLAYERS_UPDATE = 'players_update'
     SHOT = 'shot'
+    QUIT = 'quit'
 
 class COLLISIONS(Enum):
     PLAYER = 'player'

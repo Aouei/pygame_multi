@@ -47,3 +47,10 @@ def update_clients(data : dict, sockets : list[ClientConnection]):
     })
 
     broadcast(sockets, message)
+
+def quit(socket : ClientConnection):
+    message = {
+        'type' : MESSAGES.QUIT.value,
+    }
+
+    return socket.send(json.dumps(message))

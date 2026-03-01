@@ -1,6 +1,7 @@
 import math
 import pygame
-from enums import ROLE, STATE
+
+from enums import ROLE
 from states.client_state import State
 from factories import PLAYER_SIZE, SHIP_SIZE, HEALTH_BAR_HEIGHT, ENEMY_SIZE
 from protocols import LivingEntity
@@ -9,7 +10,7 @@ from entities import Player, Ship, Bullet, Enemy
 
 class Logic:
     STATE = State()
-    DEBUG = True
+    DEBUG = False
 
     def reset(self):
         self.STATE.received_players.clear()

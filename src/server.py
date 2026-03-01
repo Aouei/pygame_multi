@@ -26,7 +26,8 @@ class Server:
 
             async for message in socket:
                 data = json.loads(message)
-                self.LOGIC.handle_message(ID, data)
+                if MESSAGES.QUIT == self.LOGIC.handle_message(ID, data):
+                    await messages.quit(self.LOGIC.CLIENTS[ID])
 
         except websockets.exceptions.ConnectionClosed:
             pass
@@ -41,7 +42,13 @@ class Server:
             if not self.LOGIC.CLIENTS:
                 continue
 
-            self.LOGIC.tick()
+            died_players = self.LOGIC.tick()
+
+            for idd in died_players.copy():
+                await messages.quit(self.LOGIC.CLIENTS[idd])
+                self.LOGIC.remove_player(idd)
+                self.LOGIC.died_players.discard(idd)
+
             message = self.LOGIC.serialize()
             logger.info(f"Sended UPDATE to players {message}")
             messages.update_clients(message, list(self.LOGIC.CLIENTS.values()))

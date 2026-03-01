@@ -24,7 +24,8 @@ class Game:
         self.clock = clock
         self.window = window
         self.WIDTH, self.HEIGHT = window.get_rect().width, window.get_rect().height
-    
+        self.connected = True
+
     async def receive_from_server(self, websocket) -> None:
         async for raw in websocket:
             data = json.loads(raw)
@@ -38,9 +39,11 @@ class Game:
                 self.LOGIC.update_bullets(data.get('bullets', []))
                 self.LOGIC.update_ships(data.get('ships', []))
                 self.LOGIC.update_enemies(data.get('enemies', []))
+            elif message_type == MESSAGES.QUIT:
+                self.connected = False
 
     async def loop(self, websocket) -> None:
-        while True and not self.inputs.quit:
+        while self.connected and not self.inputs.quit:
             self.__center_screen()
             await self.__handle_player_actions(websocket)
 
@@ -81,8 +84,9 @@ class Game:
     
     async def run(self, role : ROLE) -> str:
         self.LOGIC.reset()                         # ← también falta esto
-
         async with websockets.connect("ws://25.33.144.47:25565") as websocket:
+            self.connected = True
+            
             logger.info(f"Sending to server: {role}")
             await messages.set_role(role, websocket)
             

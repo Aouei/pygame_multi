@@ -1,6 +1,6 @@
 import math
 import random
-from websockets import ClientConnection
+from websockets import ClientConnection, exceptions
 from loguru import logger
 
 
@@ -9,6 +9,7 @@ from enums import MESSAGES, ROLE, STATE, COLLISIONS
 from entities import Player, Geometry, Bullet, Ship, Counter, Enemy
 from factories import TILE_SIZE, ENEMY_VARIANTS
 from protocols import LivingEntity
+import messages
 
 
 def check_intersection_by_radius(obj1, obj2):
@@ -35,6 +36,7 @@ class Logic:
     def __init__(self) -> None:
         self.spawn_ship_timer = Counter(seconds=30)
         self.spawn_enemy_timer = Counter(seconds=15)
+        self.died_players : set = set()
 
     @property
     def CLIENTS(self):
@@ -48,11 +50,15 @@ class Logic:
         return new_id
     
     def remove_player(self, id : int):
-        self.STATE.CLIENTS.pop(id)
-        self.STATE.PLAYERS.pop(id)
+        if id in self.STATE.CLIENTS:
+            self.STATE.CLIENTS.pop(id)
+            self.STATE.PLAYERS.pop(id)
 
     def handle_message(self, id : int, data : dict):
         message_type = MESSAGES(data['type'])
+        
+        if not id in self.STATE.CLIENTS:
+            return MESSAGES.QUIT
 
         if message_type == MESSAGES.ROLE:
             logger.info('new player')
@@ -131,7 +137,7 @@ class Logic:
 
         _DELTA    = {STATE.UP:(0,-1), STATE.DOWN:(0,1), STATE.LEFT:(-1,0), STATE.RIGHT:(1,0)}
 
-        n       = min(self.STATE.MAX_SHIPS,
+        n       = min(self.STATE.MAX_SHIPS * len(self.STATE.PLAYERS),
                       len(self.STATE.MAP.ship_spawn_tiles),
                       len(self.STATE.MAP.disembark_tiles))
         spawns  = random.sample(self.STATE.MAP.ship_spawn_tiles, n)   # list of (col, row)
@@ -217,14 +223,14 @@ class Logic:
                     enemy.target_y = (srow + drow) * TILE_SIZE + TILE_SIZE // 2
     
     def __check_enemy_hit_with_player(self):
-        for enemy in self.STATE.ENEMIES:
-            collision = check_collision_with_entities(enemy, self.STATE.PLAYERS.values())
 
-            if collision and isinstance(collision, LivingEntity):
-                collision.live -= 1
-             
-                if collision.live <= 0: # TODO: desconectar personaje
-                    pass
+        for enemy in self.STATE.ENEMIES:
+            for idd, player in self.STATE.PLAYERS.copy().items():
+                if check_intersection_by_radius(enemy, player) and isinstance(player, LivingEntity):
+                    player.live -= 1
+                
+                    if player.live <= 0: # TODO: desconectar personaje
+                        self.died_players.add(idd)
 
     def tick(self):
         if self.STATE.CLIENTS:
@@ -235,6 +241,8 @@ class Logic:
             self.__move(self.STATE.ENEMIES)
             self.__check_enemy_hit_with_player()
             self.__move_bullets()
+        
+        return self.died_players
 
     def serialize(self):
         return { 
