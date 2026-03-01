@@ -7,7 +7,7 @@ from loguru import logger
 from states.server_state import State
 from enums import MESSAGES, ROLE, STATE, COLLISIONS
 from entities import Player, Geometry, Bullet, Ship, Counter, Enemy
-from factories import TILE_SIZE
+from factories import TILE_SIZE, ENEMY_VARIANTS
 from protocols import LivingEntity
 
 
@@ -34,7 +34,7 @@ class Logic:
 
     def __init__(self) -> None:
         self.spawn_ship_timer = Counter(seconds=30)
-        self.spawn_enemy_timer = Counter(seconds=10)
+        self.spawn_enemy_timer = Counter(seconds=15)
 
     @property
     def CLIENTS(self):
@@ -100,27 +100,29 @@ class Logic:
 
             pos = Geometry(new_x, new_y, bullet.radius)
 
-            collision = check_collision_with_entities(pos, self.STATE.SHIPS.copy() + self.STATE.ENEMIES.copy())
-            if collision:
-                if isinstance(collision, (Ship, LivingEntity)) and not collision.path:
-                    collision.live -= 1
-                    if collision.live <= 0:
-                        self.STATE.SHIPS.remove(collision) 
-
-                elif isinstance(collision, (Enemy, LivingEntity)):
-                    collision.live -= 1
-                    if collision.live <= 0:
-                        self.STATE.ENEMIES.remove(collision) 
-
-                self.STATE.BULLETS.remove(bullet)
-            elif self.STATE.MAP.is_collision(pos, COLLISIONS.BULLET):
+            shipcollision = check_collision_with_entities(pos, self.STATE.SHIPS.copy())
+            if shipcollision and isinstance(shipcollision, (LivingEntity)) and not shipcollision.path:
+                shipcollision.live -= 1
+                if shipcollision.live <= 0:
+                    self.STATE.SHIPS.remove(shipcollision)
+                    
                 self.STATE.BULLETS.remove(bullet)
             else:
-                bullet.x = new_x
-                bullet.y = new_y
+                enemy_collision = check_collision_with_entities(pos, self.STATE.ENEMIES.copy())
+                if enemy_collision and isinstance(enemy_collision, (LivingEntity)):
+                    enemy_collision.live -= 1
+                    if enemy_collision.live <= 0:
+                        self.STATE.ENEMIES.remove(enemy_collision) 
+
+                    self.STATE.BULLETS.remove(bullet)
+                elif self.STATE.MAP.is_collision(pos, COLLISIONS.BULLET):
+                    self.STATE.BULLETS.remove(bullet)
+                else:
+                    bullet.x = new_x
+                    bullet.y = new_y
 
     def __check_round(self):
-        if self.STATE.SHIPS and self.STATE.ENEMIES:
+        if self.STATE.SHIPS or self.STATE.ENEMIES:
             self.spawn_ship_timer.reset()
             return
 
@@ -178,23 +180,41 @@ class Logic:
                     enemy.y += int(dy / dist * enemy.speed)
 
     def __spawn_enemies(self):
+        _DELTA = {STATE.UP:(0,-1), STATE.DOWN:(0,1), STATE.LEFT:(-1,0), STATE.RIGHT:(1,0)}
+
         for ship in self.STATE.SHIPS:
             if not ship.path and self.spawn_enemy_timer.tick():
                 self.spawn_enemy_timer.reset()
 
                 x, y = ship.x, ship.y
-                target_x, target_y = random.sample(self.STATE.MAP.enemy_target_tiles, 1)[0]
-                path = self.STATE.MAP.find_path(x, y, target_x, target_y, COLLISIONS.ENEMY)
+                final_tx, final_ty = random.sample(self.STATE.MAP.enemy_target_tiles, 1)[0]
+                path = self.STATE.MAP.find_path(x, y, final_tx, final_ty, COLLISIONS.ENEMY)
 
-                self.STATE.ENEMIES.append( Enemy(x, y, path, target_x = target_x, target_y = target_y) )
+                target_x, target_y = x, y
+                if path:
+                    dcol, drow = _DELTA[path[0]]
+                    scol, srow = x // TILE_SIZE, y // TILE_SIZE
+                    target_x = (scol + dcol) * TILE_SIZE + TILE_SIZE // 2
+                    target_y = (srow + drow) * TILE_SIZE + TILE_SIZE // 2
+
+                enemy = Enemy(x, y, path, target_x=target_x, target_y=target_y, variant = random.randint(0, ENEMY_VARIANTS - 1))
+                self.STATE.ENEMIES.append( enemy )
 
     def __redirect_enemies(self):
+        _DELTA = {STATE.UP:(0,-1), STATE.DOWN:(0,1), STATE.LEFT:(-1,0), STATE.RIGHT:(1,0)}
+
         for enemy in self.STATE.ENEMIES:
             if not enemy.path:
                 x, y = enemy.x, enemy.y
-                target_x, target_y = random.sample(self.STATE.MAP.enemy_target_tiles, 1)[0]
-                path = self.STATE.MAP.find_path(x, y, target_x, target_y, COLLISIONS.ENEMY)
+                final_tx, final_ty = random.sample(self.STATE.MAP.enemy_target_tiles, 1)[0]
+                path = self.STATE.MAP.find_path(x, y, final_tx, final_ty, COLLISIONS.ENEMY)
                 enemy.path = path
+
+                if path:
+                    dcol, drow = _DELTA[path[0]]
+                    scol, srow = x // TILE_SIZE, y // TILE_SIZE
+                    enemy.target_x = (scol + dcol) * TILE_SIZE + TILE_SIZE // 2
+                    enemy.target_y = (srow + drow) * TILE_SIZE + TILE_SIZE // 2
     
     def __check_enemy_hit_with_player(self):
         for enemy in self.STATE.ENEMIES:

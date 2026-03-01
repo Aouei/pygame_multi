@@ -171,6 +171,7 @@ class Enemy():
     x : int
     y : int
     path : list[STATE]
+    variant : int
     live : int = 5
     max_live : int = 5
     radius : int  = 25
@@ -193,5 +194,6 @@ class Enemy():
             'x' : self.x, 
             'y' : self.y,
             'state' : self.state.value,
-            'live' : self.live
+            'live' : self.live,
+            'variant' : self.variant
         }

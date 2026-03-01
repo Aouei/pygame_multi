@@ -52,12 +52,11 @@ class Logic:
             self.STATE.received_ships.append(Ship(0, 0, []))
             self.STATE.received_ships[-1].update(ship)
 
-
     def update_enemies(self, enemies : list):
         self.STATE.received_enemies.clear()
 
         for enemy in enemies:
-            self.STATE.received_enemies.append(Enemy(0, 0, []))
+            self.STATE.received_enemies.append(Enemy(0, 0, [], 0))
             self.STATE.received_enemies[-1].update(enemy)
 
     def draw(self, surface, dx, dy):
@@ -136,7 +135,7 @@ class Logic:
             pygame.draw.circle(surface, (255, 0, 0), (ship.x + dx, ship.y + dy), ship.radius, 1)
         
     def draw_enenmy(self, surface, dx, dy, enemy : Enemy):
-        surface.blit(self.STATE.ENEMIES[enemy.state],
+        surface.blit(self.STATE.ENEMIES[enemy.variant][enemy.state],
                      (enemy.x - ENEMY_SIZE // 2 + dx, enemy.y - ENEMY_SIZE // 2 + dy))
     
         if self.DEBUG:
