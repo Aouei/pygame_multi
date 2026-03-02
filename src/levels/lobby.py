@@ -14,7 +14,7 @@ class Screen:
     FRAME_RATE = 60
     ROLE_TEXT_FONT = pygame.font.Font(None, 64)
 
-    def __init__(self, inputs: InputHandler):
+    def __init__(self, inputs: InputHandler, window):
 
         self.inputs = inputs
         self.classes: list[tuple[ROLE, pygame.Surface]] = [
@@ -41,9 +41,9 @@ class Screen:
         self.current_class: int = 0
         self.size = 20 * self.classes[0][-1].get_rect().width
         self.selection: ROLE | None = None
-        self.text_box = TextInput(
-            "hola", self.ROLE_TEXT_FONT, pygame.Rect(0, 0, 100, 32)
-        )
+
+        self.host = TextInput(window.get_rect(), -100, 0, 200, 40, "25.33.144.47", None, rel_x = 0.5, rel_y = 0.7, max_chars = 15)
+        self.port = TextInput(window.get_rect(), -100, 50, 200, 40, "25565", None, rel_x = 0.5, rel_y = 0.7, max_chars = 15)
 
     def reset(self):
         self.selection = None
@@ -73,7 +73,8 @@ class Screen:
         if self.inputs.k_enter:
             self.selection = self.classes[self.current_class][0]
 
-        self.text_box.update(self.inputs)
+        self.host.update(self.inputs)
+        self.port.update(self.inputs)
 
     def draw(self, surface):
         center = list(surface.get_rect().center)
@@ -83,7 +84,8 @@ class Screen:
         image_pos[1] -= self.size // 2
 
         self.draw_role_name(surface, center.copy())
-        self.text_box.draw(surface)
+        self.host.draw(surface)
+        self.port.draw(surface)
 
         new_surface = pygame.transform.scale(
             self.classes[self.current_class][-1], (self.size, self.size)

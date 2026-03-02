@@ -88,10 +88,11 @@ class Game:
         self.offset_x = max(0, min(self.offset_x, map_pixel_width - self.WIDTH))
         self.offset_y = max(0, min(self.offset_y, map_pixel_height - self.HEIGHT))
 
-    async def run(self, role: ROLE) -> str:
+    async def run(self, role: ROLE,  host : str, port : str) -> str:
         self.LOGIC.reset()
         self.LOGIC.start_music()
-        async with websockets.connect("ws://25.33.144.47:25565") as websocket:
+        
+        async with websockets.connect(f"ws://{host}:{port}") as websocket:
             self.connected = True
 
             logger.info(f"Sending to server: {role}")

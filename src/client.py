@@ -14,7 +14,7 @@ FRAME_RATE = 60
 # window = pygame.display.set_mode((500, 500))
 window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 
-LOBBY = lobby.Screen(INPUTS)
+LOBBY = lobby.Screen(INPUTS, window)
 GAME = game.Game(window, INPUTS, CLOCK)
 
 if __name__ == "__main__":
@@ -24,7 +24,7 @@ if __name__ == "__main__":
         if role is None:
             break
 
-        result = asyncio.run(GAME.run(role))
+        result = asyncio.run(GAME.run(role, LOBBY.host.value, LOBBY.port.value))
         if result == "quit":
             break
 
