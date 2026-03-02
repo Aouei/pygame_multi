@@ -3,6 +3,7 @@ from typing import Optional
 
 import paths
 
+from pygame.time import Clock
 from enums import ROLE
 from inputs import InputHandler
 from UI import TextInput
@@ -14,7 +15,7 @@ class Screen:
     FRAME_RATE = 60
     ROLE_TEXT_FONT = pygame.font.Font(None, 64)
 
-    def __init__(self, inputs: InputHandler, window):
+    def __init__(self, window: pygame.Surface, inputs: InputHandler, clock: Clock):
 
         self.inputs = inputs
         self.classes: list[tuple[ROLE, pygame.Surface]] = [
@@ -41,21 +42,27 @@ class Screen:
         self.current_class: int = 0
         self.size = 20 * self.classes[0][-1].get_rect().width
         self.selection: ROLE | None = None
+        self.clock = clock
+        self.window = window
+        
+        self._build_ui()
 
-        self.host = TextInput(window.get_rect(), -100, 0, 200, 40, "25.33.144.47", None, rel_x = 0.5, rel_y = 0.7, max_chars = 15)
-        self.port = TextInput(window.get_rect(), -100, 50, 200, 40, "25565", None, rel_x = 0.5, rel_y = 0.7, max_chars = 15)
+    def _build_ui(self):
+        rect = self.window.get_rect()
+        self.host = TextInput(rect, -100, 0, 200, 40, "25.33.144.47", None, rel_x=0.5, rel_y=0.7, max_chars=15)
+        self.port = TextInput(rect, -100, 50, 200, 40, "25565", None, rel_x=0.5, rel_y=0.7, max_chars=15)
 
     def reset(self):
         self.selection = None
         self.inputs._reset()
 
-    def loop(self, window: pygame.Surface, clock) -> Optional[ROLE]:
+    def loop(self) -> Optional[ROLE]:
         while self.selection is None and not self.inputs.quit:
-            window.fill((132, 226, 150))
+            self.window.fill((132, 226, 150))
             self.handle_events()
-            self.draw(window)
+            self.draw(self.window)
             pygame.display.update()
-            clock.tick(self.FRAME_RATE)
+            self.clock.tick(self.FRAME_RATE)
 
         return self.selection
 

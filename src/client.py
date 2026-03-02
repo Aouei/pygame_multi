@@ -14,13 +14,13 @@ FRAME_RATE = 60
 # window = pygame.display.set_mode((500, 500))
 window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 
-LOBBY = lobby.Screen(INPUTS, window)
+LOBBY = lobby.Screen(window, INPUTS, CLOCK)
 GAME = game.Game(window, INPUTS, CLOCK)
 
 if __name__ == "__main__":
     while True:
         LOBBY.reset()
-        role = LOBBY.loop(window, CLOCK)
+        role = LOBBY.loop()
         if role is None:
             break
 
