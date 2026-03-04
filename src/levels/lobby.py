@@ -6,7 +6,7 @@ import paths
 from pygame.time import Clock
 from enums import ROLE
 from inputs import InputHandler
-from UI import TextInput
+from UI import TextButton, TextInput
 
 pygame.font.init()
 
@@ -51,6 +51,8 @@ class Screen:
         rect = self.window.get_rect()
         self.host = TextInput(rect, -100, 0, 200, 40, "25.33.144.47", None, rel_x=0.5, rel_y=0.7, max_chars=15)
         self.port = TextInput(rect, -100, 50, 200, 40, "25565", None, rel_x=0.5, rel_y=0.7, max_chars=15)
+        self.btn_host = TextButton(rect, -110, 100, 100, 40, "host", None, rel_x=0.5, rel_y=0.7)
+        self.btn_connect = TextButton(rect, 10, 100, 100, 40, "connect", None, rel_x=0.5, rel_y=0.7)
 
     def reset(self):
         self.selection = None
@@ -82,6 +84,8 @@ class Screen:
 
         self.host.update(self.inputs)
         self.port.update(self.inputs)
+        self.btn_host.update(self.inputs)
+        self.btn_connect.update(self.inputs)
 
     def draw(self, surface):
         center = list(surface.get_rect().center)
@@ -93,6 +97,8 @@ class Screen:
         self.draw_role_name(surface, center.copy())
         self.host.draw(surface)
         self.port.draw(surface)
+        self.btn_host.draw(surface)
+        self.btn_connect.draw(surface)
 
         new_surface = pygame.transform.scale(
             self.classes[self.current_class][-1], (self.size, self.size)
