@@ -62,6 +62,9 @@ class Player:
             dy = self.speed
             self.state = STATE.DOWN
 
+        if dx == 0 and dy == 0:
+            self.state = STATE.IDLE
+
         return dx, dy, self.state.value
 
     def wish_to_shoot(

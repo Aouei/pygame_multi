@@ -27,6 +27,7 @@ class Game:
         self.window = window
         self.WIDTH, self.HEIGHT = window.get_rect().width, window.get_rect().height
         self.connected = True
+        self._last_sent_state: str | None = None
 
     async def receive_from_server(self, websocket) -> None:
         async for raw in websocket:
@@ -62,8 +63,8 @@ class Game:
         self.inputs.update()
 
         dx, dy, state = self.LOGIC.player.wish_to_move(self.inputs)
-        if dx != 0 or dy != 0:
-            logger.info(f"Sending to server {MESSAGES.WISH_MOVE}")
+        if dx != 0 or dy != 0 or state != self._last_sent_state:
+            self._last_sent_state = state
             await messages.wish_move(dx, dy, state, websocket)
 
         dx, dy = self.LOGIC.player.wish_to_shoot(

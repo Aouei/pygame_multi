@@ -51,10 +51,13 @@ def load_bullet(size: int = BULLET_SIZE):
     }
 
 
+_MOVE_STATES = [STATE.UP, STATE.DOWN, STATE.LEFT, STATE.RIGHT]
+
+
 def load_ship(size: int = SHIP_SIZE):
     return {
         state: load_scale(os.path.join(paths.SHIP_DIR, f"{state.value}.png"), size)
-        for state in STATE
+        for state in _MOVE_STATES
     }
 
 

@@ -28,20 +28,20 @@ class Screen:
         self.classes: list[tuple[ROLE, pygame.Surface]] = [
             (
                 ROLE.ARCHER,
-                pygame.image.load(os.path.join(paths.PLAYER_DIR, r"archer\lobby.png")),
+                pygame.image.load(os.path.join(paths.PLAYER_DIR, r"archer\idle.png")),
             ),
             (
                 ROLE.MAGE,
-                pygame.image.load(os.path.join(paths.PLAYER_DIR, r"mage\lobby.png")),
+                pygame.image.load(os.path.join(paths.PLAYER_DIR, r"mage\idle.png")),
             ),
             (
                 ROLE.FARMER,
-                pygame.image.load(os.path.join(paths.PLAYER_DIR, r"farmer\lobby.png")),
+                pygame.image.load(os.path.join(paths.PLAYER_DIR, r"farmer\idle.png")),
             ),
             (
                 ROLE.MUSKETEER,
                 pygame.image.load(
-                    os.path.join(paths.PLAYER_DIR, r"musketeer\lobby.png")
+                    os.path.join(paths.PLAYER_DIR, r"musketeer\idle.png")
                 ),
             ),
         ]
