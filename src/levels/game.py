@@ -92,6 +92,7 @@ class Game:
         self.LOGIC.reset()
         self.LOGIC.start_music()
         
+        print(f"ws://{host}:{port}")
         async with websockets.connect(f"ws://{host}:{port}") as websocket:
             self.connected = True
 

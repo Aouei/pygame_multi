@@ -63,18 +63,20 @@ class Screen:
 
     def _build_ui(self):
         win_rect = self.window.get_rect()
-        panel_w, panel_h = 260, 230
-        panel_x = win_rect.centerx - panel_w // 2
-        panel_y = int(win_rect.h * 0.65)
+        panel_w, panel_h = 350, 300
+        panel_x = win_rect.centerx - panel_w * 2
+        panel_y = win_rect.centerx - panel_h * 1.7
         self._panel_rect = pygame.Rect(panel_x, panel_y, panel_w, panel_h)
 
         p = self._panel_rect
-        self.host = TextInput(p, 30, 20, 200, 40, "25.33.144.47", None, max_chars=15)
-        self.port = TextInput(p, 30, 70, 200, 40, "25565", None, max_chars=5)
-        self.btn_host = TextButton(p, 30, 120, 90, 40, "host", None)
-        self.btn_connect = TextButton(p, 140, 120, 90, 40, "connect", None)
-        self.lbl_status = TextLabel(p, 30, 180, "disconnected", None, 24, (255, 255, 255))
-        self.lbl_players = TextLabel(p, 205, 180, "0/4", None, 24, (255, 255, 255))
+        self.host = TextInput(p, -100, 20, 200, 40, "25.33.144.47", None, max_chars=15, rel_x = 0.5)
+        self.port = TextInput(p, -100, 70, 200, 40, "25565", None, max_chars=5, rel_x = 0.5)
+        self.btn_host = TextButton(p, 0, 120, 130, 40, "host", None, rel_x = 0.1)
+        self.btn_connect = TextButton(p, -65, 120, 130, 40, "connect", None, rel_x = 0.7)
+        self.btn_disconnect = TextButton(p, 0, 170, 130, 40, "disconnect", None, rel_x = 0.1)
+        self.btn_play = TextButton(p, -65, 170, 130, 40, "play", None, rel_x = 0.7)
+        self.lbl_status = TextLabel(p, 0, 225, "disconnected", None, 24, (255, 255, 255), rel_x = 0.1)
+        self.lbl_players = TextLabel(p, -65, 225, "0/4", None, 24, (255, 255, 255), rel_x = 0.7)
 
     # ------------------------------------------------------------------
     # Server subprocess
@@ -82,7 +84,7 @@ class Screen:
 
     def _launch_server(self):
         if self._server_proc and self._server_proc.poll() is None:
-            return
+            self._server_proc.terminate()
         server_path = os.path.normpath(
             os.path.join(os.path.dirname(__file__), "..", "server.py")
         )
@@ -118,14 +120,14 @@ class Screen:
                 async for raw in ws:
                     data = json.loads(raw)
                     if data.get("type") == MESSAGES.PLAYERS_UPDATE.value:
-                        self._player_count = len(data.get("players", {}))
+                        self._player_count = data.get("clients", 0)
         except Exception:
             pass
         finally:
             self._ws_ref = None
             self._connected = False
 
-    def _disconnect(self):
+    def _disconnect_ws(self):
         ws = self._ws_ref
         loop = self._ws_loop_ref
         if ws is not None and loop is not None and loop.is_running():
@@ -134,6 +136,9 @@ class Screen:
             self._ws_thread.join(timeout=2.0)
         self._connected = False
         self._player_count = 0
+
+    def _disconnect(self):
+        self._disconnect_ws()
         if self._server_proc and self._server_proc.poll() is None:
             self._server_proc.terminate()
 
@@ -153,7 +158,10 @@ class Screen:
             pygame.display.update()
             self.clock.tick(self.FRAME_RATE)
 
-        self._disconnect()
+        self._disconnect_ws()
+        if self.selection is None:
+            if self._server_proc and self._server_proc.poll() is None:
+                self._server_proc.terminate()
         return self.selection
 
     def handle_events(self):
@@ -174,12 +182,18 @@ class Screen:
         self.port.update(self.inputs)
         self.btn_host.update(self.inputs)
         self.btn_connect.update(self.inputs)
+        self.btn_disconnect.update(self.inputs)
+        self.btn_play.update(self.inputs)
 
         if self.btn_host.clicked:
             self._launch_server()
             threading.Timer(0.5, self._connect_ws).start()
         if self.btn_connect.clicked:
             self._connect_ws()
+        if self.btn_disconnect.clicked:
+            self._disconnect()
+        if self.btn_play.clicked and self._connected:
+            self.selection = self.classes[self.current_class][0]
 
         if self._connected:
             self.lbl_status.text = "connected"
@@ -205,6 +219,8 @@ class Screen:
         self.port.draw(surface)
         self.btn_host.draw(surface)
         self.btn_connect.draw(surface)
+        self.btn_disconnect.draw(surface)
+        self.btn_play.draw(surface)
         self.lbl_status.draw(surface)
         self.lbl_players.draw(surface)
 

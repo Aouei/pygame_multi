@@ -53,6 +53,7 @@ class Logic:
     def remove_player(self, id: int):
         if id in self.STATE.CLIENTS:
             self.STATE.CLIENTS.pop(id)
+        if id in self.STATE.PLAYERS:
             self.STATE.PLAYERS.pop(id)
 
     def handle_message(self, id: int, data: dict):
@@ -300,6 +301,7 @@ class Logic:
 
     def serialize(self):
         return {
+            "clients": len(self.STATE.CLIENTS),
             "players": {id: player.dump() for id, player in self.STATE.PLAYERS.items()},
             "bullets": [bullet.dump() for bullet in self.STATE.BULLETS],
             "ships": [ship.dump() for ship in self.STATE.SHIPS],
