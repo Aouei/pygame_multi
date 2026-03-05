@@ -30,20 +30,17 @@ def load_tiles(size: int = TILE_SIZE):
 def load_player(role: ROLE, size: int = PLAYER_SIZE):
     result = {}
     for state in STATE:
-        frames = []
-        i = 0
-        while True:
-            path = os.path.join(paths.PLAYER_DIR, role.value, f"{state.value}_{i}.png")
-            if os.path.exists(path):
-                frames.append(load_scale(path, size))
-                i += 1
-            else:
-                break
-        if not frames:
-            frames.append(load_scale(
-                os.path.join(paths.PLAYER_DIR, role.value, f"{state.value}.png"), size
-            ))
-        result[state] = frames
+        sheet = pygame.image.load(
+            os.path.join(paths.PLAYER_DIR, role.value, f"{state.value}.png")
+        )
+        frame_w = sheet.get_height()
+        n_frames = sheet.get_width() // frame_w
+        result[state] = [
+            pygame.transform.scale(
+                sheet.subsurface((i * frame_w, 0, frame_w, frame_w)), (size, size)
+            )
+            for i in range(n_frames)
+        ]
     return result
 
 
