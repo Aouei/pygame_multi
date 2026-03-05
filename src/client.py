@@ -11,8 +11,8 @@ INPUTS = InputHandler()
 CLOCK = pygame.time.Clock()
 FRAME_RATE = 60
 
-# window = pygame.display.set_mode((500, 500))
-window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+window = pygame.display.set_mode((500, 600))
+# window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 
 LOBBY = lobby.Screen(window, INPUTS, CLOCK)
 GAME = game.Game(window, INPUTS, CLOCK)

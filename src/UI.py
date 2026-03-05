@@ -112,3 +112,25 @@ class TextButton(PlaceableUI):
         pygame.draw.rect(surface, self.TEXT_COLOR, self.position, width=2)
         text_surf = self.font.render(self.text, False, self.TEXT_COLOR)
         surface.blit(text_surf, text_surf.get_rect(center=self.position.center))
+
+
+class TextLabel(PlaceableUI):
+    def __init__(
+        self,
+        parent: pygame.Rect,
+        x: int,
+        y: int,
+        text: str,
+        font: str | None,
+        size: int,
+        color: tuple,
+        rel_x: float = 0,
+        rel_y: float = 0,
+    ) -> None:
+        super().__init__(parent, x, y, 0, 0, rel_x, rel_y)
+        self.font = pygame.font.Font(font, size)
+        self.text = text
+        self.color = color
+
+    def draw(self, surface: pygame.Surface):
+        surface.blit(self.font.render(self.text, False, self.color), self.position.topleft)
