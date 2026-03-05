@@ -13,6 +13,7 @@ class Logic:
     STATE = State()
     DEBUG = False
     _in_battle = False
+    ANIM_FPS = 8  # frames per second for sprite animation
 
     def reset(self):
         self.STATE.received_players.clear()
@@ -142,7 +143,7 @@ class Logic:
                     "x": player.x,
                     "y": player.y,
                     "image": pygame.transform.scale(
-                        self.STATE.PLAYERS[player.role][player.state], (16, 16)
+                        self.STATE.PLAYERS[player.role][player.state][0], (16, 16)
                     ),
                 },
             )
@@ -152,7 +153,7 @@ class Logic:
                 "x": self.player.x,
                 "y": self.player.y,
                 "image": pygame.transform.scale(
-                    self.STATE.PLAYERS[self.player.role][self.player.state], (16, 16)
+                    self.STATE.PLAYERS[self.player.role][self.player.state][0], (16, 16)
                 ),
             },
         )
@@ -161,6 +162,12 @@ class Logic:
             surface, 16, 16, minmap_points, self.player.x, self.player.y
         )
 
+    def _anim_frame(self, n_frames: int) -> int:
+        if n_frames <= 1:
+            return 0
+        ms = pygame.time.get_ticks()
+        return (ms // (1000 // self.ANIM_FPS)) % n_frames
+
     def draw_bullet(self, surface, x: int, y: int, role: ROLE, dx: float, dy: float):
         angle = math.degrees(math.atan2(-dy, dx)) - 90
         rotated = pygame.transform.rotate(self.STATE.BULLETS[role], angle)
@@ -168,8 +175,10 @@ class Logic:
         surface.blit(rotated, rect)
 
     def draw_player(self, surface, dx, dy, player: Player):
+        frames = self.STATE.PLAYERS[player.role][player.state]
+        sprite = frames[self._anim_frame(len(frames))]
         surface.blit(
-            self.STATE.PLAYERS[player.role][player.state],
+            sprite,
             (player.x - PLAYER_SIZE // 2 + dx, player.y - PLAYER_SIZE // 2 + dy),
         )
 

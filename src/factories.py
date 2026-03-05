@@ -28,12 +28,23 @@ def load_tiles(size: int = TILE_SIZE):
 
 
 def load_player(role: ROLE, size: int = PLAYER_SIZE):
-    return {
-        state: load_scale(
-            os.path.join(paths.PLAYER_DIR, role.value, f"{state.value}.png"), size
-        )
-        for state in STATE
-    }
+    result = {}
+    for state in STATE:
+        frames = []
+        i = 0
+        while True:
+            path = os.path.join(paths.PLAYER_DIR, role.value, f"{state.value}_{i}.png")
+            if os.path.exists(path):
+                frames.append(load_scale(path, size))
+                i += 1
+            else:
+                break
+        if not frames:
+            frames.append(load_scale(
+                os.path.join(paths.PLAYER_DIR, role.value, f"{state.value}.png"), size
+            ))
+        result[state] = frames
+    return result
 
 
 def load_bullet(size: int = BULLET_SIZE):

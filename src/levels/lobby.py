@@ -32,7 +32,7 @@ class Screen:
             ),
             (
                 ROLE.MAGE,
-                pygame.image.load(os.path.join(paths.PLAYER_DIR, r"mage\down.png")),
+                pygame.image.load(os.path.join(paths.PLAYER_DIR, r"mage\down_0.png")),
             ),
             (
                 ROLE.FARMER,
