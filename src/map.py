@@ -307,15 +307,8 @@ class MapRender:
 
     def __init__(self, data : str, scale : int = 1) -> None:
         self.map = MapData(data, scale)
-        # self.TILES = load_tiles(TILE_SIZE)
-
-        # self.background = self.__load_map(self.map.background)
-        # self.foreground = (
-        #     self.__load_map(self.map.foreground, True)
-        #     if self.map.foreground is not None
-        #     else None
-        # )
-        # self.__build_mini_base()
+        self._full_surface: pygame.Surface | None = None
+        self._layer_surfaces: dict[str, pygame.Surface] = {}
 
     @property
     def width(self):
@@ -371,11 +364,7 @@ class MapRender:
             self.MINI_RADIUS,
         )
 
-    def draw_layer(self, surface, position, name : str):
-        layer = pygame.Surface((self.map.width, self.map.height), pygame.SRCALPHA)
-
-        self.map.map.draw_layer(layer, name, (0, 0), scale = self.map.scale)
-
+    def _blit_cached(self, surface: pygame.Surface, cached: pygame.Surface, position):
         screen_w, screen_h = surface.get_size()
         offset_x = -position[0]
         offset_y = -position[1]
@@ -391,33 +380,22 @@ class MapRender:
         dst_x = max(0, position[0])
         dst_y = max(0, position[1])
 
-        surface.blit(
-            layer, (dst_x, dst_y), area=pygame.Rect(src_x, src_y, src_w, src_h)
-        )
+        surface.blit(cached, (dst_x, dst_y), area=pygame.Rect(src_x, src_y, src_w, src_h))
+
+    def draw_layer(self, surface, position, name: str):
+        if name not in self._layer_surfaces:
+            cached = pygame.Surface((self.map.width, self.map.height), pygame.SRCALPHA)
+            self.map.map.draw_layer(cached, name, (0, 0), scale=self.map.scale)
+            self._layer_surfaces[name] = cached
+
+        self._blit_cached(surface, self._layer_surfaces[name], position)
 
     def draw(self, surface, position):
-        layer = pygame.Surface((self.map.width, self.map.height))
+        if self._full_surface is None:
+            self._full_surface = pygame.Surface((self.map.width, self.map.height))
+            self.map.map.draw_all_layers(self._full_surface, (0, 0), scale=self.map.scale)
 
-        self.map.map.draw_all_layers(layer, (0, 0), scale = self.map.scale)
-
-        screen_w, screen_h = surface.get_size()
-        offset_x = -position[0]
-        offset_y = -position[1]
-
-        src_x = max(0, offset_x)
-        src_y = max(0, offset_y)
-        src_w = min(screen_w, self.map.width - src_x)
-        src_h = min(screen_h, self.map.height - src_y)
-
-        if src_w <= 0 or src_h <= 0:
-            return
-
-        dst_x = max(0, position[0])
-        dst_y = max(0, position[1])
-
-        surface.blit(
-            layer, (dst_x, dst_y), area=pygame.Rect(src_x, src_y, src_w, src_h)
-        )
+        self._blit_cached(surface, self._full_surface, position)
 
     def draw_collision_debug(self, surface: pygame.Surface, position):
         """Dibuja los rects de colisión sobre la pantalla (offset de cámara en position)."""
