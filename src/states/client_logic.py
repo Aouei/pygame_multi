@@ -11,7 +11,7 @@ from entities import Player, Ship, Bullet, Enemy
 
 class Logic:
     STATE = State()
-    DEBUG = False
+    DEBUG = True
     _in_battle = False
     ANIM_FPS = 8  # frames per second for sprite animation
 
@@ -64,7 +64,8 @@ class Logic:
             self.STATE.received_enemies[-1].update(enemy)
 
     def draw(self, surface, dx, dy):
-        self.STATE.MAP.draw_layer(surface, (dx, dy), self.STATE.MAP.background)
+        print('--->', dx, dy)
+        self.STATE.MAP.draw_layer(surface, (dx, dy), 'agua')
 
         for player in self.STATE.received_players.copy().values():
             self.draw_player(surface, dx, dy, player)
@@ -110,9 +111,13 @@ class Logic:
                 surface, bullet.x + dx, bullet.y + dy, bullet.role, bullet.dx, bullet.dy
             )
 
-        self.STATE.MAP.draw_layer(surface, (dx, dy), self.STATE.MAP.foreground)
+        self.STATE.MAP.draw_layer(surface, (dx, dy), 'objetos')
+        self.STATE.MAP.draw_layer(surface, (dx, dy), 'wall')
 
-        self.draw_minimap(surface)
+        if self.DEBUG:
+            self.STATE.MAP.draw_collision_debug(surface, (dx, dy))
+
+        # self.draw_minimap(surface)
         self._update_music()
 
     def start_music(self):

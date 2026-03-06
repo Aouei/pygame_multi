@@ -16,7 +16,7 @@ class State:
     ENEMIES: list[Enemy] = []
     MAX_SHIPS: int = 5
     MAX_ENEMIES: int = 5
-    MAP: MapData = MapData(paths.MAP_L1_PATH, paths.MAP_L2_PATH)
+    MAP: MapData = MapData(paths.MAP_PATH, scale = 4)
 
     BULLET_VELOCITY = 30
 

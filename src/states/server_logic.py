@@ -74,6 +74,7 @@ class Logic:
 
     def __set_player_class(self, id: int, data: dict):
         x, y = self.STATE.MAP.spawn()
+
         self.STATE.PLAYERS[id] = Player(role=ROLE(data["role"]), x=x, y=y)
 
     def __try_move(self, id: int, data: dict):
@@ -289,12 +290,12 @@ class Logic:
         self.new_round = False
 
         if self.STATE.CLIENTS:
-            self.__check_round()
-            self.__move(self.STATE.SHIPS)
-            self.__spawn_enemies()
-            self.__redirect_enemies()
-            self.__move(self.STATE.ENEMIES)
-            self.__check_enemy_hit_with_player()
+        #     self.__check_round()
+            # self.__move(self.STATE.SHIPS)
+        #     self.__spawn_enemies()
+        #     self.__redirect_enemies()
+        #     self.__move(self.STATE.ENEMIES)
+        #     self.__check_enemy_hit_with_player()
             self.__move_bullets()
 
         return self.died_players, self.new_round

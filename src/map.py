@@ -10,37 +10,46 @@ from factories import TILE_SIZE, load_tiles
 from entities import Geometry
 from enums import COLLISIONS, STATE
 
+from tiledpy import TiledMap
+from tiledpy.enums import OFFSET
+
+
 
 class MapData:
-    COMMON_COLLISIONS = {15, 18, 25, 27, 28, 32, 42, 44, 45, 50, 69}
+    COMMON_COLLISIONS = {'tree', 'building', 'cliff'}
     COLLISION_TILES = {
-        COLLISIONS.PLAYER: {4, 9, *COMMON_COLLISIONS},
+        COLLISIONS.PLAYER: {'deep_water', 9, *COMMON_COLLISIONS},
         COLLISIONS.BULLET: {4, *COMMON_COLLISIONS},
         COLLISIONS.SHIP: {1, 2},
         COLLISIONS.ENEMY: {4, 5, 9, *COMMON_COLLISIONS},
     }
     NO_TILES = {0}
     PLAYER_SPAWN_CODES = {14}
-    SHIP_SPAWN_CODES = {5}
+    SHIP_SPAWN_CODES = {'deep_water'}
     SHIP_DISEMBARK_CODES = {2}
     ENEMY_TARGET_CODES = {1, 12}
 
-    def __init__(self, background: str, foreground: str | None = None) -> None:
-        self.__load(background, foreground)
+    COLLISSION_SHAPES_BY_TILE_POS : dict[tuple, list[pygame.Rect]] = {}
+
+    def __init__(self, data: str, scale : int = 1) -> None:
+        self.map = TiledMap(data)
+        self.scale = scale
+        # self.__load(background, foreground)
         self.__set_collision_tiles()
         self.__set_player_spawn_positions()
-        self.__set_ship_spawn_positions()
-        self.__set_blocked_tiles()
-        self.__set_disembark_positions()
-        self.__set_enemy_target_positions()
+        # self.__set_ship_spawn_positions()
+        # self.__set_blocked_tiles()
+        # self.__set_disembark_positions()
+        # self.__set_enemy_target_positions()
 
     @property
     def width(self):
-        return self.background.shape[-1] * TILE_SIZE
+        return self.map.width * self.map.tile_width * self.scale
 
     @property
     def height(self):
-        return self.background.shape[0] * TILE_SIZE
+        return self.map.height * self.map.tile_height * self.scale
+
 
     def __load(self, background: str, foreground: str | None):
         self.background = pd.read_csv(background, header=None).values
@@ -54,35 +63,62 @@ class MapData:
         self.solid_tree_by_collision: dict[COLLISIONS, KDTree] = {}
         self.solid_positions_by_collision: dict[COLLISIONS, list] = {}
 
+        all_positions: set[tuple] = set()
         for collision in COLLISIONS:
             positions = []
-            self.__set_collision_pos(collision, self.background, positions)
-            if self.foreground is not None:
-                self.__set_collision_pos(collision, self.foreground, positions)
+            self.__set_collision_pos(collision, positions)
 
             self.solid_tree_by_collision[collision] = (
                 KDTree(positions) if positions else None
             )
             self.solid_positions_by_collision[collision] = positions
+            all_positions.update(map(tuple, positions))
 
-    def __set_collision_pos(self, collision, data, positions):
-        for i, row in enumerate(data):
-            for j, col in enumerate(row):
-                if col in self.COLLISION_TILES[collision]:
-                    positions.append(
-                        (
-                            j * TILE_SIZE + TILE_SIZE // 2,
-                            i * TILE_SIZE + TILE_SIZE // 2,
-                        )
+        self.__create_collision_rectangles(all_positions)
+
+    def __create_collision_rectangles(self, all_positions):
+        tw = self.map.tile_width * self.scale
+        th = self.map.tile_height * self.scale
+    
+        for (tx, ty) in all_positions:
+            for layer in self.map.visible_layers:
+                gid = layer.get_raw_gid(tx, ty)
+            
+                if gid in [0, None]:
+                    continue
+
+                tileset = self.map.get_tileset_for_gid(gid)
+                if tileset is None:
+                    continue
+                
+                tile_data = tileset.tile_data.get(tileset.global_to_local(gid))
+                if not tile_data or not tile_data.collision_objects:
+                    continue
+
+                print(tile_data)
+                
+                wx = tx * tw
+                wy = ty * th
+
+                for col in tile_data.collision_objects:
+                    rect = pygame.Rect(
+                        wx + col["x"]  * self.scale,
+                        wy + col["y"]  * self.scale,
+                        col["width"]  * self.scale,
+                        col["height"] * self.scale,
                     )
+                    self.COLLISSION_SHAPES_BY_TILE_POS.setdefault((tx, ty), []).append(rect)
+
+    def __set_collision_pos(self, collision, positions):
+        for collision_id in self.COLLISION_TILES[collision]:
+            for layer in self.map.visible_layers:
+                positions.extend( layer.get_tile_by_property("Class", collision_id) )
 
     def __set_player_spawn_positions(self):
         self.player_spawn_tiles = []
-        for i, row in enumerate(self.background):
-            for j, col in enumerate(row):
-                if col in self.PLAYER_SPAWN_CODES:
-                    self.player_spawn_tiles.append((j, i))
-                    self.player_spawn_tiles.append((j, i))
+
+        for layer in self.map.visible_layers:
+            self.player_spawn_tiles.extend( layer.get_tile_by_property("Class", "spawn") )
 
     def __set_ship_spawn_positions(self):
         self.ship_spawn_tiles = []
@@ -222,30 +258,43 @@ class MapData:
 
         return []
 
-    def spawn(self, is_player=True) -> tuple[int, int]:
+    def spawn(self, is_player=True) -> tuple[int | float, int | float]:
         if is_player:
             j, i = random.choice(self.player_spawn_tiles)
         else:
             j, i = random.choice(self.ship_spawn_tiles)
 
-        return (j * TILE_SIZE + TILE_SIZE // 2, i * TILE_SIZE + TILE_SIZE // 2)
+        return self.map.tile_to_world(j, i, self.scale, OFFSET.CENTER)
 
     def is_collision(self, pos: Geometry, collision: COLLISIONS):
         if self.solid_tree_by_collision[collision] is None:
             return False
 
-        x, y = pos.x, pos.y
-        search_radius = TILE_SIZE + pos.radius // 2
+        tx_f, ty_f = self.map.world_to_tile(pos.x, pos.y, self.scale, OFFSET.CENTER)
         nearby_indices = self.solid_tree_by_collision[collision].query_ball_point(
-            [x, y], search_radius
+            [tx_f, ty_f], 2
         )
 
-        for idx in nearby_indices:
-            sx, sy = self.solid_positions_by_collision[collision][idx]
-            dx, dy = pos.x - sx, pos.y - sy
+        tw = self.map.tile_width * self.scale
+        th = self.map.tile_height * self.scale
 
-            if dx * dx + dy * dy <= ((pos.radius + pos.radius) ** 2):
-                return True
+        for idx in nearby_indices:
+            tx, ty = self.solid_positions_by_collision[collision][idx]
+
+            shapes = self.COLLISSION_SHAPES_BY_TILE_POS.get((tx, ty))
+            if shapes:
+                # custom per-tile collision shapes (world space) vs circle
+                for shape in shapes:
+                    cx = max(shape.left, min(pos.x, shape.right))
+                    cy = max(shape.top,  min(pos.y, shape.bottom))
+                    if (pos.x - cx) ** 2 + (pos.y - cy) ** 2 < pos.radius ** 2:
+                        return True
+            else:
+                # full tile AABB vs circle
+                cx = max(tx * tw, min(pos.x, (tx + 1) * tw))
+                cy = max(ty * th, min(pos.y, (ty + 1) * th))
+                if (pos.x - cx) ** 2 + (pos.y - cy) ** 2 < pos.radius ** 2:
+                    return True
 
         return False
 
@@ -256,17 +305,17 @@ class MapRender:
     WORLD_RADIUS = 320
     MINI_SCALE = 0.1
 
-    def __init__(self, background: str, foreground: str | None = None) -> None:
-        self.map = MapData(background, foreground)
-        self.TILES = load_tiles(TILE_SIZE)
+    def __init__(self, data : str, scale : int = 1) -> None:
+        self.map = MapData(data, scale)
+        # self.TILES = load_tiles(TILE_SIZE)
 
-        self.background = self.__load_map(self.map.background)
-        self.foreground = (
-            self.__load_map(self.map.foreground, True)
-            if self.map.foreground is not None
-            else None
-        )
-        self.__build_mini_base()
+        # self.background = self.__load_map(self.map.background)
+        # self.foreground = (
+        #     self.__load_map(self.map.foreground, True)
+        #     if self.map.foreground is not None
+        #     else None
+        # )
+        # self.__build_mini_base()
 
     @property
     def width(self):
@@ -322,8 +371,11 @@ class MapRender:
             self.MINI_RADIUS,
         )
 
-    def draw_layer(self, surface, position, layer):
-        """Dibuja solo la región visible del mapa usando area=Rect."""
+    def draw_layer(self, surface, position, name : str):
+        layer = pygame.Surface((self.map.width, self.map.height), pygame.SRCALPHA)
+
+        self.map.map.draw_layer(layer, name, (0, 0), scale = self.map.scale)
+
         screen_w, screen_h = surface.get_size()
         offset_x = -position[0]
         offset_y = -position[1]
@@ -344,9 +396,45 @@ class MapRender:
         )
 
     def draw(self, surface, position):
-        self.draw_layer(surface, position, self.background)
-        if self.foreground is not None:
-            self.draw_layer(surface, position, self.foreground)
+        layer = pygame.Surface((self.map.width, self.map.height))
+
+        self.map.map.draw_all_layers(layer, (0, 0), scale = self.map.scale)
+
+        screen_w, screen_h = surface.get_size()
+        offset_x = -position[0]
+        offset_y = -position[1]
+
+        src_x = max(0, offset_x)
+        src_y = max(0, offset_y)
+        src_w = min(screen_w, self.map.width - src_x)
+        src_h = min(screen_h, self.map.height - src_y)
+
+        if src_w <= 0 or src_h <= 0:
+            return
+
+        dst_x = max(0, position[0])
+        dst_y = max(0, position[1])
+
+        surface.blit(
+            layer, (dst_x, dst_y), area=pygame.Rect(src_x, src_y, src_w, src_h)
+        )
+
+    def draw_collision_debug(self, surface: pygame.Surface, position):
+        """Dibuja los rects de colisión sobre la pantalla (offset de cámara en position)."""
+        dx, dy = position
+        tw = self.map.map.tile_width  * self.map.scale
+        th = self.map.map.tile_height * self.map.scale
+
+        for (tx, ty), shapes in self.map.COLLISSION_SHAPES_BY_TILE_POS.items():
+            for shape in shapes:
+                r = pygame.Rect(shape.x + dx, shape.y + dy, shape.width, shape.height)
+                pygame.draw.rect(surface, (255, 0, 255), r, 1)
+
+        for collision_positions in self.map.solid_positions_by_collision.values():
+            for (tx, ty) in collision_positions:
+                if (tx, ty) not in self.map.COLLISSION_SHAPES_BY_TILE_POS:
+                    r = pygame.Rect(tx * tw + dx, ty * th + dy, tw, th)
+                    pygame.draw.rect(surface, (255, 165, 0), r, 1)
 
     def draw_mini(self, surface: pygame.Surface, dx, dy, points, player_x, player_y):
         """

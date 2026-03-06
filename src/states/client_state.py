@@ -11,7 +11,7 @@ SPAWN_CODE = 8
 
 
 class State:
-    _MAP = MapRender(paths.MAP_L1_PATH, paths.MAP_L2_PATH)
+    _MAP = MapRender(paths.MAP_PATH, scale = 4)
     _PLAYERS = {role: load_player(role, PLAYER_SIZE) for role in ROLE}
     _BULLETS = load_bullet()
     _SHIPS = load_ship()
