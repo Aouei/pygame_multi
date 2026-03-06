@@ -318,51 +318,38 @@ class MapRender:
     def height(self):
         return self.map.height
 
-    def __load_map(self, data, alpha=False):
-        if alpha:
-            surface = pygame.Surface(
-                (data.shape[-1] * TILE_SIZE, data.shape[0] * TILE_SIZE), pygame.SRCALPHA
-            )
-        else:
-            surface = pygame.Surface(
-                (data.shape[-1] * TILE_SIZE, data.shape[0] * TILE_SIZE),
-            )
-
-        for i, row in enumerate(data):
-            for j, col in enumerate(row):
-                if col not in self.map.NO_TILES:
-                    surface.blit(self.TILES[col], (j * TILE_SIZE, i * TILE_SIZE))
-
-        return surface
-
     def __build_mini_base(self):
         """
         Versión del mapa escalada a MINI_SCALE, usada como fuente para recortar
         cada frame la ventana centrada en el jugador.
         """
 
+        # Asegurarse de que _full_surface está construida
+        if self._full_surface is None:
+            self._full_surface = pygame.Surface((self.map.width, self.map.height))
+            self.map.map.draw_all_layers(self._full_surface, (0, 0), scale=self.map.scale)
+
         scaled_w = int(self.map.width * self.MINI_SCALE)
         scaled_h = int(self.map.height * self.MINI_SCALE)
-        self.mini_map_full = pygame.transform.scale(
-            self.background, (scaled_w, scaled_h)
-        )
-        if self.foreground:
-            self.mini_map_full.blit(
-                pygame.transform.scale(self.foreground, (scaled_w, scaled_h)), (0, 0)
-            )
+        self._mini_map_full = pygame.transform.scale(self._full_surface, (scaled_w, scaled_h))
 
-        self._circle_mask = pygame.Surface(
-            (self.MINI_SIZE, self.MINI_SIZE), pygame.SRCALPHA
-        )
+        S = self.MINI_SIZE
+        R = self.MINI_RADIUS
+
+        self._circle_mask = pygame.Surface((S, S), pygame.SRCALPHA)
         self._circle_mask.fill((0, 0, 0, 0))
 
         # Rellenamos el círculo con blanco opaco — lo usaremos como máscara de recorte
         pygame.draw.circle(
             self._circle_mask,
             (255, 255, 255, 255),
-            (self.MINI_RADIUS, self.MINI_RADIUS),
-            self.MINI_RADIUS,
+            (R, R),
+            R,
         )
+
+        # Surfaces reutilizables para draw_mini (misma resolución siempre)
+        self._mini_surf = pygame.Surface((S, S))
+        self._mini_result = pygame.Surface((S, S), pygame.SRCALPHA)
 
     def _blit_cached(self, surface: pygame.Surface, cached: pygame.Surface, position):
         screen_w, screen_h = surface.get_size()
@@ -426,55 +413,50 @@ class MapRender:
         points      : lista de {'x', 'y', 'color'} en coordenadas world
         player_x/y  : posición world del jugador local (centro del minimapa)
         """
+        if not hasattr(self, '_mini_map_full'):
+            self.__build_mini_base()
+
         S = self.MINI_SIZE
         R = self.MINI_RADIUS
         sc = self.MINI_SCALE
 
         # --- 1. Recortar la ventana del mapa escalado centrada en el jugador ---
-        # Centro del jugador en coordenadas del mapa escalado
         cx_scaled = int(player_x * sc)
         cy_scaled = int(player_y * sc)
 
-        # Región de MINI_SIZE x MINI_SIZE centrada en el jugador (en el mapa escalado)
         src_x = cx_scaled - R
         src_y = cy_scaled - R
 
-        # Surface temporal donde compondremos el minimapa
-        mini_surf = pygame.Surface((S, S))
+        self._mini_surf.fill((0, 0, 0))
 
-        # Offset para manejar bordes del mapa
         blit_dst_x = max(0, -src_x)
         blit_dst_y = max(0, -src_y)
         clip_x = max(0, src_x)
         clip_y = max(0, src_y)
-        clip_w = min(S - blit_dst_x, self.mini_map_full.get_width() - clip_x)
-        clip_h = min(S - blit_dst_y, self.mini_map_full.get_height() - clip_y)
+        clip_w = min(S - blit_dst_x, self._mini_map_full.get_width() - clip_x)
+        clip_h = min(S - blit_dst_y, self._mini_map_full.get_height() - clip_y)
 
         if clip_w > 0 and clip_h > 0:
-            mini_surf.blit(
-                self.mini_map_full,
+            self._mini_surf.blit(
+                self._mini_map_full,
                 (blit_dst_x, blit_dst_y),
                 area=pygame.Rect(clip_x, clip_y, clip_w, clip_h),
             )
 
         # --- 2. Dibujar puntos de jugadores ---
         for point in points:
-            # Posición relativa al jugador local → centro del minimapa
             rel_x = (point["x"] - player_x) * sc
             rel_y = (point["y"] - player_y) * sc
             px = int(R + rel_x)
             py = int(R + rel_y)
-            # Solo si cae dentro del círculo
             if (px - R) ** 2 + (py - R) ** 2 <= R**2:
-                mini_surf.blit(point["image"], (px, py))
+                self._mini_surf.blit(point["image"], (px, py))
 
         # --- 3. Aplicar máscara circular ---
-        # Creamos una surface SRCALPHA y bliteamos el contenido solo donde la máscara es blanca
-        result = pygame.Surface((S, S), pygame.SRCALPHA)
-        result.blit(mini_surf, (0, 0))
-        # Multiplicamos alpha con la máscara: fuera del círculo → transparente
-        result.blit(self._circle_mask, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
+        self._mini_result.fill((0, 0, 0, 0))
+        self._mini_result.blit(self._mini_surf, (0, 0))
+        self._mini_result.blit(self._circle_mask, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
 
         # --- 4. Borde circular y blit final ---
-        surface.blit(result, (dx, dy))
+        surface.blit(self._mini_result, (dx, dy))
         pygame.draw.circle(surface, (255, 255, 255), (dx + R, dy + R), R, width=2)

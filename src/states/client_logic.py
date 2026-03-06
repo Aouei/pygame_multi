@@ -65,8 +65,9 @@ class Logic:
 
     def draw(self, surface, dx, dy):
         print('--->', dx, dy)
-        self.STATE.MAP.draw_layer(surface, (dx, dy), 'agua')
-
+        self.STATE.MAP.draw_layer(surface, (dx, dy), 'water')
+        self.STATE.MAP.draw_layer(surface, (dx, dy), 'cliff')
+        
         for player in self.STATE.received_players.copy().values():
             self.draw_player(surface, dx, dy, player)
 
@@ -111,13 +112,12 @@ class Logic:
                 surface, bullet.x + dx, bullet.y + dy, bullet.role, bullet.dx, bullet.dy
             )
 
-        self.STATE.MAP.draw_layer(surface, (dx, dy), 'objetos')
-        self.STATE.MAP.draw_layer(surface, (dx, dy), 'wall')
+        self.STATE.MAP.draw_layer(surface, (dx, dy), 'buildings')
 
         if self.DEBUG:
             self.STATE.MAP.draw_collision_debug(surface, (dx, dy))
 
-        # self.draw_minimap(surface)
+        self.draw_minimap(surface)
         self._update_music()
 
     def start_music(self):
