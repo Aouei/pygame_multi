@@ -34,7 +34,6 @@ class MapData:
     def __init__(self, data: str, scale : int = 1) -> None:
         self.map = TiledMap(data)
         self.scale = scale
-        # self.__load(background, foreground)
         self.__set_collision_tiles()
         self.__set_player_spawn_positions()
         # self.__set_ship_spawn_positions()
@@ -49,15 +48,6 @@ class MapData:
     @property
     def height(self):
         return self.map.height * self.map.tile_height * self.scale
-
-
-    def __load(self, background: str, foreground: str | None):
-        self.background = pd.read_csv(background, header=None).values
-        self.foreground = (
-            pd.read_csv(foreground, header=None).values
-            if foreground is not None
-            else None
-        )
 
     def __set_collision_tiles(self):
         self.solid_tree_by_collision: dict[COLLISIONS, KDTree] = {}
@@ -82,21 +72,11 @@ class MapData:
     
         for (tx, ty) in all_positions:
             for layer in self.map.visible_layers:
-                gid = layer.get_raw_gid(tx, ty)
-            
-                if gid in [0, None]:
-                    continue
+                tile_data = layer.get_tile(tx, ty)
 
-                tileset = self.map.get_tileset_for_gid(gid)
-                if tileset is None:
-                    continue
-                
-                tile_data = tileset.tile_data.get(tileset.global_to_local(gid))
                 if not tile_data or not tile_data.collision_objects:
                     continue
-
-                print(tile_data)
-                
+                                
                 wx = tx * tw
                 wy = ty * th
 
