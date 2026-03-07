@@ -70,41 +70,11 @@ class Logic:
         for player in self.STATE.received_players.copy().values():
             self.draw_player(surface, dx, dy, player)
 
-            if isinstance(player, LivingEntity):
-                self.draw_health_bar(
-                    surface,
-                    player.x - PLAYER_SIZE // 2 + dx,
-                    player.y - PLAYER_SIZE // 2 - HEALTH_BAR_HEIGHT + dy,
-                    PLAYER_SIZE,
-                    HEALTH_BAR_HEIGHT,
-                    player,
-                )
-
         for ship in self.STATE.received_ships.copy():
             self.draw_ship(surface, dx, dy, ship)
 
-            if isinstance(ship, LivingEntity):
-                self.draw_health_bar(
-                    surface,
-                    ship.x - SHIP_SIZE // 2 + dx,
-                    ship.y - SHIP_SIZE // 2 - HEALTH_BAR_HEIGHT + dy,
-                    SHIP_SIZE,
-                    HEALTH_BAR_HEIGHT,
-                    ship,
-                )
-
         for enemy in self.STATE.received_enemies.copy():
             self.draw_enenmy(surface, dx, dy, enemy)
-
-            if isinstance(enemy, LivingEntity):
-                self.draw_health_bar(
-                    surface,
-                    enemy.x - ENEMY_SIZE // 2 + dx,
-                    enemy.y - ENEMY_SIZE // 2 - HEALTH_BAR_HEIGHT + dy,
-                    ENEMY_SIZE,
-                    HEALTH_BAR_HEIGHT,
-                    enemy,
-                )
 
         for bullet in self.STATE.received_bullets.copy():
             self.draw_bullet(
@@ -116,7 +86,7 @@ class Logic:
         if self.DEBUG:
             self.STATE.MAP.draw_collision_debug(surface, (dx, dy))
 
-        self.draw_minimap(surface)
+        self.draw_ui(surface, dx, dy)
         self._update_music()
 
     def start_music(self):
@@ -212,6 +182,42 @@ class Logic:
             pygame.draw.circle(
                 surface, (255, 0, 0), (enemy.x + dx, enemy.y + dy), enemy.radius, 1
             )
+
+    def draw_ui(self, surface, dx, dy):
+        for player in self.STATE.received_players.copy().values():
+            if isinstance(player, LivingEntity):
+                self.draw_health_bar(
+                    surface,
+                    player.x - PLAYER_SIZE // 2 + dx,
+                    player.y - PLAYER_SIZE // 2 - HEALTH_BAR_HEIGHT + dy,
+                    PLAYER_SIZE,
+                    HEALTH_BAR_HEIGHT,
+                    player,
+                )
+
+        for ship in self.STATE.received_ships.copy():
+            if isinstance(ship, LivingEntity):
+                self.draw_health_bar(
+                    surface,
+                    ship.x - SHIP_SIZE // 2 + dx,
+                    ship.y - SHIP_SIZE // 2 - HEALTH_BAR_HEIGHT + dy,
+                    SHIP_SIZE,
+                    HEALTH_BAR_HEIGHT,
+                    ship,
+                )
+
+        for enemy in self.STATE.received_enemies.copy():
+            if isinstance(enemy, LivingEntity):
+                self.draw_health_bar(
+                    surface,
+                    enemy.x - ENEMY_SIZE // 2 + dx,
+                    enemy.y - ENEMY_SIZE // 2 - HEALTH_BAR_HEIGHT + dy,
+                    ENEMY_SIZE,
+                    HEALTH_BAR_HEIGHT,
+                    enemy,
+                )
+
+        self.draw_minimap(surface)
 
     def draw_health_bar(self, surface, x, y, width, height, entity: LivingEntity):
         base_rect = (x, y, width, height)
