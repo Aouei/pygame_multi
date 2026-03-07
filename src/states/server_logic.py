@@ -7,7 +7,7 @@ from loguru import logger
 from states.server_state import State
 from enums import MESSAGES, ROLE, STATE, COLLISIONS
 from entities import Player, Geometry, Bullet, Ship, Counter, Enemy
-from factories import TILE_SIZE, ENEMY_VARIANTS
+from factories import ENEMY_VARIANTS
 from protocols import LivingEntity
 
 
@@ -165,16 +165,14 @@ class Logic:
         )  # list of (world_x, world_y)
 
         for (scol, srow), (tx, ty) in zip(spawns, targets):
-            sx = scol * TILE_SIZE + TILE_SIZE // 2
-            sy = srow * TILE_SIZE + TILE_SIZE // 2
+            sx, sy = self.STATE.MAP.tile_center(scol, srow)
 
             path = self.STATE.MAP.find_path(sx, sy, tx, ty, COLLISIONS.SHIP)
 
             target_x, target_y = sx, sy
             if path:
                 dcol, drow = _DELTA[path[0]]
-                target_x = (scol + dcol) * TILE_SIZE + TILE_SIZE // 2
-                target_y = (srow + drow) * TILE_SIZE + TILE_SIZE // 2
+                target_x, target_y = self.STATE.MAP.tile_center(scol + dcol, srow + drow)
 
             self.STATE.SHIPS.append(
                 Ship(x=sx, y=sy, path=path, target_x=target_x, target_y=target_y)
@@ -203,10 +201,8 @@ class Logic:
 
                     if enemy.path:
                         dcol, drow = _DELTA[enemy.path[0]]
-                        cur_col = enemy.x // TILE_SIZE
-                        cur_row = enemy.y // TILE_SIZE
-                        enemy.target_x = (cur_col + dcol) * TILE_SIZE + TILE_SIZE // 2
-                        enemy.target_y = (cur_row + drow) * TILE_SIZE + TILE_SIZE // 2
+                        cur_col, cur_row = self.STATE.MAP.pixel_to_tile(enemy.x, enemy.y)
+                        enemy.target_x, enemy.target_y = self.STATE.MAP.tile_center(cur_col + dcol, cur_row + drow)
                 else:
                     enemy.x += int(dx / dist * enemy.speed)
                     enemy.y += int(dy / dist * enemy.speed)
@@ -235,9 +231,8 @@ class Logic:
                     target_x, target_y = x, y
                     if path:
                         dcol, drow = _DELTA[path[0]]
-                        scol, srow = x // TILE_SIZE, y // TILE_SIZE
-                        target_x = (scol + dcol) * TILE_SIZE + TILE_SIZE // 2
-                        target_y = (srow + drow) * TILE_SIZE + TILE_SIZE // 2
+                        scol, srow = self.STATE.MAP.pixel_to_tile(x, y)
+                        target_x, target_y = self.STATE.MAP.tile_center(scol + dcol, srow + drow)
 
                     enemy = Enemy(
                         x,
@@ -270,9 +265,8 @@ class Logic:
 
                 if path:
                     dcol, drow = _DELTA[path[0]]
-                    scol, srow = x // TILE_SIZE, y // TILE_SIZE
-                    enemy.target_x = (scol + dcol) * TILE_SIZE + TILE_SIZE // 2
-                    enemy.target_y = (srow + drow) * TILE_SIZE + TILE_SIZE // 2
+                    scol, srow = self.STATE.MAP.pixel_to_tile(x, y)
+                    enemy.target_x, enemy.target_y = self.STATE.MAP.tile_center(scol + dcol, srow + drow)
 
     def __check_enemy_hit_with_player(self):
 

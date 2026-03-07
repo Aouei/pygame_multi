@@ -16,9 +16,9 @@ class MapData:
     COMMON_COLLISIONS = {'tree', 'building', 'cliff'}
     COLLISION_TILES = {
         COLLISIONS.PLAYER: {'deep_water', *COMMON_COLLISIONS},
-        COLLISIONS.BULLET: {*COMMON_COLLISIONS},
+        COLLISIONS.BULLET: {'tree', 'building', 'deep_water'},
         COLLISIONS.SHIP: {'ground', *COMMON_COLLISIONS},
-        COLLISIONS.ENEMY: {4, 5, 9, *COMMON_COLLISIONS},
+        COLLISIONS.ENEMY: {'deep_water', *COMMON_COLLISIONS},
     }
     
     PLAYER_SPAWN_CODES = {'player_spawn'}
@@ -119,9 +119,13 @@ class MapData:
 
     def __get_neightboors(self, x, y) -> list[tuple]:
         result = []
-    
+        cols = self.map.width
+        rows = self.map.height
+
         for di, dj in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-            result.append((x + di, y + dj))
+            nx, ny = x + di, y + dj
+            if 0 <= nx < cols and 0 <= ny < rows:
+                result.append((nx, ny))
 
         return result
     
@@ -170,6 +174,16 @@ class MapData:
         self.enemy_target_tiles = [
             (col * T + T // 2, row * T + T // 2) for col, row in near_shore
         ]
+
+    def tile_center(self, col: int, row: int) -> tuple[int, int]:
+        """World pixel coords of the center of tile (col, row)."""
+        x, y = self.map.tile_to_world(col, row, self.scale, OFFSET.CENTER)
+        return int(x), int(y)
+
+    def pixel_to_tile(self, x: float, y: float) -> tuple[int, int]:
+        """Tile (col, row) that contains world pixel position (x, y)."""
+        col, row = self.map.world_to_tile(x, y, self.scale)
+        return int(col), int(row)
 
     def find_path(
         self,
