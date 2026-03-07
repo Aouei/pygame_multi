@@ -277,10 +277,10 @@ class Logic:
         if self.STATE.CLIENTS:
             self.__check_round()
             self.__move(self.STATE.SHIPS)
-        #     self.__spawn_enemies()
-        #     self.__redirect_enemies()
-        #     self.__move(self.STATE.ENEMIES)
-        #     self.__check_enemy_hit_with_player()
+            self.__spawn_enemies()
+            self.__redirect_enemies()
+            self.__move(self.STATE.ENEMIES)
+            self.__check_enemy_hit_with_player()
             self.__move_bullets()
 
         return self.died_players, self.new_round

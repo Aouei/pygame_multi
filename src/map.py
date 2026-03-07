@@ -24,7 +24,7 @@ class MapData:
     PLAYER_SPAWN_CODES = {'player_spawn'}
     SHIP_SPAWN_CODES = {'deep_water'}
     SHIP_DISEMBARK_CODES = {'beach'}
-    ENEMY_TARGET_CODES = {1, 12}
+    ENEMY_TARGET_CODES = {'beach', 'castle'}
 
     COLLISSION_SHAPES_BY_TILE_POS : dict[tuple, list[pygame.Rect]] = {}
 
@@ -36,7 +36,7 @@ class MapData:
         self.__set_ship_spawn_positions()
         self.__set_blocked_tiles()
         self.__set_disembark_positions()
-        # self.__set_enemy_target_positions()
+        self.__set_enemy_target_positions()
 
     @property
     def width(self):
@@ -162,23 +162,24 @@ class MapData:
         Tiles de agua (no bloqueados para ships) adyacentes a tiles de desembarco.
         Son los puntos donde los ships terminan su recorrido.
         """
+
         blocked = self._blocked_by_collision[COLLISIONS.ENEMY]
-        rows, cols = self.background.shape
-        near_shore: set[tuple[int, int]] = set()
+        
+        tiles = []
+        for layer in self.map.visible_layers:
+            for code in self.ENEMY_TARGET_CODES:
+                res = layer.get_tile_by_property("Class", code)
 
-        for i, row in enumerate(self.background):
-            for j, tile in enumerate(row):
-                if tile in self.ENEMY_TARGET_CODES:
-                    for di, dj in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-                        ni, nj = i + di, j + dj
-                        if 0 <= ni < rows and 0 <= nj < cols:
-                            if (nj, ni) not in blocked:
-                                near_shore.add((nj, ni))
+                for x, y in res.copy():
+                    res.extend(self.__get_neightboors(x, y))
 
-        T = TILE_SIZE
-        self.enemy_target_tiles = [
-            (col * T + T // 2, row * T + T // 2) for col, row in near_shore
-        ]
+                tiles.extend(res)
+        else:
+            tiles = set(tiles)
+
+        tiles.difference_update(blocked)
+
+        self.enemy_target_tiles = list(tiles)  # list of (col, row)
 
     def tile_center(self, col: int, row: int) -> tuple[int, int]:
         """World pixel coords of the center of tile (col, row)."""
