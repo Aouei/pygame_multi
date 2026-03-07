@@ -164,11 +164,10 @@ class Logic:
             self.STATE.MAP.disembark_tiles, n
         )  # list of (world_x, world_y)
 
-        for (scol, srow), (tx, ty) in zip(spawns, targets):
+        for (scol, srow), (tcol, trow) in zip(spawns, targets):
+            path = self.STATE.MAP.find_path(scol, srow, tcol, trow, COLLISIONS.SHIP)
+
             sx, sy = self.STATE.MAP.tile_center(scol, srow)
-
-            path = self.STATE.MAP.find_path(sx, sy, tx, ty, COLLISIONS.SHIP)
-
             target_x, target_y = sx, sy
             if path:
                 dcol, drow = _DELTA[path[0]]
@@ -221,17 +220,13 @@ class Logic:
 
                 for _ in range(random.randint(1, self.STATE.MAX_ENEMIES)):
                     x, y = ship.x, ship.y
-                    final_tx, final_ty = random.sample(
-                        self.STATE.MAP.enemy_target_tiles, 1
-                    )[0]
-                    path = self.STATE.MAP.find_path(
-                        x, y, final_tx, final_ty, COLLISIONS.ENEMY
-                    )
+                    tcol, trow = random.sample(self.STATE.MAP.enemy_target_tiles, 1)[0]
+                    scol, srow = self.STATE.MAP.pixel_to_tile(x, y)
+                    path = self.STATE.MAP.find_path(scol, srow, tcol, trow, COLLISIONS.ENEMY)
 
                     target_x, target_y = x, y
                     if path:
                         dcol, drow = _DELTA[path[0]]
-                        scol, srow = self.STATE.MAP.pixel_to_tile(x, y)
                         target_x, target_y = self.STATE.MAP.tile_center(scol + dcol, srow + drow)
 
                     enemy = Enemy(
@@ -255,17 +250,13 @@ class Logic:
         for enemy in self.STATE.ENEMIES:
             if not enemy.path:
                 x, y = enemy.x, enemy.y
-                final_tx, final_ty = random.sample(
-                    self.STATE.MAP.enemy_target_tiles, 1
-                )[0]
-                path = self.STATE.MAP.find_path(
-                    x, y, final_tx, final_ty, COLLISIONS.ENEMY
-                )
+                tcol, trow = random.sample(self.STATE.MAP.enemy_target_tiles, 1)[0]
+                scol, srow = self.STATE.MAP.pixel_to_tile(x, y)
+                path = self.STATE.MAP.find_path(scol, srow, tcol, trow, COLLISIONS.ENEMY)
                 enemy.path = path
 
                 if path:
                     dcol, drow = _DELTA[path[0]]
-                    scol, srow = self.STATE.MAP.pixel_to_tile(x, y)
                     enemy.target_x, enemy.target_y = self.STATE.MAP.tile_center(scol + dcol, srow + drow)
 
     def __check_enemy_hit_with_player(self):

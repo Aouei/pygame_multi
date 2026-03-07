@@ -150,7 +150,7 @@ class MapData:
 
         tiles.difference_update(blocked)
 
-        self.disembark_tiles = [ self.map.tile_to_world(x, y, self.scale, OFFSET.CENTER) for x, y in tiles ]
+        self.disembark_tiles = list(tiles)  # list of (col, row)
 
     def __set_enemy_target_positions(self):
         """
@@ -187,14 +187,14 @@ class MapData:
 
     def find_path(
         self,
-        sx: int,
-        sy: int,
-        tx: int,
-        ty: int,
+        scol: int,
+        srow: int,
+        tcol: int,
+        trow: int,
         collision: COLLISIONS = COLLISIONS.PLAYER,
     ) -> list[STATE]:
         """
-        A* sobre el grid de tiles de (sx, sy) a (tx, ty) en coordenadas world (píxeles).
+        A* sobre el grid de tiles de (scol, srow) a (tcol, trow) en coordenadas tile.
         Devuelve una lista de STATE (UP/DOWN/LEFT/RIGHT) que lleva al destino,
         o [] si no hay camino o ya se está en el destino.
         """
@@ -202,8 +202,8 @@ class MapData:
         rows = self.map.height
         blocked = self._blocked_by_collision[collision]
 
-        start = self.map.world_to_tile(sx, sy, self.scale)
-        goal  = self.map.world_to_tile(tx, ty, self.scale)
+        start = (scol, srow)
+        goal  = (tcol, trow)
 
         if start == goal:
             return []
