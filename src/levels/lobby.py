@@ -85,10 +85,18 @@ class Screen:
     def _launch_server(self):
         if self._server_proc and self._server_proc.poll() is None:
             self._server_proc.terminate()
-        server_path = os.path.normpath(
-            os.path.join(os.path.dirname(__file__), "..", "server.py")
-        )
-        self._server_proc = subprocess.Popen([sys.executable, server_path])
+        if getattr(sys, "frozen", False):
+            # Running as PyInstaller exe — launch server.exe next to client.exe
+            server_exe = os.path.join(os.path.dirname(sys.executable), "server.exe")
+            self._server_proc = subprocess.Popen(
+                [server_exe],
+                creationflags=subprocess.CREATE_NO_WINDOW,
+            )
+        else:
+            server_path = os.path.normpath(
+                os.path.join(os.path.dirname(__file__), "..", "server.py")
+            )
+            self._server_proc = subprocess.Popen([sys.executable, server_path])
 
     # ------------------------------------------------------------------
     # WebSocket connection (daemon thread)
