@@ -173,9 +173,9 @@ class Logic:
                 dcol, drow = _DELTA[path[0]]
                 target_x, target_y = self.STATE.MAP.tile_center(scol + dcol, srow + drow)
 
-            self.STATE.SHIPS.append(
-                Ship(x=sx, y=sy, path=path, target_x=target_x, target_y=target_y)
-            )
+                self.STATE.SHIPS.append(
+                    Ship(x=sx, y=sy, path=path, target_x=target_x, target_y=target_y)
+                )
 
     def __move(self, enemies: list[Ship] | list[Enemy]):
         _DELTA = {
