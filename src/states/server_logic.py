@@ -290,8 +290,8 @@ class Logic:
         self.new_round = False
 
         if self.STATE.CLIENTS:
-        #     self.__check_round()
-            # self.__move(self.STATE.SHIPS)
+            self.__check_round()
+            self.__move(self.STATE.SHIPS)
         #     self.__spawn_enemies()
         #     self.__redirect_enemies()
         #     self.__move(self.STATE.ENEMIES)

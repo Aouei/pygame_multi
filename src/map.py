@@ -1,12 +1,9 @@
 import heapq
-import pandas as pd
-import numpy as np
 import random
 import pygame
 
 from scipy.spatial import KDTree
 
-from factories import TILE_SIZE, load_tiles
 from entities import Geometry
 from enums import COLLISIONS, STATE
 
@@ -18,15 +15,15 @@ from tiledpy.enums import OFFSET
 class MapData:
     COMMON_COLLISIONS = {'tree', 'building', 'cliff'}
     COLLISION_TILES = {
-        COLLISIONS.PLAYER: {'deep_water', 9, *COMMON_COLLISIONS},
-        COLLISIONS.BULLET: {4, *COMMON_COLLISIONS},
-        COLLISIONS.SHIP: {1, 2},
+        COLLISIONS.PLAYER: {'deep_water', *COMMON_COLLISIONS},
+        COLLISIONS.BULLET: {*COMMON_COLLISIONS},
+        COLLISIONS.SHIP: {'ground', *COMMON_COLLISIONS},
         COLLISIONS.ENEMY: {4, 5, 9, *COMMON_COLLISIONS},
     }
-    NO_TILES = {0}
-    PLAYER_SPAWN_CODES = {14}
+    
+    PLAYER_SPAWN_CODES = {'player_spawn'}
     SHIP_SPAWN_CODES = {'deep_water'}
-    SHIP_DISEMBARK_CODES = {2}
+    SHIP_DISEMBARK_CODES = {'beach'}
     ENEMY_TARGET_CODES = {1, 12}
 
     COLLISSION_SHAPES_BY_TILE_POS : dict[tuple, list[pygame.Rect]] = {}
@@ -36,9 +33,9 @@ class MapData:
         self.scale = scale
         self.__set_collision_tiles()
         self.__set_player_spawn_positions()
-        # self.__set_ship_spawn_positions()
-        # self.__set_blocked_tiles()
-        # self.__set_disembark_positions()
+        self.__set_ship_spawn_positions()
+        self.__set_blocked_tiles()
+        self.__set_disembark_positions()
         # self.__set_enemy_target_positions()
 
     @property
@@ -76,7 +73,7 @@ class MapData:
 
                 if not tile_data or not tile_data.collision_objects:
                     continue
-                                
+
                 wx = tx * tw
                 wy = ty * th
 
@@ -98,53 +95,58 @@ class MapData:
         self.player_spawn_tiles = []
 
         for layer in self.map.visible_layers:
-            self.player_spawn_tiles.extend( layer.get_tile_by_property("Class", "spawn") )
+            for code in self.PLAYER_SPAWN_CODES:
+                self.player_spawn_tiles.extend( layer.get_tile_by_property("Class", code) )
 
     def __set_ship_spawn_positions(self):
         self.ship_spawn_tiles = []
-        for i, row in enumerate(self.background):
-            for j, col in enumerate(row):
-                if col in self.SHIP_SPAWN_CODES:
-                    self.ship_spawn_tiles.append((j, i))
-                    self.ship_spawn_tiles.append((j, i))
+
+        for layer in self.map.visible_layers:
+            for code in self.SHIP_SPAWN_CODES:
+                self.ship_spawn_tiles.extend( layer.get_tile_by_property("Class", code) )
 
     def __set_blocked_tiles(self):
         self._blocked_by_collision: dict[COLLISIONS, set] = {}
         for collision in COLLISIONS:
-            blocked: set[tuple[int, int]] = set()
-            self.__collect_blocked(collision, self.background, blocked)
-            if self.foreground is not None:
-                self.__collect_blocked(collision, self.foreground, blocked)
-            self._blocked_by_collision[collision] = blocked
+            blocked: list[tuple[int, int]] = []
+            self.__collect_blocked(collision, blocked)
+            self._blocked_by_collision[collision] = set(blocked)
 
-    def __collect_blocked(self, collision: COLLISIONS, data, blocked: set):
-        for i, row in enumerate(data):
-            for j, col in enumerate(row):
-                if col in self.COLLISION_TILES[collision]:
-                    blocked.add((j, i))
+    def __collect_blocked(self, collision: COLLISIONS, blocked: list[tuple[int, int]]) -> None:
+        for layer in self.map.visible_layers:
+            for code in self.COLLISION_TILES[collision]:
+                blocked.extend( layer.get_tile_by_property("Class", code) )
 
+    def __get_neightboors(self, x, y) -> list[tuple]:
+        result = []
+    
+        for di, dj in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            result.append((x + di, y + dj))
+
+        return result
+    
     def __set_disembark_positions(self):
         """
         Tiles de agua (no bloqueados para ships) adyacentes a tiles de desembarco.
         Son los puntos donde los ships terminan su recorrido.
         """
         blocked = self._blocked_by_collision[COLLISIONS.SHIP]
-        rows, cols = self.background.shape
-        near_shore: set[tuple[int, int]] = set()
+        
+        tiles = []
+        for layer in self.map.visible_layers:
+            for code in self.SHIP_DISEMBARK_CODES:
+                res = layer.get_tile_by_property("Class", code)
 
-        for i, row in enumerate(self.background):
-            for j, tile in enumerate(row):
-                if tile in self.SHIP_DISEMBARK_CODES:
-                    for di, dj in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-                        ni, nj = i + di, j + dj
-                        if 0 <= ni < rows and 0 <= nj < cols:
-                            if (nj, ni) not in blocked:
-                                near_shore.add((nj, ni))
+                for x, y in res.copy():
+                    res.extend(self.__get_neightboors(x, y))
 
-        T = TILE_SIZE
-        self.disembark_tiles = [
-            (col * T + T // 2, row * T + T // 2) for col, row in near_shore
-        ]
+                tiles.extend(res)
+        else:
+            tiles = set(tiles)
+
+        tiles.difference_update(blocked)
+
+        self.disembark_tiles = [ self.map.tile_to_world(x, y, self.scale, OFFSET.CENTER) for x, y in tiles ]
 
     def __set_enemy_target_positions(self):
         """
@@ -182,12 +184,12 @@ class MapData:
         Devuelve una lista de STATE (UP/DOWN/LEFT/RIGHT) que lleva al destino,
         o [] si no hay camino o ya se está en el destino.
         """
-        cols = self.background.shape[1]
-        rows = self.background.shape[0]
+        cols = self.map.width
+        rows = self.map.height
         blocked = self._blocked_by_collision[collision]
 
-        start = (sx // TILE_SIZE, sy // TILE_SIZE)
-        goal = (tx // TILE_SIZE, ty // TILE_SIZE)
+        start = self.map.world_to_tile(sx, sy, self.scale)
+        goal  = self.map.world_to_tile(tx, ty, self.scale)
 
         if start == goal:
             return []

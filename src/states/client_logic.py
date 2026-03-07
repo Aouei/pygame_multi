@@ -64,7 +64,6 @@ class Logic:
             self.STATE.received_enemies[-1].update(enemy)
 
     def draw(self, surface, dx, dy):
-        print('--->', dx, dy)
         self.STATE.MAP.draw_layer(surface, (dx, dy), 'water')
         self.STATE.MAP.draw_layer(surface, (dx, dy), 'cliff')
         
