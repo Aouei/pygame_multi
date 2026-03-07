@@ -229,15 +229,15 @@ class Logic:
                         dcol, drow = _DELTA[path[0]]
                         target_x, target_y = self.STATE.MAP.tile_center(scol + dcol, srow + drow)
 
-                    enemy = Enemy(
-                        x,
-                        y,
-                        path,
-                        target_x=target_x,
-                        target_y=target_y,
-                        variant=random.randint(0, ENEMY_VARIANTS - 1),
-                    )
-                    self.STATE.ENEMIES.append(enemy)
+                        enemy = Enemy(
+                            x,
+                            y,
+                            path,
+                            target_x=target_x,
+                            target_y=target_y,
+                            variant=random.randint(0, ENEMY_VARIANTS - 1),
+                        )
+                        self.STATE.ENEMIES.append(enemy)
 
     def __redirect_enemies(self):
         _DELTA = {
