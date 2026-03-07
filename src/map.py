@@ -9,7 +9,7 @@ from enums import COLLISIONS, STATE
 
 from tiledpy import TiledMap
 from tiledpy.enums import OFFSET
-
+from factories import BASE_COLOR
 
 
 class MapData:
@@ -409,7 +409,7 @@ class MapRender:
         src_x = cx_scaled - R
         src_y = cy_scaled - R
 
-        self._mini_surf.fill((0, 0, 0))
+        self._mini_surf.fill(BASE_COLOR)
 
         blit_dst_x = max(0, -src_x)
         blit_dst_y = max(0, -src_y)

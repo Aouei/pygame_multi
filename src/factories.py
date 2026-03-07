@@ -15,6 +15,7 @@ BULLET_SIZE = 32
 ENEMY_VARIANTS = 4
 HEALTH_BAR_HEIGHT = 16
 
+BASE_COLOR = (66, 172, 175)
 
 def load_scale(path: str, size: int):
     return pygame.transform.scale(pygame.image.load(path), (size, size))

@@ -11,6 +11,7 @@ import messages
 from enums import ROLE, MESSAGES
 from states.client_logic import Logic
 from inputs import InputHandler
+from factories import BASE_COLOR
 
 
 class Game:
@@ -52,7 +53,7 @@ class Game:
             self.__center_screen()
             await self.__handle_player_actions(websocket)
 
-            self.window.fill((0, 0, 0))
+            self.window.fill(BASE_COLOR)
             self.LOGIC.draw(self.window, -self.offset_x, -self.offset_y)
 
             pygame.display.flip()
