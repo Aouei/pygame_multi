@@ -54,7 +54,7 @@ class TextInput(PlaceableUI):
         return self.text
 
     def update(self, input: InputHandler):
-        if input.shot:
+        if input.click:
             if self.position.collidepoint(input.mouse_pos):
                 self.active = True
             else:
@@ -104,7 +104,7 @@ class TextButton(PlaceableUI):
 
     def update(self, input: InputHandler):
         self._hovered = self.position.collidepoint(input.mouse_pos)
-        self.clicked = self._hovered and input.shot
+        self.clicked = self._hovered and input.click
 
     def draw(self, surface: pygame.Surface):
         color = self.HOVER_COLOR if self._hovered else self.COLOR
