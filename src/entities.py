@@ -152,7 +152,7 @@ class Ship:
     live: int = 20
     max_live: int = 20
     radius: int = 32
-    speed: int = 15
+    speed: int = 5
     state: STATE = STATE.DOWN
     target_x: int = 0
     target_y: int = 0

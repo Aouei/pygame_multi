@@ -13,10 +13,10 @@ from factories import BASE_COLOR
 
 
 class MapData:
-    COMMON_COLLISIONS = {'tree', 'building', 'cliff'}
+    COMMON_COLLISIONS = {'tree', 'building', 'cliff', 'castle'}
     COLLISION_TILES = {
         COLLISIONS.PLAYER: {'deep_water', *COMMON_COLLISIONS},
-        COLLISIONS.BULLET: {'tree', 'building', 'deep_water'},
+        COLLISIONS.BULLET: {'tree', 'building', 'deep_water', 'castle'},
         COLLISIONS.SHIP: {'ground', *COMMON_COLLISIONS},
         COLLISIONS.ENEMY: {'deep_water', *COMMON_COLLISIONS},
     }
@@ -78,9 +78,12 @@ class MapData:
                 wy = ty * th
 
                 for col in tile_data.collision_objects:
+                    origin_x = wx
+                    tile_h = tile_data.height or self.map.tile_height
+                    origin_y = wy - (tile_h - self.map.tile_height) * self.scale
                     rect = pygame.Rect(
-                        wx + col["x"]  * self.scale,
-                        wy + col["y"]  * self.scale,
+                        origin_x + col["x"]  * self.scale,
+                        origin_y + col["y"]  * self.scale,
                         col["width"]  * self.scale,
                         col["height"] * self.scale,
                     )
@@ -97,6 +100,8 @@ class MapData:
         for layer in self.map.visible_layers:
             for code in self.PLAYER_SPAWN_CODES:
                 self.player_spawn_tiles.extend( layer.get_tile_by_property("Class", code) )
+
+        print(self.player_spawn_tiles)
 
     def __set_ship_spawn_positions(self):
         self.ship_spawn_tiles = []
@@ -299,7 +304,7 @@ class MapRender:
     MINI_SIZE = 320
     MINI_RADIUS = MINI_SIZE // 2
     WORLD_RADIUS = 320
-    MINI_SCALE = 0.1
+    MINI_SCALE = 0.2
 
     def __init__(self, data : str, scale : int = 1) -> None:
         self.map = MapData(data, scale)

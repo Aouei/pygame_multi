@@ -11,7 +11,7 @@ from entities import Player, Ship, Bullet, Enemy
 
 class Logic:
     STATE = State()
-    DEBUG = True
+    DEBUG = False
     _in_battle = False
     ANIM_FPS = 8  # frames per second for sprite animation
 
