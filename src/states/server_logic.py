@@ -268,6 +268,12 @@ class Logic:
                 if check_intersection_by_radius(enemy, castle):
                     castle.live -= 1
 
+        dead = [cid for cid, c in self.STATE.MAP.castles.items() if c.live <= 0]
+        for cid in dead:
+            castle = self.STATE.MAP.castles.pop(cid)
+            tx, ty = self.STATE.MAP.pixel_to_tile(castle.x, castle.y)
+            self.STATE.MAP.enemy_target_tiles.discard((tx, ty))
+
     def __check_enemy_hit_with_player(self):
 
         for enemy in self.STATE.ENEMIES:

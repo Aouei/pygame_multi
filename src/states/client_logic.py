@@ -64,10 +64,16 @@ class Logic:
             self.STATE.received_enemies[-1].update(enemy)
 
     def update_castles(self, castles: dict):
+        map_data = self.STATE.MAP.map
+        server_ids = {int(k) for k in castles}
+        for cid in list(map_data.castles.keys()):
+            if cid not in server_ids:
+                map_data.castles.pop(cid)
+
         for id_str, data in castles.items():
             castle_id = int(id_str)
-            if castle_id in self.STATE.MAP.map.castles:
-                self.STATE.MAP.map.castles[castle_id].update(data)
+            if castle_id in map_data.castles:
+                map_data.castles[castle_id].update(data)
 
     def draw(self, surface, dx, dy):
         self.STATE.MAP.draw_layer(surface, (dx, dy), 'water')
