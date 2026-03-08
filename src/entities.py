@@ -126,6 +126,7 @@ class Bullet:
     dx: float
     dy: float
     owner: ROLE
+    damage: int = 2
     radius: int = 16
 
     def update(self, data: dict):
@@ -179,6 +180,7 @@ class Enemy:
     max_live: int = 5
     radius: int = 25
     speed: int = 15
+    damage: int = 4
     state: STATE = STATE.LEFT
     target_x: int = 0
     target_y: int = 0
@@ -205,8 +207,8 @@ class Enemy:
 class Castle:
     x: int
     y: int
-    live: int = 20
-    max_live: int = 20
+    live: int = 50
+    max_live: int = 50
     radius: int = 64
     invulnerable: int = 0
 

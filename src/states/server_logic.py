@@ -38,7 +38,7 @@ class Logic:
 
     def __init__(self) -> None:
         self.spawn_ship_timer = Counter(seconds=30)
-        self.spawn_enemy_timer = Counter(seconds=15)
+        self.spawn_enemy_timer = Counter(seconds=5)
         self.died_players: set = set()
         self.new_round: bool = False
 
@@ -121,7 +121,7 @@ class Logic:
                 and isinstance(shipcollision, (LivingEntity))
                 and not shipcollision.path
             ):
-                shipcollision.live -= 1
+                shipcollision.live -= bullet.damage
                 if shipcollision.live <= 0:
                     self.STATE.SHIPS.remove(shipcollision)
 
@@ -131,7 +131,7 @@ class Logic:
                     pos, self.STATE.ENEMIES.copy()
                 )
                 if enemy_collision and isinstance(enemy_collision, (LivingEntity)):
-                    enemy_collision.live -= 1
+                    enemy_collision.live -= bullet.damage
                     if enemy_collision.live <= 0:
                         self.STATE.ENEMIES.remove(enemy_collision)
 
@@ -269,7 +269,7 @@ class Logic:
         for enemy in self.STATE.ENEMIES:
             for castle in self.STATE.MAP.castles.values():
                 if check_intersection_by_radius(enemy, castle) and castle.invulnerable == 0:
-                    castle.live -= 1
+                    castle.live -= enemy.damage
                     castle.invulnerable = INVULNERABLE_TICKS
 
         dead = [cid for cid, c in self.STATE.MAP.castles.items() if c.live <= 0]
@@ -285,7 +285,7 @@ class Logic:
                 if check_intersection_by_radius(enemy, player) and isinstance(
                     player, LivingEntity
                 ) and player.invulnerable == 0:
-                    player.live -= 1
+                    player.live -= enemy.damage
                     player.invulnerable = INVULNERABLE_TICKS
 
                     if player.live <= 0:  # TODO: desconectar personaje
