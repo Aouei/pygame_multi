@@ -30,6 +30,9 @@ def check_collision_with_entities(obj, entities):
     return False
 
 
+INVULNERABLE_TICKS = 10  # 0.5s a 20Hz
+
+
 class Logic:
     STATE: State = State()
 
@@ -265,8 +268,9 @@ class Logic:
     def __check_enemy_hit_with_castle(self):
         for enemy in self.STATE.ENEMIES:
             for castle in self.STATE.MAP.castles.values():
-                if check_intersection_by_radius(enemy, castle):
+                if check_intersection_by_radius(enemy, castle) and castle.invulnerable == 0:
                     castle.live -= 1
+                    castle.invulnerable = INVULNERABLE_TICKS
 
         dead = [cid for cid, c in self.STATE.MAP.castles.items() if c.live <= 0]
         for cid in dead:
@@ -280,16 +284,26 @@ class Logic:
             for idd, player in self.STATE.PLAYERS.copy().items():
                 if check_intersection_by_radius(enemy, player) and isinstance(
                     player, LivingEntity
-                ):
+                ) and player.invulnerable == 0:
                     player.live -= 1
+                    player.invulnerable = INVULNERABLE_TICKS
 
                     if player.live <= 0:  # TODO: desconectar personaje
                         self.died_players.add(idd)
+
+    def __tick_invulnerability(self):
+        for player in self.STATE.PLAYERS.values():
+            if player.invulnerable > 0:
+                player.invulnerable -= 1
+        for castle in self.STATE.MAP.castles.values():
+            if castle.invulnerable > 0:
+                castle.invulnerable -= 1
 
     def tick(self):
         self.new_round = False
 
         if self.STATE.CLIENTS:
+            self.__tick_invulnerability()
             self.__check_round()
             self.__move(self.STATE.SHIPS)
             self.__spawn_enemies()

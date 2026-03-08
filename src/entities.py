@@ -45,6 +45,7 @@ class Player:
     radius: int = 25
     speed: int = 5
     state: STATE = STATE.DOWN
+    invulnerable: int = 0
 
     def wish_to_move(self, inputs: InputHandler) -> tuple[int, int, str]:
         dx, dy = 0, 0
@@ -207,6 +208,7 @@ class Castle:
     live: int = 20
     max_live: int = 20
     radius: int = 64
+    invulnerable: int = 0
 
     def dump(self) -> dict:
         return {"x": self.x, "y": self.y, "live": self.live}
