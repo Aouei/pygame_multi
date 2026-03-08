@@ -187,14 +187,14 @@ class MapData:
         self.enemy_target_tiles.update(tiles)
 
     def __set_castles(self):
-        self.castles = []
+        self.castles: dict[int, Castle] = {}
 
         for layer in self.map.get_object_layers():
             for castle in layer.get_objects_by_class('castle'):
                 x, y = castle.x, castle.y
                 tx, ty = self.map.world_to_tile(x, y, offset = OFFSET.RIGHT_TOP)
                 x, y = self.map.tile_to_world(tx, ty, self.scale, offset=OFFSET.CENTER)
-                self.castles.append(Castle(x, y))
+                self.castles[castle.id] = Castle(int(x), int(y))
 
                 self.enemy_target_tiles.add((tx, ty))
 

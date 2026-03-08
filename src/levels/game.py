@@ -47,6 +47,7 @@ class Game:
                 self.LOGIC.update_bullets(data.get("bullets", []))
                 self.LOGIC.update_ships(data.get("ships", []))
                 self.LOGIC.update_enemies(data.get("enemies", []))
+                self.LOGIC.update_castles(data.get("castles", {}))
             elif message_type == MESSAGES.QUIT:
                 self.connected = False
 

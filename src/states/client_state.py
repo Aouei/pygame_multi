@@ -34,7 +34,7 @@ class State:
         self._ID = -1
 
     @property
-    def castles(self) -> list[Castle]:
+    def castles(self) -> dict:
         return self._MAP.map.castles
 
     @property

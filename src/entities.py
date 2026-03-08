@@ -206,4 +206,11 @@ class Castle:
     y: int
     live: int = 20
     max_live: int = 20
-    radius: int = 25
+    radius: int = 64
+
+    def dump(self) -> dict:
+        return {"x": self.x, "y": self.y, "live": self.live}
+
+    def update(self, data: dict):
+        for key, value in data.items():
+            self.__setattr__(key, value)

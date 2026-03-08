@@ -88,8 +88,9 @@ class Logic:
 
         pos = Geometry(new_x, new_y, player.radius)
         collision = check_collision_with_entities(pos, self.STATE.SHIPS.copy())
+        castle_collision = check_collision_with_entities(pos, self.STATE.MAP.castles.values())
 
-        if not collision and not self.STATE.MAP.is_collision(pos, COLLISIONS.PLAYER):
+        if not collision and not castle_collision and not self.STATE.MAP.is_collision(pos, COLLISIONS.PLAYER):
             player.x = new_x
             player.y = new_y
 
@@ -131,6 +132,8 @@ class Logic:
                     if enemy_collision.live <= 0:
                         self.STATE.ENEMIES.remove(enemy_collision)
 
+                    self.STATE.BULLETS.remove(bullet)
+                elif check_collision_with_entities(pos, self.STATE.MAP.castles.values()):
                     self.STATE.BULLETS.remove(bullet)
                 elif self.STATE.MAP.is_collision(pos, COLLISIONS.BULLET):
                     self.STATE.BULLETS.remove(bullet)
@@ -259,6 +262,12 @@ class Logic:
                     dcol, drow = _DELTA[path[0]]
                     enemy.target_x, enemy.target_y = self.STATE.MAP.tile_center(scol + dcol, srow + drow)
 
+    def __check_enemy_hit_with_castle(self):
+        for enemy in self.STATE.ENEMIES:
+            for castle in self.STATE.MAP.castles.values():
+                if check_intersection_by_radius(enemy, castle):
+                    castle.live -= 1
+
     def __check_enemy_hit_with_player(self):
 
         for enemy in self.STATE.ENEMIES:
@@ -281,6 +290,7 @@ class Logic:
             self.__redirect_enemies()
             self.__move(self.STATE.ENEMIES)
             self.__check_enemy_hit_with_player()
+            self.__check_enemy_hit_with_castle()
             self.__move_bullets()
 
         return self.died_players, self.new_round
@@ -292,4 +302,5 @@ class Logic:
             "bullets": [bullet.dump() for bullet in self.STATE.BULLETS],
             "ships": [ship.dump() for ship in self.STATE.SHIPS],
             "enemies": [enemy.dump() for enemy in self.STATE.ENEMIES],
+            "castles": {id: castle.dump() for id, castle in self.STATE.MAP.castles.items()},
         }

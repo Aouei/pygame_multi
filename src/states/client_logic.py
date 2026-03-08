@@ -63,6 +63,12 @@ class Logic:
             self.STATE.received_enemies.append(Enemy(0, 0, [], 0))
             self.STATE.received_enemies[-1].update(enemy)
 
+    def update_castles(self, castles: dict):
+        for id_str, data in castles.items():
+            castle_id = int(id_str)
+            if castle_id in self.STATE.MAP.map.castles:
+                self.STATE.MAP.map.castles[castle_id].update(data)
+
     def draw(self, surface, dx, dy):
         self.STATE.MAP.draw_layer(surface, (dx, dy), 'water')
         self.STATE.MAP.draw_layer(surface, (dx, dy), 'cliff')
@@ -123,7 +129,7 @@ class Logic:
                 },
             )
 
-        for castle in self.STATE.castles:
+        for castle in self.STATE.castles.values():
             minmap_points.append(
                 {
                     "x": castle.x,
@@ -196,7 +202,7 @@ class Logic:
             )
 
     def draw_castles(self, surface, dx, dy):
-        for castle in self.STATE.castles:
+        for castle in self.STATE.castles.values():
             surface.blit(
                 self.STATE.castle_image,
                 (castle.x - CASTLE_SIZE // 2 + dx, castle.y - CASTLE_SIZE // 2 + dy),
@@ -241,7 +247,7 @@ class Logic:
                     enemy,
                 )
 
-        for castle in self.STATE.castles:
+        for castle in self.STATE.castles.values():
             if isinstance(castle, LivingEntity):
                 self.draw_health_bar(
                     surface,
