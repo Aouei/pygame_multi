@@ -299,6 +299,9 @@ class Logic:
             self.__check_enemy_hit_with_castle()
             self.__move_bullets()
 
+            if self.STATE.PLAYERS and not self.STATE.MAP.castles:
+                self.died_players.update(self.STATE.PLAYERS.keys())
+
         return self.died_players, self.new_round
 
     def serialize(self):
