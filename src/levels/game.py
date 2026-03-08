@@ -21,6 +21,8 @@ class Game:
     def __init__(
         self, window: pygame.Surface, inputs: InputHandler, clock: Clock
     ) -> None:
+        print(self.LOGIC.STATE.MAP.map.castles)
+        
         self.offset_x = 0
         self.offset_y = 0
         self.inputs = inputs

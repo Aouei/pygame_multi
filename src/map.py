@@ -4,7 +4,7 @@ import pygame
 
 from scipy.spatial import KDTree
 
-from entities import Geometry
+from entities import Geometry, Castle
 from enums import COLLISIONS, STATE
 
 from tiledpy import TiledMap
@@ -28,14 +28,19 @@ class MapData:
 
     COLLISSION_SHAPES_BY_TILE_POS : dict[tuple, list[pygame.Rect]] = {}
 
+
     def __init__(self, data: str, scale : int = 1) -> None:
         self.map = TiledMap(data)
         self.scale = scale
+
+        self.enemy_target_tiles : set[tuple[int, int]] = set()
+
         self.__set_collision_tiles()
         self.__set_player_spawn_positions()
         self.__set_ship_spawn_positions()
         self.__set_blocked_tiles()
         self.__set_disembark_positions()
+        self.__set_castles()
         self.__set_enemy_target_positions()
 
     @property
@@ -179,7 +184,19 @@ class MapData:
 
         tiles.difference_update(blocked)
 
-        self.enemy_target_tiles = list(tiles)  # list of (col, row)
+        self.enemy_target_tiles.update(tiles)
+
+    def __set_castles(self):
+        self.castles = []
+
+        for layer in self.map.get_object_layers():
+            for castle in layer.get_objects_by_class('castle'):
+                x, y = castle.x, castle.y
+                tx, ty = self.map.world_to_tile(x, y, offset = OFFSET.RIGHT_TOP)
+                x, y = self.map.tile_to_world(tx, ty, self.scale, offset=OFFSET.CENTER)
+                self.castles.append(Castle(x, y))
+
+                self.enemy_target_tiles.add((tx, ty))
 
     def tile_center(self, col: int, row: int) -> tuple[int, int]:
         """World pixel coords of the center of tile (col, row)."""

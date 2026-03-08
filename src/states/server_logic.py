@@ -220,7 +220,7 @@ class Logic:
 
                 for _ in range(random.randint(1, self.STATE.MAX_ENEMIES)):
                     x, y = ship.x, ship.y
-                    tcol, trow = random.sample(self.STATE.MAP.enemy_target_tiles, 1)[0]
+                    tcol, trow = random.sample(list(self.STATE.MAP.enemy_target_tiles), 1)[0]
                     scol, srow = self.STATE.MAP.pixel_to_tile(x, y)
                     path = self.STATE.MAP.find_path(scol, srow, tcol, trow, COLLISIONS.ENEMY)
 
@@ -250,7 +250,7 @@ class Logic:
         for enemy in self.STATE.ENEMIES:
             if not enemy.path:
                 x, y = enemy.x, enemy.y
-                tcol, trow = random.sample(self.STATE.MAP.enemy_target_tiles, 1)[0]
+                tcol, trow = random.sample(list(self.STATE.MAP.enemy_target_tiles), 1)[0]
                 scol, srow = self.STATE.MAP.pixel_to_tile(x, y)
                 path = self.STATE.MAP.find_path(scol, srow, tcol, trow, COLLISIONS.ENEMY)
                 enemy.path = path

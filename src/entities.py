@@ -198,3 +198,12 @@ class Enemy:
             "live": self.live,
             "variant": self.variant,
         }
+
+
+@dataclass
+class Castle:
+    x: int
+    y: int
+    live: int = 20
+    max_live: int = 20
+    radius: int = 25

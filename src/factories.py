@@ -10,6 +10,7 @@ from enums import STATE, ROLE
 TILE_SIZE = 64
 PLAYER_SIZE = 64
 ENEMY_SIZE = 64
+CASTLE_SIZE = 128
 SHIP_SIZE = 128
 BULLET_SIZE = 32
 ENEMY_VARIANTS = 4
@@ -75,3 +76,6 @@ def load_enemy(size: int = ENEMY_SIZE):
         )
 
     return enemies
+
+def load_castle(size: int = CASTLE_SIZE):
+    return load_scale(paths.CASTLE_PATH, size)

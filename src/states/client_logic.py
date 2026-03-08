@@ -4,14 +4,14 @@ import pygame
 import paths
 from enums import ROLE
 from states.client_state import State
-from factories import PLAYER_SIZE, SHIP_SIZE, HEALTH_BAR_HEIGHT, ENEMY_SIZE
+from factories import PLAYER_SIZE, SHIP_SIZE, HEALTH_BAR_HEIGHT, ENEMY_SIZE, CASTLE_SIZE
 from protocols import LivingEntity
 from entities import Player, Ship, Bullet, Enemy
 
 
 class Logic:
     STATE = State()
-    DEBUG = False
+    DEBUG = True
     _in_battle = False
     ANIM_FPS = 8  # frames per second for sprite animation
 
@@ -86,6 +86,7 @@ class Logic:
         if self.DEBUG:
             self.STATE.MAP.draw_collision_debug(surface, (dx, dy))
 
+        self.draw_castles(surface, dx, dy)
         self.draw_ui(surface, dx, dy)
         self._update_music()
 
@@ -118,6 +119,17 @@ class Logic:
                     "y": player.y,
                     "image": pygame.transform.scale(
                         self.STATE.PLAYERS[player.role][player.state][0], (16, 16)
+                    ),
+                },
+            )
+
+        for castle in self.STATE.castles:
+            minmap_points.append(
+                {
+                    "x": castle.x,
+                    "y": castle.y,
+                    "image": pygame.transform.scale(
+                        self.STATE.castle_image, (16, 16)
                     ),
                 },
             )
@@ -183,6 +195,18 @@ class Logic:
                 surface, (255, 0, 0), (enemy.x + dx, enemy.y + dy), enemy.radius, 1
             )
 
+    def draw_castles(self, surface, dx, dy):
+        for castle in self.STATE.castles:
+            surface.blit(
+                self.STATE.castle_image,
+                (castle.x - CASTLE_SIZE // 2 + dx, castle.y - CASTLE_SIZE // 2 + dy),
+            )
+
+            if self.DEBUG:
+                pygame.draw.circle(
+                    surface, (255, 0, 0), (castle.x + dx, castle.y + dy), castle.radius, 1
+                )
+
     def draw_ui(self, surface, dx, dy):
         for player in self.STATE.received_players.copy().values():
             if isinstance(player, LivingEntity):
@@ -215,6 +239,17 @@ class Logic:
                     ENEMY_SIZE,
                     HEALTH_BAR_HEIGHT,
                     enemy,
+                )
+
+        for castle in self.STATE.castles:
+            if isinstance(castle, LivingEntity):
+                self.draw_health_bar(
+                    surface,
+                    castle.x - CASTLE_SIZE // 2 + dx,
+                    castle.y - CASTLE_SIZE // 2 - HEALTH_BAR_HEIGHT + dy,
+                    CASTLE_SIZE,
+                    HEALTH_BAR_HEIGHT,
+                    castle,
                 )
 
         self.draw_minimap(surface)
