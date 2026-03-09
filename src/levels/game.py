@@ -20,9 +20,7 @@ class Game:
 
     def __init__(
         self, window: pygame.Surface, inputs: InputHandler, clock: Clock
-    ) -> None:
-        print(self.LOGIC.STATE.MAP.map.castles)
-        
+    ) -> None:        
         self.offset_x = 0
         self.offset_y = 0
         self.inputs = inputs
@@ -86,8 +84,8 @@ class Game:
             center_x = self.WIDTH // 2
             center_y = self.HEIGHT // 2
 
-        map_pixel_width = self.LOGIC.STATE.MAP.width
-        map_pixel_height = self.LOGIC.STATE.MAP.height
+        map_pixel_width = self.LOGIC.MAP.width
+        map_pixel_height = self.LOGIC.MAP.height
         self.offset_x = center_x - self.WIDTH // 2
         self.offset_y = center_y - self.HEIGHT // 2
         self.offset_x = max(0, min(self.offset_x, map_pixel_width - self.WIDTH))

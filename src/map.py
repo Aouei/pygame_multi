@@ -51,6 +51,10 @@ class MapData:
     def height(self):
         return self.map.height * self.map.tile_height * self.scale
 
+    @property
+    def castles(self):
+        return self._castles
+
     def __set_collision_tiles(self):
         self.solid_tree_by_collision: dict[COLLISIONS, KDTree] = {}
         self.solid_positions_by_collision: dict[COLLISIONS, list] = {}
@@ -187,7 +191,7 @@ class MapData:
         self.enemy_target_tiles.update(tiles)
 
     def __set_castles(self):
-        self.castles: dict[int, Castle] = {}
+        self._castles: dict[int, Castle] = {}
 
         for layer in self.map.get_object_layers():
             for castle in layer.get_objects_by_class('castle'):
@@ -197,6 +201,11 @@ class MapData:
                 self.castles[castle.id] = Castle(int(x), int(y))
 
                 self.enemy_target_tiles.add((tx, ty))
+
+    def remove_castle(self, castle_id: int):
+        castle = self._castles.pop(castle_id)
+        tx, ty = self.pixel_to_tile(castle.x, castle.y)
+        self.enemy_target_tiles.discard((tx, ty))
 
     def tile_center(self, col: int, row: int) -> tuple[int, int]:
         """World pixel coords of the center of tile (col, row)."""
@@ -337,6 +346,10 @@ class MapRender:
     def height(self):
         return self.map.height
 
+    @property
+    def castles(self):
+        return self.map.castles
+
     def __build_mini_base(self):
         """
         Versión del mapa escalada a MINI_SCALE, usada como fuente para recortar
@@ -387,6 +400,13 @@ class MapRender:
         dst_y = max(0, position[1])
 
         surface.blit(cached, (dst_x, dst_y), area=pygame.Rect(src_x, src_y, src_w, src_h))
+
+    def remove_castle(self, castle_id: int):
+        self.map.castles.pop(castle_id, None)
+
+    def update_castle(self, castle_id: int, data: dict):
+        if castle_id in self.map.castles:
+            self.map.castles[castle_id].update(data)
 
     def draw_layer(self, surface, position, name: str):
         if name not in self._layer_surfaces:

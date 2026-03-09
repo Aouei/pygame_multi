@@ -270,9 +270,7 @@ class Server:
 
         dead = [cid for cid, c in self.MAP.castles.items() if c.live <= 0]
         for cid in dead:
-            castle = self.MAP.castles.pop(cid)
-            tx, ty = self.MAP.pixel_to_tile(castle.x, castle.y)
-            self.MAP.enemy_target_tiles.discard((tx, ty))
+            self.MAP.remove_castle(cid)
 
     def __check_enemy_hit_with_player(self):
 
@@ -282,7 +280,7 @@ class Server:
                     player, LivingEntity
                 ) and player.invulnerable == 0:
                     player.live -= enemy.damage
-                    player.invulnerable = INVULNERABLE_TICKS
+                    player.invulnerable = self.INVULNERABLE_TICKS
 
                     if player.live <= 0:  # TODO: desconectar personaje
                         self.died_players.add(idd)

@@ -3,100 +3,123 @@ import pygame
 
 import paths
 from enums import ROLE
-from states.client_state import State
 from factories import PLAYER_SIZE, SHIP_SIZE, HEALTH_BAR_HEIGHT, ENEMY_SIZE, CASTLE_SIZE
+from factories import load_bullet, load_player, load_ship, load_enemy, load_castle
 from protocols import LivingEntity
-from entities import Player, Ship, Bullet, Enemy
+from entities import Player, Ship, Bullet, Enemy, Castle
+from map import MapRender
 
 
 class Logic:
-    STATE = State()
+    MAP = MapRender(paths.MAP_PATH, scale = 4)
+    PLAYERS = {role: load_player(role, PLAYER_SIZE) for role in ROLE}
+    BULLETS = load_bullet()
+    SHIPS = load_ship()
+    ENEMIES = load_enemy()
+    CASTLE = load_castle()
+
+    _COLORS = {
+        0: (0, 0, 0),
+        1: (0, 0, 255),
+        2: (0, 255, 0),
+        3: (255, 0, 0),
+    }
+    
     DEBUG = False
     _in_battle = False
     ANIM_FPS = 8  # frames per second for sprite animation
 
+    def __init__(self) -> None:
+        self.received_players: dict[int, Player] = {}
+        self.received_bullets: list[Bullet] = []
+        self.received_ships: list[Ship] = []
+        self.received_enemies: list[Enemy] = []
+        self._current_player: Player = Player(ROLE.MAGE, 0, 0)
+        self._ID = -1
+
     def reset(self):
-        self.STATE.received_players.clear()
-        self.STATE.received_bullets.clear()
-        self.STATE.received_ships.clear()
-        self.STATE.ID = -1
+        self.received_players.clear()
+        self.received_bullets.clear()
+        self.received_ships.clear()
+        self.ID = -1
 
     @property
     def player(self):
-        return self.STATE.player
+        return self._current_player
 
     @property
     def ID(self):
-        return self.STATE.ID
+        return self._ID
+    
+    @property
+    def castles(self) -> dict:
+        return self.MAP.castles
 
     @ID.setter
     def ID(self, value):
-        self.STATE.ID = value
+        self._ID = value
 
     def update_players(self, players: dict):
-        self.STATE.received_players.clear()
+        self.received_players.clear()
 
         for idd, player in players.items():
-            self.STATE.received_players[idd] = Player(ROLE.MAGE, 0, 0)
-            self.STATE.received_players[idd].update(player)
+            self.received_players[idd] = Player(ROLE.MAGE, 0, 0)
+            self.received_players[idd].update(player)
 
         self.player.update(players.get(self.ID, {}))
 
     def update_bullets(self, bullets: list):
-        self.STATE.received_bullets.clear()
+        self.received_bullets.clear()
 
         for bullet in bullets:
-            self.STATE.received_bullets.append(Bullet(0, 0, 0, 0, ROLE.MAGE))
-            self.STATE.received_bullets[-1].update(bullet)
+            self.received_bullets.append(Bullet(0, 0, 0, 0, ROLE.MAGE))
+            self.received_bullets[-1].update(bullet)
 
     def update_ships(self, ships: list):
-        self.STATE.received_ships.clear()
+        self.received_ships.clear()
 
         for ship in ships:
-            self.STATE.received_ships.append(Ship(0, 0, []))
-            self.STATE.received_ships[-1].update(ship)
+            self.received_ships.append(Ship(0, 0, []))
+            self.received_ships[-1].update(ship)
 
     def update_enemies(self, enemies: list):
-        self.STATE.received_enemies.clear()
+        self.received_enemies.clear()
 
         for enemy in enemies:
-            self.STATE.received_enemies.append(Enemy(0, 0, [], 0))
-            self.STATE.received_enemies[-1].update(enemy)
+            self.received_enemies.append(Enemy(0, 0, [], 0))
+            self.received_enemies[-1].update(enemy)
 
     def update_castles(self, castles: dict):
-        map_data = self.STATE.MAP.map
         server_ids = {int(k) for k in castles}
-        for cid in list(map_data.castles.keys()):
+        for cid in list(self.MAP.castles.keys()):
             if cid not in server_ids:
-                map_data.castles.pop(cid)
+                self.MAP.remove_castle(cid)
 
         for id_str, data in castles.items():
-            castle_id = int(id_str)
-            if castle_id in map_data.castles:
-                map_data.castles[castle_id].update(data)
+            self.MAP.update_castle(int(id_str), data)
 
     def draw(self, surface, dx, dy):
-        self.STATE.MAP.draw_layer(surface, (dx, dy), 'water')
-        self.STATE.MAP.draw_layer(surface, (dx, dy), 'cliff')
+        self.MAP.draw_layer(surface, (dx, dy), 'water')
+        self.MAP.draw_layer(surface, (dx, dy), 'cliff')
         
-        for player in self.STATE.received_players.copy().values():
+        for player in self.received_players.copy().values():
             self.draw_player(surface, dx, dy, player)
 
-        for ship in self.STATE.received_ships.copy():
+        for ship in self.received_ships.copy():
             self.draw_ship(surface, dx, dy, ship)
 
-        for enemy in self.STATE.received_enemies.copy():
+        for enemy in self.received_enemies.copy():
             self.draw_enenmy(surface, dx, dy, enemy)
 
-        for bullet in self.STATE.received_bullets.copy():
+        for bullet in self.received_bullets.copy():
             self.draw_bullet(
                 surface, bullet.x + dx, bullet.y + dy, bullet.role, bullet.dx, bullet.dy
             )
 
-        self.STATE.MAP.draw_layer(surface, (dx, dy), 'buildings')
+        self.MAP.draw_layer(surface, (dx, dy), 'buildings')
 
         if self.DEBUG:
-            self.STATE.MAP.draw_collision_debug(surface, (dx, dy))
+            self.MAP.draw_collision_debug(surface, (dx, dy))
 
         self.draw_castles(surface, dx, dy)
         self.draw_ui(surface, dx, dy)
@@ -111,7 +134,7 @@ class Logic:
         pygame.mixer.music.stop()
 
     def _update_music(self):
-        round_active = bool(self.STATE.received_ships or self.STATE.received_enemies)
+        round_active = bool(self.received_ships or self.received_enemies)
 
         if round_active and not self._in_battle:
             pygame.mixer.music.load(paths.BATTLE_MUSIC_PATH)
@@ -124,24 +147,24 @@ class Logic:
 
     def draw_minimap(self, surface):
         minmap_points = []
-        for player in self.STATE.received_players.copy().values():
+        for player in self.received_players.copy().values():
             minmap_points.append(
                 {
                     "x": player.x,
                     "y": player.y,
                     "image": pygame.transform.scale(
-                        self.STATE.PLAYERS[player.role][player.state][0], (16, 16)
+                        self.PLAYERS[player.role][player.state][0], (16, 16)
                     ),
                 },
             )
 
-        for castle in self.STATE.castles.values():
+        for castle in self.MAP.castles.values():
             minmap_points.append(
                 {
                     "x": castle.x,
                     "y": castle.y,
                     "image": pygame.transform.scale(
-                        self.STATE.castle_image, (16, 16)
+                        self.CASTLE, (16, 16)
                     ),
                 },
             )
@@ -151,12 +174,12 @@ class Logic:
                 "x": self.player.x,
                 "y": self.player.y,
                 "image": pygame.transform.scale(
-                    self.STATE.PLAYERS[self.player.role][self.player.state][0], (16, 16)
+                    self.PLAYERS[self.player.role][self.player.state][0], (16, 16)
                 ),
             },
         )
 
-        self.STATE.MAP.draw_mini(
+        self.MAP.draw_mini(
             surface, 16, 16, minmap_points, self.player.x, self.player.y
         )
 
@@ -168,12 +191,12 @@ class Logic:
 
     def draw_bullet(self, surface, x: int, y: int, role: ROLE, dx: float, dy: float):
         angle = math.degrees(math.atan2(-dy, dx)) - 90
-        rotated = pygame.transform.rotate(self.STATE.BULLETS[role], angle)
+        rotated = pygame.transform.rotate(self.BULLETS[role], angle)
         rect = rotated.get_rect(center=(x, y))
         surface.blit(rotated, rect)
 
     def draw_player(self, surface, dx, dy, player: Player):
-        frames = self.STATE.PLAYERS[player.role][player.state]
+        frames = self.PLAYERS[player.role][player.state]
         sprite = frames[self._anim_frame(len(frames))]
         surface.blit(
             sprite,
@@ -187,7 +210,7 @@ class Logic:
 
     def draw_ship(self, surface, dx, dy, ship: Ship):
         surface.blit(
-            self.STATE.SHIPS[ship.state],
+            self.SHIPS[ship.state],
             (ship.x - SHIP_SIZE // 2 + dx, ship.y - SHIP_SIZE // 2 + dy),
         )
 
@@ -198,7 +221,7 @@ class Logic:
 
     def draw_enenmy(self, surface, dx, dy, enemy: Enemy):
         surface.blit(
-            self.STATE.ENEMIES[enemy.variant][enemy.state],
+            self.ENEMIES[enemy.variant][enemy.state],
             (enemy.x - ENEMY_SIZE // 2 + dx, enemy.y - ENEMY_SIZE // 2 + dy),
         )
 
@@ -208,9 +231,9 @@ class Logic:
             )
 
     def draw_castles(self, surface, dx, dy):
-        for castle in self.STATE.castles.values():
+        for castle in self.castles.values():
             surface.blit(
-                self.STATE.castle_image,
+                self.CASTLE,
                 (castle.x - CASTLE_SIZE // 2 + dx, castle.y - CASTLE_SIZE // 2 + dy),
             )
 
@@ -220,7 +243,7 @@ class Logic:
                 )
 
     def draw_ui(self, surface, dx, dy):
-        for player in self.STATE.received_players.copy().values():
+        for player in self.received_players.copy().values():
             if isinstance(player, LivingEntity):
                 self.draw_health_bar(
                     surface,
@@ -231,7 +254,7 @@ class Logic:
                     player,
                 )
 
-        for ship in self.STATE.received_ships.copy():
+        for ship in self.received_ships.copy():
             if isinstance(ship, LivingEntity):
                 self.draw_health_bar(
                     surface,
@@ -242,7 +265,7 @@ class Logic:
                     ship,
                 )
 
-        for enemy in self.STATE.received_enemies.copy():
+        for enemy in self.received_enemies.copy():
             if isinstance(enemy, LivingEntity):
                 self.draw_health_bar(
                     surface,
@@ -253,7 +276,7 @@ class Logic:
                     enemy,
                 )
 
-        for castle in self.STATE.castles.values():
+        for castle in self.castles.values():
             if isinstance(castle, LivingEntity):
                 self.draw_health_bar(
                     surface,
