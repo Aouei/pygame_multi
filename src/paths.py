@@ -12,8 +12,8 @@ if __name__ != "__main__":
     ENEMY_DIR = os.path.join(ASSETS_DIR, "enemies", "dino")
     BULLET_DIR = os.path.join(ASSETS_DIR, "bullets")
     TILES_DIR = os.path.join(ASSETS_DIR, "tiles")
-    MAP_L1_PATH = os.path.join(ASSETS_DIR, "map", "agua.csv")
-    MAP_L2_PATH = os.path.join(ASSETS_DIR, "map", "objetos.csv")
+    MAP_PATH = os.path.join(ASSETS_DIR, "map", 'map.tmx')
+    CASTLE_PATH = os.path.join(ASSETS_DIR, "castle.png")
     BACKGROND_MUSIC_PATH = os.path.join(
         ASSETS_DIR, "music", "Goblins_Den_(Regular).wav"
     )

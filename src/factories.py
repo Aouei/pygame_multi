@@ -10,11 +10,13 @@ from enums import STATE, ROLE
 TILE_SIZE = 64
 PLAYER_SIZE = 64
 ENEMY_SIZE = 64
+CASTLE_SIZE = 128
 SHIP_SIZE = 128
 BULLET_SIZE = 32
 ENEMY_VARIANTS = 4
 HEALTH_BAR_HEIGHT = 16
 
+BASE_COLOR = (66, 172, 175)
 
 def load_scale(path: str, size: int):
     return pygame.transform.scale(pygame.image.load(path), (size, size))
@@ -28,12 +30,20 @@ def load_tiles(size: int = TILE_SIZE):
 
 
 def load_player(role: ROLE, size: int = PLAYER_SIZE):
-    return {
-        state: load_scale(
-            os.path.join(paths.PLAYER_DIR, role.value, f"{state.value}.png"), size
+    result = {}
+    for state in STATE:
+        sheet = pygame.image.load(
+            os.path.join(paths.PLAYER_DIR, role.value, f"{state.value}.png")
         )
-        for state in STATE
-    }
+        frame_w = sheet.get_height()
+        n_frames = sheet.get_width() // frame_w
+        result[state] = [
+            pygame.transform.scale(
+                sheet.subsurface((i * frame_w, 0, frame_w, frame_w)), (size, size)
+            )
+            for i in range(n_frames)
+        ]
+    return result
 
 
 def load_bullet(size: int = BULLET_SIZE):
@@ -43,10 +53,13 @@ def load_bullet(size: int = BULLET_SIZE):
     }
 
 
+_MOVE_STATES = [STATE.UP, STATE.DOWN, STATE.LEFT, STATE.RIGHT]
+
+
 def load_ship(size: int = SHIP_SIZE):
     return {
         state: load_scale(os.path.join(paths.SHIP_DIR, f"{state.value}.png"), size)
-        for state in STATE
+        for state in _MOVE_STATES
     }
 
 
@@ -63,3 +76,6 @@ def load_enemy(size: int = ENEMY_SIZE):
         )
 
     return enemies
+
+def load_castle(size: int = CASTLE_SIZE):
+    return load_scale(paths.CASTLE_PATH, size)

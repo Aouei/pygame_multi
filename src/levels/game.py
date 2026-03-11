@@ -11,6 +11,7 @@ import messages
 from enums import ROLE, MESSAGES
 from states.client_logic import Logic
 from inputs import InputHandler
+from factories import BASE_COLOR
 
 
 class Game:
@@ -19,7 +20,7 @@ class Game:
 
     def __init__(
         self, window: pygame.Surface, inputs: InputHandler, clock: Clock
-    ) -> None:
+    ) -> None:        
         self.offset_x = 0
         self.offset_y = 0
         self.inputs = inputs
@@ -27,6 +28,7 @@ class Game:
         self.window = window
         self.WIDTH, self.HEIGHT = window.get_rect().width, window.get_rect().height
         self.connected = True
+        self._last_sent_state: str | None = None
 
     async def receive_from_server(self, websocket) -> None:
         async for raw in websocket:
@@ -43,6 +45,7 @@ class Game:
                 self.LOGIC.update_bullets(data.get("bullets", []))
                 self.LOGIC.update_ships(data.get("ships", []))
                 self.LOGIC.update_enemies(data.get("enemies", []))
+                self.LOGIC.update_castles(data.get("castles", {}))
             elif message_type == MESSAGES.QUIT:
                 self.connected = False
 
@@ -51,7 +54,7 @@ class Game:
             self.__center_screen()
             await self.__handle_player_actions(websocket)
 
-            self.window.fill((0, 0, 0))
+            self.window.fill(BASE_COLOR)
             self.LOGIC.draw(self.window, -self.offset_x, -self.offset_y)
 
             pygame.display.flip()
@@ -62,8 +65,8 @@ class Game:
         self.inputs.update()
 
         dx, dy, state = self.LOGIC.player.wish_to_move(self.inputs)
-        if dx != 0 or dy != 0:
-            logger.info(f"Sending to server {MESSAGES.WISH_MOVE}")
+        if dx != 0 or dy != 0 or state != self._last_sent_state:
+            self._last_sent_state = state
             await messages.wish_move(dx, dy, state, websocket)
 
         dx, dy = self.LOGIC.player.wish_to_shoot(
@@ -81,8 +84,8 @@ class Game:
             center_x = self.WIDTH // 2
             center_y = self.HEIGHT // 2
 
-        map_pixel_width = self.LOGIC.STATE.MAP.width
-        map_pixel_height = self.LOGIC.STATE.MAP.height
+        map_pixel_width = self.LOGIC.MAP.width
+        map_pixel_height = self.LOGIC.MAP.height
         self.offset_x = center_x - self.WIDTH // 2
         self.offset_y = center_y - self.HEIGHT // 2
         self.offset_x = max(0, min(self.offset_x, map_pixel_width - self.WIDTH))

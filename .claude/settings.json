@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python3 -c \":*)"
+      "Bash(python3 -c \":*)",
+      "Read(//c/Users/sergi/anaconda3/envs/PYGAME/Lib/site-packages/**)",
+      "Read(//c/Users/sergi/anaconda3/envs/PYGAME/**)",
+      "Read(//c/Users/sergi/**)"
     ]
   }
 }
