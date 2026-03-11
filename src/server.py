@@ -5,10 +5,13 @@ import json
 import math
 import os
 import traceback
+import logging
 from http import HTTPStatus
 
 from websockets import ClientConnection
 from loguru import logger
+
+logging.getLogger("websockets.server").setLevel(logging.CRITICAL)
 
 import paths
 import messages
