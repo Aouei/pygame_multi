@@ -5,6 +5,7 @@ import json
 import math
 import os
 import traceback
+from http import HTTPStatus
 
 from websockets import ClientConnection
 from loguru import logger
@@ -378,12 +379,17 @@ class Server:
             messages.update_clients(message, list(self.CLIENTS.values()))
 
 
+async def health_check(connection, request):
+    if request.headers.get("Upgrade", "").lower() != "websocket":
+        return connection.respond(HTTPStatus.OK, "OK\n")
+
+
 async def main():
     server = Server()
     port = int(os.environ.get("PORT", 25565))
 
     logger.info(f"Server running on port {port}")
-    async with websockets.serve(server.handle_client, "0.0.0.0", port):
+    async with websockets.serve(server.handle_client, "0.0.0.0", port, process_request=health_check):
         await server.loop()
 
 
