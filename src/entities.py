@@ -188,7 +188,7 @@ class Enemy:
     def update(self, data: dict):
         for key, value in data.items():
             if key == "state":
-                if not value in [STATE.DOWN.value, STATE.UP.value]:
+                if value not in [STATE.DOWN.value, STATE.UP.value]:
                     self.state = STATE(value)
             else:
                 self.__setattr__(key, value)

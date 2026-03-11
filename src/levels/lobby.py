@@ -1,4 +1,6 @@
-import pygame, os, sys
+import pygame
+import os
+import sys
 from typing import Optional
 import asyncio
 import json
@@ -69,14 +71,24 @@ class Screen:
         self._panel_rect = pygame.Rect(panel_x, panel_y, panel_w, panel_h)
 
         p = self._panel_rect
-        self.host = TextInput(p, -100, 20, 200, 40, "25.33.144.47", None, max_chars=15, rel_x = 0.5)
-        self.port = TextInput(p, -100, 70, 200, 40, "25565", None, max_chars=5, rel_x = 0.5)
-        self.btn_host = TextButton(p, 0, 120, 130, 40, "host", None, rel_x = 0.1)
-        self.btn_connect = TextButton(p, -65, 120, 130, 40, "connect", None, rel_x = 0.7)
-        self.btn_disconnect = TextButton(p, 0, 170, 130, 40, "disconnect", None, rel_x = 0.1)
-        self.btn_play = TextButton(p, -65, 170, 130, 40, "play", None, rel_x = 0.7)
-        self.lbl_status = TextLabel(p, 0, 225, "disconnected", None, 24, (255, 255, 255), rel_x = 0.1)
-        self.lbl_players = TextLabel(p, -65, 225, "0/4", None, 24, (255, 255, 255), rel_x = 0.7)
+        self.host = TextInput(
+            p, -100, 20, 200, 40, "25.33.144.47", None, max_chars=15, rel_x=0.5
+        )
+        self.port = TextInput(
+            p, -100, 70, 200, 40, "25565", None, max_chars=5, rel_x=0.5
+        )
+        self.btn_host = TextButton(p, 0, 120, 130, 40, "host", None, rel_x=0.1)
+        self.btn_connect = TextButton(p, -65, 120, 130, 40, "connect", None, rel_x=0.7)
+        self.btn_disconnect = TextButton(
+            p, 0, 170, 130, 40, "disconnect", None, rel_x=0.1
+        )
+        self.btn_play = TextButton(p, -65, 170, 130, 40, "play", None, rel_x=0.7)
+        self.lbl_status = TextLabel(
+            p, 0, 225, "disconnected", None, 24, (255, 255, 255), rel_x=0.1
+        )
+        self.lbl_players = TextLabel(
+            p, -65, 225, "0/4", None, 24, (255, 255, 255), rel_x=0.7
+        )
 
     # ------------------------------------------------------------------
     # Server subprocess

@@ -1,3 +1,15 @@
+import messages
+import paths
+
+
+from enums import MESSAGES
+from entities import Player, Bullet, Ship, Enemy
+from map import MapData
+from enums import ROLE, STATE, COLLISIONS
+from entities import Geometry, Counter
+from factories import ENEMY_VARIANTS
+from protocols import LivingEntity
+
 import websockets
 import asyncio
 import random
@@ -13,15 +25,6 @@ from loguru import logger
 
 logging.getLogger("websockets.server").setLevel(logging.CRITICAL)
 
-import paths
-import messages
-from enums import MESSAGES
-from entities import Player, Bullet, Ship, Enemy
-from map import MapData
-from enums import MESSAGES, ROLE, STATE, COLLISIONS
-from entities import Player, Geometry, Bullet, Ship, Counter, Enemy
-from factories import ENEMY_VARIANTS
-from protocols import LivingEntity
 
 
 def check_intersection_by_radius(obj1, obj2):
@@ -69,14 +72,13 @@ class Server:
         self.BULLETS: list[Bullet] = []
         self.SHIPS: list[Ship] = []
         self.ENEMIES: list[Enemy] = []
-        self.MAP: MapData = MapData(paths.MAP_PATH, scale = 4)
+        self.MAP: MapData = MapData(paths.MAP_PATH, scale=4)
         self.died_players: set = set()
 
     @property
     def available_ids(self):
         diff = list(self.IDS.difference(self.CLIENTS.keys()))
         return [-1] if not diff else diff
-    
 
     def new_player(self, socket: ClientConnection):
         new_id = self.available_ids[0]
@@ -94,7 +96,7 @@ class Server:
     def handle_message(self, id: int, data: dict):
         message_type = MESSAGES(data["type"])
 
-        if not id in self.CLIENTS:
+        if id not in self.CLIENTS:
             return MESSAGES.QUIT
 
         if message_type == MESSAGES.ROLE:
@@ -125,7 +127,11 @@ class Server:
         collision = check_collision_with_entities(pos, self.SHIPS.copy())
         castle_collision = check_collision_with_entities(pos, self.MAP.castles.values())
 
-        if not collision and not castle_collision and not self.MAP.is_collision(pos, COLLISIONS.PLAYER):
+        if (
+            not collision
+            and not castle_collision
+            and not self.MAP.is_collision(pos, COLLISIONS.PLAYER)
+        ):
             player.x = new_x
             player.y = new_y
 
@@ -225,7 +231,9 @@ class Server:
                     if enemy.path:
                         dcol, drow = self.DELTA[enemy.path[0]]
                         cur_col, cur_row = self.MAP.pixel_to_tile(enemy.x, enemy.y)
-                        enemy.target_x, enemy.target_y = self.MAP.tile_center(cur_col + dcol, cur_row + drow)
+                        enemy.target_x, enemy.target_y = self.MAP.tile_center(
+                            cur_col + dcol, cur_row + drow
+                        )
                 else:
                     enemy.x += int(dx / dist * enemy.speed)
                     enemy.y += int(dy / dist * enemy.speed)
@@ -244,7 +252,9 @@ class Server:
                     target_x, target_y = x, y
                     if path:
                         dcol, drow = self.DELTA[path[0]]
-                        target_x, target_y = self.MAP.tile_center(scol + dcol, srow + drow)
+                        target_x, target_y = self.MAP.tile_center(
+                            scol + dcol, srow + drow
+                        )
 
                         enemy = Enemy(
                             x,
@@ -267,12 +277,17 @@ class Server:
 
                 if path:
                     dcol, drow = self.DELTA[path[0]]
-                    enemy.target_x, enemy.target_y = self.MAP.tile_center(scol + dcol, srow + drow)
+                    enemy.target_x, enemy.target_y = self.MAP.tile_center(
+                        scol + dcol, srow + drow
+                    )
 
     def __check_enemy_hit_with_castle(self):
         for enemy in self.ENEMIES:
             for castle in self.MAP.castles.values():
-                if check_intersection_by_radius(enemy, castle) and castle.invulnerable == 0:
+                if (
+                    check_intersection_by_radius(enemy, castle)
+                    and castle.invulnerable == 0
+                ):
                     castle.live -= enemy.damage
                     castle.invulnerable = self.INVULNERABLE_TICKS
 
@@ -284,9 +299,11 @@ class Server:
 
         for enemy in self.ENEMIES:
             for idd, player in self.PLAYERS.copy().items():
-                if check_intersection_by_radius(enemy, player) and isinstance(
-                    player, LivingEntity
-                ) and player.invulnerable == 0:
+                if (
+                    check_intersection_by_radius(enemy, player)
+                    and isinstance(player, LivingEntity)
+                    and player.invulnerable == 0
+                ):
                     player.live -= enemy.damage
                     player.invulnerable = self.INVULNERABLE_TICKS
 
@@ -332,7 +349,6 @@ class Server:
             "castles": {id: castle.dump() for id, castle in self.MAP.castles.items()},
         }
 
-
     async def handle_client(self, socket):
         ID = self.new_player(socket)
         # TODO: handle ID = -1
@@ -347,11 +363,12 @@ class Server:
 
         except websockets.exceptions.ConnectionClosed:
             pass
-        except Exception as e:
-            logger.error(f"Unhandled exception for player {ID}: {traceback.format_exc()}")
+        except Exception:
+            logger.error(
+                f"Unhandled exception for player {ID}: {traceback.format_exc()}"
+            )
         finally:
             self.remove_player(ID)
-
 
     async def loop(self):
         interval = 1.0 / self.TICK_RATE
@@ -384,7 +401,9 @@ async def main():
     port = int(os.environ.get("PORT", 25565))
 
     logger.info(f"Server running on port {port}")
-    async with websockets.serve(server.handle_client, "0.0.0.0", port, process_request=health_check):
+    async with websockets.serve(
+        server.handle_client, "0.0.0.0", port, process_request=health_check
+    ):
         await server.loop()
 
 

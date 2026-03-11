@@ -20,7 +20,7 @@ class Game:
 
     def __init__(
         self, window: pygame.Surface, inputs: InputHandler, clock: Clock
-    ) -> None:        
+    ) -> None:
         self.offset_x = 0
         self.offset_y = 0
         self.inputs = inputs
@@ -91,16 +91,16 @@ class Game:
         self.offset_x = max(0, min(self.offset_x, map_pixel_width - self.WIDTH))
         self.offset_y = max(0, min(self.offset_y, map_pixel_height - self.HEIGHT))
 
-    async def run(self, role: ROLE,  host : str, port : str) -> str:
+    async def run(self, role: ROLE, host: str, port: str) -> str:
         self.LOGIC.reset()
         self.LOGIC.start_music()
-        
+
         RENDER = "wss://oh-no-ships.onrender.com"
-        if host == 'render':
+        if host == "render":
             connection = RENDER
         else:
             connection = f"ws://{host}:{port}"
-        
+
         async with websockets.connect(connection) as websocket:
             self.connected = True
 

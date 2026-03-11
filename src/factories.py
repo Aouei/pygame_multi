@@ -18,6 +18,7 @@ HEALTH_BAR_HEIGHT = 16
 
 BASE_COLOR = (66, 172, 175)
 
+
 def load_scale(path: str, size: int):
     return pygame.transform.scale(pygame.image.load(path), (size, size))
 
@@ -76,6 +77,7 @@ def load_enemy(size: int = ENEMY_SIZE):
         )
 
     return enemies
+
 
 def load_castle(size: int = CASTLE_SIZE):
     return load_scale(paths.CASTLE_PATH, size)

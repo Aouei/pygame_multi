@@ -6,12 +6,12 @@ from enums import ROLE
 from factories import PLAYER_SIZE, SHIP_SIZE, HEALTH_BAR_HEIGHT, ENEMY_SIZE, CASTLE_SIZE
 from factories import load_bullet, load_player, load_ship, load_enemy, load_castle
 from protocols import LivingEntity
-from entities import Player, Ship, Bullet, Enemy, Castle
+from entities import Player, Ship, Bullet, Enemy
 from map import MapRender
 
 
 class Logic:
-    MAP = MapRender(paths.MAP_PATH, scale = 4)
+    MAP = MapRender(paths.MAP_PATH, scale=4)
     PLAYERS = {role: load_player(role, PLAYER_SIZE) for role in ROLE}
     BULLETS = load_bullet()
     SHIPS = load_ship()
@@ -24,7 +24,7 @@ class Logic:
         2: (0, 255, 0),
         3: (255, 0, 0),
     }
-    
+
     DEBUG = False
     _in_battle = False
     ANIM_FPS = 8  # frames per second for sprite animation
@@ -50,7 +50,7 @@ class Logic:
     @property
     def ID(self):
         return self._ID
-    
+
     @property
     def castles(self) -> dict:
         return self.MAP.castles
@@ -99,9 +99,9 @@ class Logic:
             self.MAP.update_castle(int(id_str), data)
 
     def draw(self, surface, dx, dy):
-        self.MAP.draw_layer(surface, (dx, dy), 'water')
-        self.MAP.draw_layer(surface, (dx, dy), 'cliff')
-        
+        self.MAP.draw_layer(surface, (dx, dy), "water")
+        self.MAP.draw_layer(surface, (dx, dy), "cliff")
+
         for player in self.received_players.copy().values():
             self.draw_player(surface, dx, dy, player)
 
@@ -116,7 +116,7 @@ class Logic:
                 surface, bullet.x + dx, bullet.y + dy, bullet.role, bullet.dx, bullet.dy
             )
 
-        self.MAP.draw_layer(surface, (dx, dy), 'buildings')
+        self.MAP.draw_layer(surface, (dx, dy), "buildings")
 
         if self.DEBUG:
             self.MAP.draw_collision_debug(surface, (dx, dy))
@@ -163,9 +163,7 @@ class Logic:
                 {
                     "x": castle.x,
                     "y": castle.y,
-                    "image": pygame.transform.scale(
-                        self.CASTLE, (16, 16)
-                    ),
+                    "image": pygame.transform.scale(self.CASTLE, (16, 16)),
                 },
             )
 
@@ -179,9 +177,7 @@ class Logic:
             },
         )
 
-        self.MAP.draw_mini(
-            surface, 16, 16, minmap_points, self.player.x, self.player.y
-        )
+        self.MAP.draw_mini(surface, 16, 16, minmap_points, self.player.x, self.player.y)
 
     def _anim_frame(self, n_frames: int) -> int:
         if n_frames <= 1:
@@ -239,7 +235,11 @@ class Logic:
 
             if self.DEBUG:
                 pygame.draw.circle(
-                    surface, (255, 0, 0), (castle.x + dx, castle.y + dy), castle.radius, 1
+                    surface,
+                    (255, 0, 0),
+                    (castle.x + dx, castle.y + dy),
+                    castle.radius,
+                    1,
                 )
 
     def draw_ui(self, surface, dx, dy):

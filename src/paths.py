@@ -1,4 +1,5 @@
-import sys, os
+import sys
+import os
 
 if __name__ != "__main__":
     if getattr(sys, "frozen", False):
@@ -12,7 +13,7 @@ if __name__ != "__main__":
     ENEMY_DIR = os.path.join(ASSETS_DIR, "enemies", "dino")
     BULLET_DIR = os.path.join(ASSETS_DIR, "bullets")
     TILES_DIR = os.path.join(ASSETS_DIR, "tiles")
-    MAP_PATH = os.path.join(ASSETS_DIR, "map", 'map.tmx')
+    MAP_PATH = os.path.join(ASSETS_DIR, "map", "map.tmx")
     CASTLE_PATH = os.path.join(ASSETS_DIR, "castle.png")
     BACKGROND_MUSIC_PATH = os.path.join(
         ASSETS_DIR, "music", "Goblins_Den_(Regular).wav"

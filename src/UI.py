@@ -6,14 +6,14 @@ from inputs import InputHandler
 
 @dataclass
 class PlaceableUI:
-    parent : pygame.Rect
-    x : int
-    y : int
-    w : int
-    h : int
-    rel_x : float = 0 
-    rel_y : float = 0
-    
+    parent: pygame.Rect
+    x: int
+    y: int
+    w: int
+    h: int
+    rel_x: float = 0
+    rel_y: float = 0
+
     @property
     def position(self) -> pygame.Rect:
         pos = pygame.Rect(self.x, self.y, self.w, self.h)
@@ -31,17 +31,17 @@ class TextInput(PlaceableUI):
 
     def __init__(
         self,
-        parent : pygame.Rect,
-        x : int,
-        y : int,
-        w : int,
-        h : int,
+        parent: pygame.Rect,
+        x: int,
+        y: int,
+        w: int,
+        h: int,
         text: str,
         font: str | None,
         active: bool = False,
-        rel_y : float = 0,
-        rel_x : float = 0,
-        max_chars : int = 15,
+        rel_y: float = 0,
+        rel_x: float = 0,
+        max_chars: int = 15,
     ) -> None:
         super().__init__(parent, x, y, w, h, rel_x, rel_y)
         self.font = pygame.font.Font(font, 32)
@@ -133,4 +133,6 @@ class TextLabel(PlaceableUI):
         self.color = color
 
     def draw(self, surface: pygame.Surface):
-        surface.blit(self.font.render(self.text, False, self.color), self.position.topleft)
+        surface.blit(
+            self.font.render(self.text, False, self.color), self.position.topleft
+        )
