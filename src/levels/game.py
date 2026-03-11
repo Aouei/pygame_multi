@@ -14,19 +14,40 @@ from inputs import InputHandler
 from factories import BASE_COLOR
 
 
+
+class Camera:    
+    def __init__(self, x, y, map_pixel_w: int, map_pixel_h: int,
+        screen_w: int, screen_h: int) -> None:
+        self.x = x
+        self.y = y
+        self.map_w = map_pixel_w
+        self.map_h = map_pixel_h
+        self.screen_w = screen_w
+        self.screen_h = screen_h
+        
+    def move(self, dx: int, dy: int) -> None:
+        self.x = max(0, min(self.x + dx, self.map_w - self.screen_w))
+        self.y = max(0, min(self.y + dy, self.map_h - self.screen_h))
+        
+    @property
+    def offset(self) -> tuple[int, int]:
+        return self.x, self.y
+
+
+
 class Game:
-    LOGIC = Logic()
     FRAME_RATE = 60
 
     def __init__(
         self, window: pygame.Surface, inputs: InputHandler, clock: Clock
     ) -> None:
-        self.offset_x = 0
-        self.offset_y = 0
+        self.LOGIC = Logic()
+        self.camera = Camera(x = self.LOGIC.player.x, y = self.LOGIC.player.y,
+                             map_pixel_h = self.LOGIC.map_height, map_pixel_w = self.LOGIC.map_width,
+                             screen_h = window.get_height(), screen_w = window.get_width())
         self.inputs = inputs
         self.clock = clock
         self.window = window
-        self.WIDTH, self.HEIGHT = window.get_rect().width, window.get_rect().height
         self.connected = True
         self._last_sent_state: str | None = None
 
@@ -49,13 +70,21 @@ class Game:
             elif message_type == MESSAGES.QUIT:
                 self.connected = False
 
+    def update_camera(self):
+        self.camera.x = self.LOGIC.player.x
+        self.camera.y = self.LOGIC.player.y
+        self.camera.move(-self.camera.screen_w // 2, 
+                         - self.camera.screen_h // 2)
+
     async def loop(self, websocket) -> None:
         while self.connected and not self.inputs.quit:
-            self.__center_screen()
             await self.__handle_player_actions(websocket)
 
+            print(self.LOGIC.player)
+
+            self.update_camera()
             self.window.fill(BASE_COLOR)
-            self.LOGIC.draw(self.window, -self.offset_x, -self.offset_y)
+            self.LOGIC.draw(self.window, -self.camera.x, -self.camera.y)
 
             pygame.display.flip()
             self.clock.tick(self.FRAME_RATE)
@@ -70,26 +99,11 @@ class Game:
             await messages.wish_move(dx, dy, state, websocket)
 
         dx, dy = self.LOGIC.player.wish_to_shoot(
-            self.inputs, self.offset_x, self.offset_y
+            self.inputs, self.camera.x, self.camera.y
         )
         if dx != 0 or dy != 0:
             await messages.wish_shot(self.LOGIC.player.role, dx, dy, websocket)
 
-    def __center_screen(self):
-
-        if self.LOGIC.ID >= 0:
-            center_x = self.LOGIC.player.x + self.LOGIC.player.radius
-            center_y = self.LOGIC.player.y + self.LOGIC.player.radius
-        else:
-            center_x = self.WIDTH // 2
-            center_y = self.HEIGHT // 2
-
-        map_pixel_width = self.LOGIC.MAP.width
-        map_pixel_height = self.LOGIC.MAP.height
-        self.offset_x = center_x - self.WIDTH // 2
-        self.offset_y = center_y - self.HEIGHT // 2
-        self.offset_x = max(0, min(self.offset_x, map_pixel_width - self.WIDTH))
-        self.offset_y = max(0, min(self.offset_y, map_pixel_height - self.HEIGHT))
 
     async def run(self, role: ROLE, host: str, port: str) -> str:
         self.LOGIC.reset()

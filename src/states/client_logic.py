@@ -55,6 +55,14 @@ class Logic:
     def castles(self) -> dict:
         return self.MAP.castles
 
+    @property
+    def map_width(self):
+        return self.MAP.width
+
+    @property
+    def map_height(self):
+        return self.MAP.height
+
     @ID.setter
     def ID(self, value):
         self._ID = value
