@@ -10,13 +10,14 @@ flowchart TB
         direction TB
         SVR[Server\nTICK_RATE=20]
         SL[server_logic.Logic\ntick / serialize]
-        SS[server_state.State\nCLIENTS / PLAYERS / SHIPS / BULLETS]
+        SS[server_state.State\nCLIENTS / PLAYERS / SHIPS / BULLETS / ENEMIES]
         MD[MapData\nA★ / colisiones KDTree]
     end
 
-    subgraph SHARED["Entidades compartidas — entities.py / enums.py / messages.py"]
+    subgraph SHARED["Entidades compartidas — entities.py / enums.py / messages.py / protocols.py"]
         direction LR
-        ENT["Player · Bullet · Ship · Counter · Geometry"]
+        ENT["Player · Bullet · Ship · Enemy · Castle · Counter · Geometry"]
+        PROTO["LivingEntity (Protocol)"]
         ENUMS["ROLE · STATE · MESSAGES · COLLISIONS"]
         MSG[messages.py]
     end
@@ -45,6 +46,7 @@ flowchart TB
     CS -. usa .-> ENT
     SVR & GAME -. usa .-> MSG
     SL & CL -. usa .-> ENUMS
+    SL & CL -. usa .-> PROTO
 ```
 
 ---
@@ -67,19 +69,27 @@ classDiagram
     class Logic {
         <<server_logic>>
         +STATE: State
-        +spawn_timer: Counter
+        +spawn_ship_timer: Counter
+        +spawn_enemy_timer: Counter
+        +died_players: set
+        +new_round: bool
         +CLIENTS: dict
         +new_player(socket) int
         +remove_player(id)
-        +handle_message(id, data)
-        +tick()
+        +handle_message(id, data) MESSAGES
+        +tick() tuple
         +serialize() dict
         -__set_player_class(id, data)
         -__try_move(id, data)
         -__new_bullet(id, data)
         -__move_bullets()
-        -__move_ships()
+        -__move(enemies)
+        -__spawn_enemies()
+        -__redirect_enemies()
         -__check_round()
+        -__check_enemy_hit_with_castle()
+        -__check_enemy_hit_with_player()
+        -__tick_invulnerability()
     }
 
     class State {
@@ -89,7 +99,9 @@ classDiagram
         +PLAYERS: dict
         +BULLETS: list
         +SHIPS: list
-        +MAX_SHIPS: int = 16
+        +ENEMIES: list
+        +MAX_SHIPS: int = 5
+        +MAX_ENEMIES: int = 5
         +MAP: MapData
         +BULLET_VELOCITY: int = 30
         +available_ids: list
@@ -101,11 +113,15 @@ classDiagram
         +player_spawn_tiles: list
         +ship_spawn_tiles: list
         +disembark_tiles: list
+        +enemy_target_tiles: set
+        +castles: dict
         +width: int
         +height: int
         +spawn() tuple
         +is_collision(pos, collision) bool
         +find_path(sx, sy, tx, ty, collision) list~STATE~
+        +pixel_to_tile(x, y) tuple
+        +tile_center(col, row) tuple
     }
 
     class Player {
@@ -113,10 +129,12 @@ classDiagram
         +role: ROLE
         +x: int
         +y: int
-        +live: int = 10
-        +radius: int = 32
+        +live: int = 20
+        +max_live: int = 20
+        +radius: int = 25
         +speed: int = 5
-        +state: STATE
+        +state: STATE = DOWN
+        +invulnerable: int = 0
         +wish_to_move(inputs) tuple
         +wish_to_shoot(inputs, ox, oy) tuple
         +update(data)
@@ -130,7 +148,9 @@ classDiagram
         +dx: float
         +dy: float
         +owner: ROLE
+        +damage: int = 2
         +radius: int = 16
+        +update(data)
         +dump() dict
     }
 
@@ -139,12 +159,44 @@ classDiagram
         +x: int
         +y: int
         +path: list~STATE~
-        +live: int = 10
+        +live: int = 20
+        +max_live: int = 20
         +radius: int = 32
-        +speed: int = 15
-        +state: STATE
+        +speed: int = 5
+        +state: STATE = DOWN
         +target_x: int
         +target_y: int
+        +update(data)
+        +dump() dict
+    }
+
+    class Enemy {
+        <<entities>>
+        +x: int
+        +y: int
+        +path: list~STATE~
+        +variant: int
+        +live: int = 5
+        +max_live: int = 5
+        +radius: int = 25
+        +speed: int = 15
+        +damage: int = 4
+        +state: STATE = LEFT
+        +target_x: int
+        +target_y: int
+        +update(data)
+        +dump() dict
+    }
+
+    class Castle {
+        <<entities>>
+        +x: int
+        +y: int
+        +live: int = 50
+        +max_live: int = 50
+        +radius: int = 64
+        +invulnerable: int = 0
+        +update(data)
         +dump() dict
     }
 
@@ -157,13 +209,25 @@ classDiagram
         +reset()
     }
 
+    class LivingEntity {
+        <<protocol>>
+        +live: int
+        +max_live: int
+    }
+
     Server *-- Logic : LOGIC
     Logic *-- State : STATE
-    Logic *-- Counter : spawn_timer
+    Logic *-- Counter : spawn_ship_timer
+    Logic *-- Counter : spawn_enemy_timer
     State *-- MapData : MAP
     State *-- "0..4" Player : PLAYERS[id]
     State *-- "*" Bullet : BULLETS
     State *-- "*" Ship : SHIPS
+    State *-- "*" Enemy : ENEMIES
+    Player ..|> LivingEntity
+    Ship ..|> LivingEntity
+    Enemy ..|> LivingEntity
+    Castle ..|> LivingEntity
 ```
 
 ---
@@ -191,10 +255,18 @@ classDiagram
         +classes: list
         +current_class: int
         +selection: ROLE
+        +host: TextInput
+        +port: TextInput
+        -_connected: bool
+        -_player_count: int
+        -_server_proc: Popen
         +reset()
-        +loop(window, clock) ROLE
+        +loop() ROLE
         +handle_events()
         +draw(surface)
+        -_launch_server()
+        -_connect_ws()
+        -_disconnect_ws()
     }
 
     class Game {
@@ -206,7 +278,8 @@ classDiagram
         +window: Surface
         +offset_x: int
         +offset_y: int
-        +run(role) async str
+        +connected: bool
+        +run(role, host, port) async str
         +loop(websocket) async
         +receive_from_server(websocket) async
         -__handle_player_actions(websocket) async
@@ -216,17 +289,30 @@ classDiagram
     class Logic {
         <<client_logic>>
         +STATE: State
+        +DEBUG: bool
+        -_in_battle: bool
+        +ANIM_FPS: int = 8
         +player: Player
         +ID: int
         +reset()
         +update_players(players)
         +update_bullets(bullets)
         +update_ships(ships)
+        +update_enemies(enemies)
+        +update_castles(castles)
         +draw(surface, dx, dy)
         +draw_minimap(surface)
-        -draw_player(surface, dx, dy, data)
-        -draw_ship(surface, dx, dy, data)
-        -draw_bullet(surface, x, y, role, vx, vy)
+        +start_music()
+        +stop_music()
+        -draw_player(surface, dx, dy, player)
+        -draw_ship(surface, dx, dy, ship)
+        -draw_enenmy(surface, dx, dy, enemy)
+        -draw_castles(surface, dx, dy)
+        -draw_bullet(surface, x, y, role, dx, dy)
+        -draw_ui(surface, dx, dy)
+        -draw_health_bar(surface, x, y, w, h, entity)
+        -_update_music()
+        -_anim_frame(n_frames) int
     }
 
     class State {
@@ -235,21 +321,25 @@ classDiagram
         +PLAYERS: dict
         +BULLETS: dict
         +SHIPS: dict
+        +ENEMIES: dict
         +COLORS: dict
+        +castles: dict
+        +castle_image: Surface
         +received_players: dict
         +received_bullets: list
         +received_ships: list
+        +received_enemies: list
         +player: Player
         +ID: int
     }
 
     class MapRender {
-        +MINI_SIZE: int = 320
-        +MINI_SCALE: float = 0.1
         +width: int
         +height: int
-        +draw(surface, position)
+        +map: MapData
+        +draw_layer(surface, offset, layer)
         +draw_mini(surface, dx, dy, points, px, py)
+        +draw_collision_debug(surface, offset)
     }
 
     class InputHandler {
@@ -271,27 +361,13 @@ classDiagram
         -_handle_joystick(events)
     }
 
-    class Player {
-        <<entities>>
-        +role: ROLE
-        +x: int
-        +y: int
-        +radius: int = 32
-        +speed: int = 5
-        +state: STATE
-        +wish_to_move(inputs) tuple
-        +wish_to_shoot(inputs, ox, oy) tuple
-        +update(data)
-        +dump() dict
-    }
-
     Orchestrator *-- Screen : LOBBY
     Orchestrator *-- Game : GAME
     Orchestrator *-- InputHandler : INPUTS
     Game *-- Logic : LOGIC
     Logic *-- State : STATE
     State *-- MapRender : MAP
-    State o-- Player : current player
+    State o-- Player : player actual
     Game o-- InputHandler : inputs
     Screen o-- InputHandler : inputs
 ```
@@ -300,11 +376,17 @@ classDiagram
 
 ## Entidades compartidas
 
-Dataclasses definidas en `entities.py`. Son usadas tanto por el servidor (lógica autoritativa) como por el cliente (render/input).
+Dataclasses definidas en `entities.py` y protocol en `protocols.py`. Son usadas tanto por el servidor (lógica autoritativa) como por el cliente (render).
 
 ```mermaid
 classDiagram
     direction LR
+
+    class LivingEntity {
+        <<protocol>>
+        +live: int
+        +max_live: int
+    }
 
     class Counter {
         +seconds: float
@@ -324,10 +406,12 @@ classDiagram
         +role: ROLE
         +x: int
         +y: int
-        +live: int = 10
-        +radius: int = 32
+        +live: int = 20
+        +max_live: int = 20
+        +radius: int = 25
         +speed: int = 5
-        +state: STATE
+        +state: STATE = DOWN
+        +invulnerable: int = 0
         +wish_to_move(inputs) tuple
         +wish_to_shoot(inputs, ox, oy) tuple
         +update(data)
@@ -340,7 +424,9 @@ classDiagram
         +dx: float
         +dy: float
         +owner: ROLE
+        +damage: int = 2
         +radius: int = 16
+        +update(data)
         +dump() dict
     }
 
@@ -348,19 +434,55 @@ classDiagram
         +x: int
         +y: int
         +path: list~STATE~
-        +live: int = 10
+        +live: int = 20
+        +max_live: int = 20
         +radius: int = 32
-        +speed: int = 15
-        +state: STATE
+        +speed: int = 5
+        +state: STATE = DOWN
         +target_x: int
         +target_y: int
+        +update(data)
         +dump() dict
     }
+
+    class Enemy {
+        +x: int
+        +y: int
+        +path: list~STATE~
+        +variant: int
+        +live: int = 5
+        +max_live: int = 5
+        +radius: int = 25
+        +speed: int = 15
+        +damage: int = 4
+        +state: STATE = LEFT
+        +target_x: int
+        +target_y: int
+        +update(data)
+        +dump() dict
+    }
+
+    class Castle {
+        +x: int
+        +y: int
+        +live: int = 50
+        +max_live: int = 50
+        +radius: int = 64
+        +invulnerable: int = 0
+        +update(data)
+        +dump() dict
+    }
+
+    Player ..|> LivingEntity
+    Ship ..|> LivingEntity
+    Enemy ..|> LivingEntity
+    Castle ..|> LivingEntity
 
     Player --> ROLE : rol del personaje
     Player --> STATE : dirección / animación
     Bullet --> ROLE : clase del autor
     Ship --> STATE : dirección actual
+    Enemy --> STATE : dirección actual
 ```
 
 ---
@@ -385,6 +507,7 @@ classDiagram
         DOWN = down
         LEFT = left
         RIGHT = right
+        IDLE = idle
     }
 
     class MESSAGES {
@@ -392,9 +515,10 @@ classDiagram
         HELLO = hello
         ROLE = role
         WISH_MOVE = wish_mode
-        MOVE = move
         PLAYERS_UPDATE = players_update
         SHOT = shot
+        QUIT = quit
+        ROUND_START = round_start
     }
 
     class COLLISIONS {
@@ -402,5 +526,6 @@ classDiagram
         PLAYER = player
         BULLET = bullet
         SHIP = ship
+        ENEMY = enemy
     }
 ```

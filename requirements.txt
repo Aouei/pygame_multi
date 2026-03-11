@@ -1,0 +1,6 @@
+websockets==16.0
+loguru==0.7.3
+scipy==1.17.1
+numpy==2.4.2
+pygame==2.6.1
+tiledpy @ git+https://github.com/Aouei/tiledpy.git

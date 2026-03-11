@@ -10,11 +10,12 @@ Cada mensaje incluye un campo `"type"` que corresponde a un valor de la enum `ME
 | `type` (enum) | Valor JSON | Dirección | Descripción |
 |---|---|---|---|
 | `MESSAGES.HELLO` | `"hello"` | Servidor → Cliente | Asigna ID al cliente recién conectado |
-| `MESSAGES.ROLE` | `"role"` | Cliente → Servidor | Notifica el rol elegido en el lobby |
-| `MESSAGES.WISH_MOVE` | `"wish_mode"` | Cliente → Servidor | Solicita mover al jugador (delta + estado) |
-| `MESSAGES.SHOT` | `"shot"` | Cliente → Servidor | Solicita disparar una bala (dirección normalizada) |
-| `MESSAGES.PLAYERS_UPDATE` | `"players_update"` | Servidor → todos | Snapshot completo: jugadores, balas y barcos |
-| `MESSAGES.MOVE` | `"move"` | — | Definido, no usado actualmente |
+| `MESSAGES.ROLE` | `"role"` | Cliente → Servidor | Notifica el rol elegido; enviado al conectar, antes de recibir `HELLO` |
+| `MESSAGES.WISH_MOVE` | `"wish_mode"` | Cliente → Servidor | Solicita mover al jugador (delta + estado); solo si hay movimiento o cambio de estado |
+| `MESSAGES.SHOT` | `"shot"` | Cliente → Servidor | Solicita disparar una bala (dirección normalizada ≠ 0) |
+| `MESSAGES.PLAYERS_UPDATE` | `"players_update"` | Servidor → todos | Snapshot completo: jugadores, balas, barcos, enemigos y castillos (20Hz) |
+| `MESSAGES.ROUND_START` | `"round_start"` | Servidor → todos | Nueva oleada generada; enviado cuando `__check_round()` spawna barcos |
+| `MESSAGES.QUIT` | `"quit"` | Servidor → Cliente | El jugador es expulsado (murió o todos los castillos cayeron) |
 
 ### Formato JSON de cada mensaje
 
@@ -58,6 +59,7 @@ Cada mensaje incluye un campo `"type"` que corresponde a un valor de la enum `ME
     ```json
     {
       "type": "players_update",
+      "clients": 2,
       "players": {
         "0": { "x": 320, "y": 192, "state": "down", "role": "archer", "live": 10, "radius": 32 },
         "2": { "x": 640, "y": 448, "state": "right", "role": "mage",   "live": 10, "radius": 32 }
@@ -67,7 +69,27 @@ Cada mensaje incluye un campo `"type"` que corresponde a un valor de la enum `ME
       ],
       "ships": [
         { "x": 960, "y": 320, "state": "left" }
-      ]
+      ],
+      "enemies": [
+        { "x": 800, "y": 400, "state": "down", "variant": 1 }
+      ],
+      "castles": {
+        "0": { "x": 256, "y": 256, "live": 5 }
+      }
+    }
+    ```
+
+=== "ROUND_START"
+    ```json
+    {
+      "type": "round_start"
+    }
+    ```
+
+=== "QUIT"
+    ```json
+    {
+      "type": "quit"
     }
     ```
 
@@ -249,13 +271,30 @@ flowchart TD
 
     E --> E1["dx, dy, state = data[...]"]
     E1 --> E2["Geometry(new_x, new_y, radius)"]
-    E2 --> E3{"MAP.is_collision\n(COLLISIONS.PLAYER)"}
+    E2 --> E3{"colisión con ship\no castillo\no mapa?"}
     E3 -->|False| E4["player.x, player.y = new_x, new_y"]
     E3 -->|True| E5["movimiento descartado"]
 
     F --> F1["dx, dy, role = data[...]"]
     F1 --> F2["x = player.x + dx * BULLET_VELOCITY\ny = player.y + dy * BULLET_VELOCITY"]
     F2 --> F3["BULLETS.append(Bullet(x, y, dx, dy, role))"]
+```
+
+### Mensajes enviados por el servidor (salientes)
+
+```mermaid
+flowchart TD
+    T["Server.loop() — cada 50ms"] --> A{"CLIENTS vacío?"}
+    A -->|Sí| Z["skip"]
+    A -->|No| TK["Logic.tick()"]
+    TK --> NR{"new_round?"}
+    NR -->|Sí| RS["broadcast → ROUND_START"]
+    NR -->|No| DP
+    RS --> DP{"died_players?"}
+    DP -->|Sí| QT["send → QUIT a cada jugador muerto\nremove_player(id)"]
+    DP -->|No| SER
+    QT --> SER["Logic.serialize()"]
+    SER --> BC["broadcast → PLAYERS_UPDATE\na todos los clientes restantes"]
 ```
 
 ---

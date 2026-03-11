@@ -370,9 +370,10 @@ class Server:
 
 async def main():
     server = Server()
+    port = int(os.environ.get("PORT", 25565))
 
-    logger.info(f"Server running")
-    async with websockets.serve(server.handle_client, "0.0.0.0", 25565):
+    logger.info(f"Server running on port {port}")
+    async with websockets.serve(server.handle_client, "0.0.0.0", port):
         await server.loop()
 
 

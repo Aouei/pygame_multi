@@ -64,8 +64,8 @@ class Screen:
     def _build_ui(self):
         win_rect = self.window.get_rect()
         panel_w, panel_h = 350, 300
-        panel_x = win_rect.centerx - panel_w * 2
-        panel_y = win_rect.centerx - panel_h * 1.7
+        panel_x = max(0, win_rect.centerx - panel_w * 2)
+        panel_y = max(0, win_rect.centerx - panel_h * 1.7)
         self._panel_rect = pygame.Rect(panel_x, panel_y, panel_w, panel_h)
 
         p = self._panel_rect
