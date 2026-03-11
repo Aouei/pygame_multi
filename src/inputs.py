@@ -27,6 +27,7 @@ class InputHandler:
         self.con_right = False
         self.con_up = False
         self.con_down = False
+        self.click = False
         self.shot = False
         self.shot_direction = (0, 0)
         self.right_stick = (0.0, 0.0)
@@ -66,6 +67,7 @@ class InputHandler:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     self.shot = True
+                    self.click = True
             elif event.type == pygame.JOYDEVICEADDED:
                 self._try_init_joystick()
 
@@ -96,6 +98,9 @@ class InputHandler:
                     self.delete_char = True
                 else:
                     self.current_char = event.unicode
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    self.click = True
 
         if self._joystick is None:
             return

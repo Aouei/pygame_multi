@@ -45,6 +45,7 @@ class Player:
     radius: int = 25
     speed: int = 5
     state: STATE = STATE.DOWN
+    invulnerable: int = 0
 
     def wish_to_move(self, inputs: InputHandler) -> tuple[int, int, str]:
         dx, dy = 0, 0
@@ -61,6 +62,9 @@ class Player:
         if inputs.con_down:
             dy = self.speed
             self.state = STATE.DOWN
+
+        if dx == 0 and dy == 0:
+            self.state = STATE.IDLE
 
         return dx, dy, self.state.value
 
@@ -122,6 +126,7 @@ class Bullet:
     dx: float
     dy: float
     owner: ROLE
+    damage: int = 2
     radius: int = 16
 
     def update(self, data: dict):
@@ -149,7 +154,7 @@ class Ship:
     live: int = 20
     max_live: int = 20
     radius: int = 32
-    speed: int = 15
+    speed: int = 5
     state: STATE = STATE.DOWN
     target_x: int = 0
     target_y: int = 0
@@ -175,6 +180,7 @@ class Enemy:
     max_live: int = 5
     radius: int = 25
     speed: int = 15
+    damage: int = 4
     state: STATE = STATE.LEFT
     target_x: int = 0
     target_y: int = 0
@@ -195,3 +201,20 @@ class Enemy:
             "live": self.live,
             "variant": self.variant,
         }
+
+
+@dataclass
+class Castle:
+    x: int
+    y: int
+    live: int = 50
+    max_live: int = 50
+    radius: int = 64
+    invulnerable: int = 0
+
+    def dump(self) -> dict:
+        return {"x": self.x, "y": self.y, "live": self.live}
+
+    def update(self, data: dict):
+        for key, value in data.items():
+            self.__setattr__(key, value)

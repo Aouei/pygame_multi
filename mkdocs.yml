@@ -57,8 +57,5 @@ nav:
     - diagramas/index.md
     - Clases: diagramas/clases.md
     - Paso de Mensajes: diagramas/mensajes.md
+    - Estados y Condiciones: diagramas/estados.md
     - ServerState & ClientState: diagramas/server-client.md
-  - Propuesta:
-    - propuesta/index.md
-    - Clases: propuesta/clases.md
-    - Estructura de archivos: propuesta/estructura.md

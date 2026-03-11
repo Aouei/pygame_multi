@@ -13,6 +13,7 @@ class STATE(Enum):
     DOWN = "down"
     LEFT = "left"
     RIGHT = "right"
+    IDLE = "idle"
 
 
 class MESSAGES(Enum):
