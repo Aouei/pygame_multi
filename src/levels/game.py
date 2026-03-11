@@ -95,7 +95,8 @@ class Game:
         self.LOGIC.reset()
         self.LOGIC.start_music()
         
-        async with websockets.connect(f"ws://{host}:{port}") as websocket:
+        
+        async with websockets.connect(f"wss://oh-no-ships.onrender.com") as websocket:
             self.connected = True
 
             logger.info(f"Sending to server: {role}")

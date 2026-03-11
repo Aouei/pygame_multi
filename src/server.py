@@ -4,6 +4,7 @@ import random
 import json
 import math
 import os
+import traceback
 
 from websockets import ClientConnection
 from loguru import logger
@@ -42,26 +43,30 @@ class Server:
     def __init__(self) -> None:
         self.TICK_RATE = 20
         self.IDS = {0, 1, 2, 3}
-        self.CLIENTS: dict[int, ClientConnection] = {}
-        self.PLAYERS: dict[int, Player] = {}
-        self.BULLETS: list[Bullet] = []
-        self.SHIPS: list[Ship] = []
-        self.ENEMIES: list[Enemy] = []
         self.MAX_SHIPS: int = 5
         self.MAX_ENEMIES: int = 10
         self.BULLET_VELOCITY = 30
         self.INVULNERABLE_TICKS = 10
-        self.MAP: MapData = MapData(paths.MAP_PATH, scale = 4)
-        self.spawn_ship_timer = Counter(seconds=30)
-        self.spawn_enemy_timer = Counter(seconds=5)
-        self.died_players: set = set()
-        self.new_round: bool = False
         self.DELTA = {
             STATE.UP: (0, -1),
             STATE.DOWN: (0, 1),
             STATE.LEFT: (-1, 0),
             STATE.RIGHT: (1, 0),
         }
+        self.spawn_ship_timer = Counter(seconds=30)
+        self.spawn_enemy_timer = Counter(seconds=5)
+
+        self.reset()
+
+    def reset(self):
+        self.CLIENTS: dict[int, ClientConnection] = {}
+        self.PLAYERS: dict[int, Player] = {}
+        self.BULLETS: list[Bullet] = []
+        self.SHIPS: list[Ship] = []
+        self.ENEMIES: list[Enemy] = []
+        self.MAP: MapData = MapData(paths.MAP_PATH, scale = 4)
+        self.died_players: set = set()
+        self.new_round: bool = False
 
     @property
     def available_ids(self):
@@ -314,6 +319,8 @@ class Server:
 
             if self.PLAYERS and not self.MAP.castles:
                 self.died_players.update(self.PLAYERS.keys())
+        else:
+            self.reset()
 
         return self.died_players, self.new_round
 
@@ -342,6 +349,8 @@ class Server:
 
         except websockets.exceptions.ConnectionClosed:
             pass
+        except Exception as e:
+            logger.error(f"Unhandled exception for player {ID}: {traceback.format_exc()}")
         finally:
             self.remove_player(ID)
 
