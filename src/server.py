@@ -3,6 +3,7 @@ import asyncio
 import random
 import json
 import math
+import os
 
 from websockets import ClientConnection
 from loguru import logger
