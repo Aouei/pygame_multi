@@ -110,8 +110,6 @@ class MapData:
             for code in self.PLAYER_SPAWN_CODES:
                 self.player_spawn_tiles.extend( layer.get_tile_by_property("Class", code) )
 
-        print(self.player_spawn_tiles)
-
     def __set_ship_spawn_positions(self):
         self.ship_spawn_tiles = []
 
