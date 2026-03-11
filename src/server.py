@@ -60,17 +60,17 @@ class Server:
         self.spawn_ship_timer = Counter(seconds=30)
         self.spawn_enemy_timer = Counter(seconds=5)
 
+        self.CLIENTS: dict[int, ClientConnection] = {}
+
         self.reset()
 
     def reset(self):
-        self.CLIENTS: dict[int, ClientConnection] = {}
         self.PLAYERS: dict[int, Player] = {}
         self.BULLETS: list[Bullet] = []
         self.SHIPS: list[Ship] = []
         self.ENEMIES: list[Enemy] = []
         self.MAP: MapData = MapData(paths.MAP_PATH, scale = 4)
         self.died_players: set = set()
-        self.new_round: bool = False
 
     @property
     def available_ids(self):
@@ -184,8 +184,6 @@ class Server:
         if not self.spawn_ship_timer.tick():
             self.__recover_player_health()
             return
-
-        self.new_round = True
 
         n = min(
             self.MAX_SHIPS * len(self.PLAYERS),
@@ -308,8 +306,6 @@ class Server:
             player.live = player.max_live
 
     def tick(self):
-        self.new_round = False
-
         if self.CLIENTS:
             self.__tick_invulnerability()
             self.__check_round()
@@ -323,10 +319,8 @@ class Server:
 
             if self.PLAYERS and not self.MAP.castles:
                 self.died_players.update(self.PLAYERS.keys())
-        else:
-            self.reset()
 
-        return self.died_players, self.new_round
+        return self.died_players
 
     def serialize(self):
         return {
@@ -364,12 +358,10 @@ class Server:
         while True:
             await asyncio.sleep(interval)
             if not self.CLIENTS:
+                self.reset()
                 continue
 
-            died_players, new_round = self.tick()
-
-            if new_round:
-                messages.round_start(list(self.CLIENTS.values()))
+            died_players = self.tick()
 
             for idd in died_players.copy():
                 if idd in self.CLIENTS:
