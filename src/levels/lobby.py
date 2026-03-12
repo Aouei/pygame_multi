@@ -117,8 +117,7 @@ class Screen:
             container=self._panel,
             initial_text="25.33.144.47",
         )
-        self._ip_entry.set_allowed_characters(list("0123456789."))
-
+        
         pygame_gui.elements.UILabel(
             relative_rect=pygame.Rect(M, 74, ew, 22),
             text="Port",
@@ -219,8 +218,14 @@ class Screen:
 
     async def _ws_coro(self):
         try:
+            RENDER = "wss://oh-no-ships.onrender.com"
+            if self.host.value == "render":
+                connection = RENDER
+            else:
+                connection = f"ws://{self.host.value}:{self.port.value}"
+
             async with websockets.connect(
-                f"ws://{self.host.value}:{self.port.value}"
+                connection
             ) as ws:
                 self._ws_ref = ws
                 self._connected = True
