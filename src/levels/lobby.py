@@ -79,31 +79,40 @@ class Screen:
     def _build_ui(self):
         W, H = self.window.get_size()
 
-        # Panel size: responsive fraction of screen, clamped
-        panel_w = max(300, min(420, int(W * 0.28)))
-        panel_h = 285
+        panel_w = max(230, min(300, int(W * 0.20)))
+        panel_h = 235
+        char_size = min(self.size, int(H * 0.52))
+        gap = max(30, int(W * 0.04))
 
-        # Center the panel on screen
-        panel_rect = pygame.Rect(0, 0, panel_w, panel_h)
-        panel_rect.center = (W // 2, H // 2)
+        # Both panel and character are laid out side by side and the pair is
+        # centered on screen.
+        total_w = panel_w + gap + char_size
+        left_x = (W - total_w) // 2
+        center_y = H // 2
 
+        panel_rect = pygame.Rect(left_x, center_y - panel_h // 2, panel_w, panel_h)
         self._panel = pygame_gui.elements.UIPanel(
             relative_rect=panel_rect,
             manager=self.manager,
         )
 
-        M = 15                      # inner margin
-        ew = panel_w - 2 * M        # usable element width inside panel
-        btn_w = (ew - 20) // 3      # 3 buttons with 10px gaps between them
+        # Character draw geometry (used in _draw)
+        self._char_x = left_x + panel_w + gap
+        self._char_y = center_y - char_size // 2
+        self._char_size = char_size
+
+        M = 12                       # inner margin
+        ew = panel_w - 2 * M         # usable element width
+        btn_w = (ew - 20) // 3       # three buttons with 10 px gaps
 
         pygame_gui.elements.UILabel(
-            relative_rect=pygame.Rect(M, 8, ew, 24),
+            relative_rect=pygame.Rect(M, 8, ew, 22),
             text="IP",
             manager=self.manager,
             container=self._panel,
         )
         self._ip_entry = pygame_gui.elements.UITextEntryLine(
-            relative_rect=pygame.Rect(M, 35, ew, 36),
+            relative_rect=pygame.Rect(M, 32, ew, 34),
             manager=self.manager,
             container=self._panel,
             initial_text="25.33.144.47",
@@ -111,13 +120,13 @@ class Screen:
         self._ip_entry.set_allowed_characters(list("0123456789."))
 
         pygame_gui.elements.UILabel(
-            relative_rect=pygame.Rect(M, 80, ew, 24),
+            relative_rect=pygame.Rect(M, 74, ew, 22),
             text="Port",
             manager=self.manager,
             container=self._panel,
         )
         self._port_entry = pygame_gui.elements.UITextEntryLine(
-            relative_rect=pygame.Rect(M, 107, ew, 36),
+            relative_rect=pygame.Rect(M, 98, ew, 34),
             manager=self.manager,
             container=self._panel,
             initial_text="25565",
@@ -126,20 +135,20 @@ class Screen:
 
         # Three buttons in one row
         self._btn_host = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect(M, 158, btn_w, 38),
+            relative_rect=pygame.Rect(M, 145, btn_w, 36),
             text="Host",
             manager=self.manager,
             container=self._panel,
         )
         # Connect and Disconnect share the same slot; only one visible at a time
         self._btn_connect = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect(M + btn_w + 10, 158, btn_w, 38),
+            relative_rect=pygame.Rect(M + btn_w + 10, 145, btn_w, 36),
             text="Connect",
             manager=self.manager,
             container=self._panel,
         )
         self._btn_disconnect = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect(M + btn_w + 10, 158, btn_w, 38),
+            relative_rect=pygame.Rect(M + btn_w + 10, 145, btn_w, 36),
             text="Disconnect",
             manager=self.manager,
             container=self._panel,
@@ -147,27 +156,23 @@ class Screen:
         self._btn_disconnect.hide()
 
         self._btn_play = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect(M + 2 * (btn_w + 10), 158, btn_w, 38),
+            relative_rect=pygame.Rect(M + 2 * (btn_w + 10), 145, btn_w, 36),
             text="Play",
             manager=self.manager,
             container=self._panel,
         )
         self._btn_play.disable()
 
-        # Status row
-        status_w = ew * 2 // 3
-        self._lbl_status = pygame_gui.elements.UILabel(
-            relative_rect=pygame.Rect(M, 212, status_w, 28),
-            text="Disconnected",
-            manager=self.manager,
-            container=self._panel,
-        )
+        # Player count only — status is drawn manually so it can be coloured
         self._lbl_players = pygame_gui.elements.UILabel(
-            relative_rect=pygame.Rect(M + status_w + 5, 212, ew - status_w - 5, 28),
+            relative_rect=pygame.Rect(M + ew // 2, 195, ew // 2, 26),
             text="0/4",
             manager=self.manager,
             container=self._panel,
         )
+
+        self._status_font = pygame.font.Font(None, 26)
+        self._role_font = pygame.font.Font(None, 52)
 
         # Wrappers so client.py can read .host.value / .port.value
         self.host = _EntryWrapper(self._ip_entry)
@@ -299,44 +304,52 @@ class Screen:
 
         self.manager.update(time_delta)
 
-        # Sync button/label state with connection status
+        # Sync button visibility with connection status
         if self._connected:
             self._btn_connect.hide()
             self._btn_disconnect.show()
             self._btn_play.enable()
-            self._lbl_status.set_text("Connected")
         else:
             self._btn_connect.show()
             self._btn_disconnect.hide()
             self._btn_play.disable()
-            self._lbl_status.set_text("Disconnected")
 
         self._lbl_players.set_text(f"{self._player_count}/4")
 
     def _draw(self):
         surface = self.window
-        W, _ = surface.get_size()
-        panel_rect = self._panel.get_abs_rect()
 
-        # Available vertical space above the panel
-        space_above = panel_rect.top
-        char_size = min(self.size, int(space_above * 0.72))
-
-        char_x = W // 2 - char_size // 2
-        char_y = panel_rect.top - char_size - 8
-
-        self._draw_role_name(surface, W // 2, char_y - 6)
-
+        # Character sprite (drawn first; panel renders on top if they overlap)
         scaled = pygame.transform.scale(
-            self.classes[self.current_class][-1], (char_size, char_size)
+            self.classes[self.current_class][-1],
+            (self._char_size, self._char_size),
         )
-        surface.blit(scaled, (char_x, char_y))
+        surface.blit(scaled, (self._char_x, self._char_y))
 
+        # pygame_gui elements
         self.manager.draw_ui(surface)
 
-    def _draw_role_name(self, surface, cx, bottom_y):
+        # Overlaid text drawn after manager so it appears on top of the panel
+        self._draw_status(surface)
+        self._draw_role_label(surface)
+
+    def _draw_status(self, surface):
+        panel_rect = self._panel.get_abs_rect()
+        if self._connected:
+            color = (0, 210, 80)
+            text = "Connected"
+        else:
+            color = (180, 180, 180)
+            text = "Disconnected"
+        surf = self._status_font.render(text, True, color)
+        # Align vertically with the players label (195 px from panel top + inner offset)
+        x = panel_rect.left + 12
+        y = panel_rect.top + 195 + (26 - surf.get_height()) // 2
+        surface.blit(surf, (x, y))
+
+    def _draw_role_label(self, surface):
         role_name = self.classes[self.current_class][0].value.capitalize()
-        text_surface = self.ROLE_TEXT_FONT.render(role_name, False, (255, 255, 255))
-        x = cx - text_surface.get_rect().width // 2
-        y = bottom_y - text_surface.get_rect().height
-        surface.blit(text_surface, (x, y))
+        surf = self._role_font.render(role_name, True, (255, 255, 255))
+        cx = self._char_x + self._char_size // 2
+        y = self._char_y + self._char_size + 10
+        surface.blit(surf, (cx - surf.get_width() // 2, y))
