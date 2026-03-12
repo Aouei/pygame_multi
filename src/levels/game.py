@@ -2,6 +2,7 @@ import asyncio
 import json
 import websockets
 import pygame
+import pygame_gui
 
 from pygame.time import Clock
 from loguru import logger
@@ -51,6 +52,90 @@ class Game:
         self.connected = True
         self._last_sent_state: str | None = None
 
+        self._hud_manager = pygame_gui.UIManager(window.get_size())
+        self._build_hud()
+
+    # ------------------------------------------------------------------
+    # HUD
+    # ------------------------------------------------------------------
+
+    def _build_hud(self):
+        W, H = self.window.get_size()
+        pw = max(180, min(220, int(W * 0.13)))  # panel width, responsive
+        M = 10
+        ew = pw - 2 * M
+        pad = 12  # screen edge margin
+
+        # Row heights and y positions (relative to panel top)
+        row_h = 18
+        bar_h = 16
+        gap = 8
+        y0 = M                             # HP label
+        y1 = y0 + row_h + 2               # HP bar
+        y2 = y1 + bar_h + gap             # Ships label
+        y3 = y2 + row_h + gap             # Enemies label
+        y4 = y3 + row_h + gap             # Castles label
+        ph = y4 + row_h + M               # panel height
+
+        self._hud_rect = pygame.Rect(W - pw - pad, H - ph - pad, pw, ph)
+        self._hud_bg = pygame.Surface((pw, ph), pygame.SRCALPHA)
+        self._hud_bg.fill((70, 70, 70, 170))
+
+        rx = self._hud_rect.x + M
+        ry = self._hud_rect.y
+
+        self._lbl_hp = pygame_gui.elements.UILabel(
+            relative_rect=pygame.Rect(rx, ry + y0, ew, row_h),
+            text="HP: 20/20",
+            manager=self._hud_manager,
+        )
+        # HP bar drawn manually; store its screen rect
+        self._hp_bar_rect = pygame.Rect(rx, ry + y1, ew, bar_h)
+
+        self._lbl_ships = pygame_gui.elements.UILabel(
+            relative_rect=pygame.Rect(rx, ry + y2, ew, row_h),
+            text="Ships: 0",
+            manager=self._hud_manager,
+        )
+        self._lbl_enemies = pygame_gui.elements.UILabel(
+            relative_rect=pygame.Rect(rx, ry + y3, ew, row_h),
+            text="Enemies: 0",
+            manager=self._hud_manager,
+        )
+        self._lbl_castles = pygame_gui.elements.UILabel(
+            relative_rect=pygame.Rect(rx, ry + y4, ew, row_h),
+            text="Castles: 0",
+            manager=self._hud_manager,
+        )
+
+    def _draw_hud(self, surface: pygame.Surface, time_delta: float):
+        player = self.LOGIC.player
+        live = player.live
+        max_live = player.max_live
+        ratio = max(0.0, live / max_live) if max_live > 0 else 0.0
+
+        # Update label text
+        self._lbl_hp.set_text(f"HP: {live}/{max_live}")
+        self._lbl_ships.set_text(f"Ships: {len(self.LOGIC.received_ships)}")
+        self._lbl_enemies.set_text(f"Enemies: {len(self.LOGIC.received_enemies)}")
+        self._lbl_castles.set_text(f"Castles: {len(self.LOGIC.castles)}")
+
+        self._hud_manager.update(time_delta)
+
+        # Semi-transparent grey panel
+        surface.blit(self._hud_bg, self._hud_rect.topleft)
+
+        # Health bar (manual draw so it respects the transparent background)
+        bar = self._hp_bar_rect
+        pygame.draw.rect(surface, (0, 0, 0), bar)
+        pygame.draw.rect(surface, (220, 60, 60), (bar.x, bar.y, int(bar.w * ratio), bar.h))
+        pygame.draw.rect(surface, (200, 200, 200), bar, 1)
+
+        # pygame_gui labels on top
+        self._hud_manager.draw_ui(surface)
+
+    # ------------------------------------------------------------------
+
     async def receive_from_server(self, websocket) -> None:
         async for raw in websocket:
             data = json.loads(raw)
@@ -86,8 +171,9 @@ class Game:
             self.window.fill(BASE_COLOR)
             self.LOGIC.draw(self.window, -self.camera.x, -self.camera.y)
 
+            time_delta = self.clock.tick(self.FRAME_RATE) / 1000.0
+            self._draw_hud(self.window, time_delta)
             pygame.display.flip()
-            self.clock.tick(self.FRAME_RATE)
             await asyncio.sleep(0)
 
     async def __handle_player_actions(self, websocket):
