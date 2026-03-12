@@ -10,7 +10,7 @@ from loguru import logger
 
 import messages
 from enums import ROLE, MESSAGES
-from states.client_logic import Logic
+from client import Logic
 from inputs import InputHandler
 from factories import BASE_COLOR
 
