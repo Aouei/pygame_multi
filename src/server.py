@@ -64,6 +64,7 @@ class Server:
         self.spawn_enemy_timer = Counter(seconds=5)
 
         self.CLIENTS: dict[int, ClientConnection] = {}
+        self.running = True
 
         self.reset()
 
@@ -358,8 +359,12 @@ class Server:
 
             async for message in socket:
                 data = json.loads(message)
-                if MESSAGES.QUIT == self.handle_message(ID, data):
+                result = self.handle_message(ID, data)
+                if result == MESSAGES.QUIT:
                     await messages.quit(self.CLIENTS[ID])
+                elif result == MESSAGES.SHUT_DOWN:
+                    await messages.quit(self.CLIENTS[ID])
+                    self.running = False
 
         except websockets.exceptions.ConnectionClosed:
             pass
@@ -372,7 +377,7 @@ class Server:
 
     async def loop(self):
         interval = 1.0 / self.TICK_RATE
-        while True:
+        while self.running:
             await asyncio.sleep(interval)
             if not self.CLIENTS:
                 self.reset()
@@ -396,15 +401,18 @@ async def health_check(connection, request):
         return connection.respond(HTTPStatus.OK, "OK\n")
 
 
-async def main():
-    server = Server()
+async def run(srv: 'Server'):
     port = int(os.environ.get("PORT", 25565))
-
     logger.info(f"Server running on port {port}")
     async with websockets.serve(
-        server.handle_client, "0.0.0.0", port, process_request=health_check
+        srv.handle_client, "0.0.0.0", port, process_request=health_check
     ):
-        await server.loop()
+        await srv.loop()
 
 
-asyncio.run(main())
+async def main():
+    await run(Server())
+
+
+if __name__ == '__main__':
+    asyncio.run(main())

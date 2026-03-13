@@ -5,10 +5,10 @@ import sys
 from typing import Optional
 import asyncio
 import json
-import subprocess
 import threading
 
 import paths
+import server as server_module
 import websockets
 
 from pygame.time import Clock
@@ -64,7 +64,8 @@ class Screen:
 
         self._connected = False
         self._player_count = 0
-        self._server_proc: subprocess.Popen | None = None
+        self._server_obj: server_module.Server | None = None
+        self._server_thread: threading.Thread | None = None
         self._ws_thread: threading.Thread | None = None
         self._ws_loop_ref: asyncio.AbstractEventLoop | None = None
         self._ws_ref = None
@@ -178,23 +179,26 @@ class Screen:
         self.port = _EntryWrapper(self._port_entry)
 
     # ------------------------------------------------------------------
-    # Server subprocess
+    # Server en-proceso
     # ------------------------------------------------------------------
 
-    def _launch_server(self):
-        if self._server_proc and self._server_proc.poll() is None:
-            self._server_proc.terminate()
-        if getattr(sys, "frozen", False):
-            server_exe = os.path.join(os.path.dirname(sys.executable), "server.exe")
-            self._server_proc = subprocess.Popen(
-                [server_exe],
-                creationflags=subprocess.CREATE_NO_WINDOW,
-            )
-        else:
-            server_path = os.path.normpath(
-                os.path.join(os.path.dirname(__file__), "..", "server.py")
-            )
-            self._server_proc = subprocess.Popen([sys.executable, server_path])
+    def _start_server(self):
+        self._stop_server()
+        self._server_obj = server_module.Server()
+        srv = self._server_obj
+        self._server_thread = threading.Thread(
+            target=lambda: asyncio.run(server_module.run(srv)),
+            daemon=True,
+        )
+        self._server_thread.start()
+
+    def _stop_server(self):
+        if self._server_obj:
+            self._server_obj.running = False
+        if self._server_thread:
+            self._server_thread.join(timeout=2.0)
+        self._server_obj = None
+        self._server_thread = None
 
     # ------------------------------------------------------------------
     # WebSocket connection (daemon thread)
@@ -251,8 +255,7 @@ class Screen:
 
     def _disconnect(self):
         self._disconnect_ws()
-        if self._server_proc and self._server_proc.poll() is None:
-            self._server_proc.terminate()
+        self._stop_server()
 
     # ------------------------------------------------------------------
     # Lobby loop
@@ -272,8 +275,7 @@ class Screen:
 
         self._disconnect_ws()
         if self.selection is None:
-            if self._server_proc and self._server_proc.poll() is None:
-                self._server_proc.terminate()
+            self._stop_server()
         return self.selection
 
     def _handle_events(self, time_delta: float):
@@ -296,7 +298,7 @@ class Screen:
 
             if event.type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == self._btn_host:
-                    self._launch_server()
+                    self._start_server()
                     threading.Timer(0.5, self._connect_ws).start()
                 elif event.ui_element == self._btn_connect:
                     self._connect_ws()

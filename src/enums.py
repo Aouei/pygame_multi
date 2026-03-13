@@ -24,6 +24,7 @@ class MESSAGES(Enum):
     SHOT = "shot"
     QUIT = "quit"
     ROUND_START = "round_start"
+    SHUT_DOWN = "shut_down"
 
 
 class COLLISIONS(Enum):

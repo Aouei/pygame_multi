@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "sdd:plan": {
+      "source": "neolabhq/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "d9cf2438ae49d55d935f83427e98e586c80aced75459f84cee79e8736bb43119"
+    }
+  }
+}

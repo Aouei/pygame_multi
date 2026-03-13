@@ -4,7 +4,12 @@
       "Bash(python3 -c \":*)",
       "Read(//c/Users/sergi/anaconda3/envs/PYGAME/Lib/site-packages/**)",
       "Read(//c/Users/sergi/anaconda3/envs/PYGAME/**)",
-      "Read(//c/Users/sergi/**)"
+      "Read(//c/Users/sergi/**)",
+      "Bash(python -c \"import pygame_gui; print\\(''Version:'', pygame_gui.__version__\\); from pygame_gui.elements import UIStatusBar; print\\(''UIStatusBar OK''\\)\")",
+      "Bash(python -c \"import sys; print\\(sys.prefix\\)\")",
+      "Bash(pip list:*)",
+      "Bash(python -c \"import pygame_gui; print\\(''pygame_gui version:'', pygame_gui.__version__\\); from pygame_gui.elements import UIStatusBar; import inspect; print\\(inspect.signature\\(UIStatusBar.__init__\\)\\)\")",
+      "Bash(pip show:*)"
     ]
   }
 }

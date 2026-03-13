@@ -3,7 +3,8 @@
     "allow": [
       "Bash(\"c:/Users/sergi/Documents/repos/pygame_multi/docs/index.md\":*)",
       "Bash(python3 -c \":*)",
-      "WebFetch(domain:pytmx.readthedocs.io)"
+      "WebFetch(domain:pytmx.readthedocs.io)",
+      "Bash(cmd /c \"dir /s /b C:\\\\Users\\\\sergi\\\\Documents\\\\repos\\\\pygame_multi\\\\.kiro\")"
     ]
   }
 }

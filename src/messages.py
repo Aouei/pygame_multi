@@ -55,3 +55,11 @@ def quit(socket: ClientConnection):
 def round_start(sockets: list[ClientConnection]):
     message = json.dumps({"type": MESSAGES.ROUND_START.value})
     broadcast(sockets, message)
+
+
+def shut_down(socket: ClientConnection):
+    message = {
+        "type": MESSAGES.SHUT_DOWN.value,
+    }
+
+    return socket.send(json.dumps(message))
