@@ -387,7 +387,10 @@ class Server:
 
             for idd in died_players.copy():
                 if idd in self.CLIENTS:
-                    await messages.quit(self.CLIENTS[idd])
+                    try:
+                        await messages.quit(self.CLIENTS[idd])
+                    except websockets.exceptions.ConnectionClosed:
+                        pass
                     self.remove_player(idd)
                 self.died_players.discard(idd)
 

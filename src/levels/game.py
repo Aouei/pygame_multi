@@ -137,23 +137,26 @@ class Game:
     # ------------------------------------------------------------------
 
     async def receive_from_server(self, websocket) -> None:
-        async for raw in websocket:
-            data = json.loads(raw)
+        try:
+            async for raw in websocket:
+                data = json.loads(raw)
 
-            message_type = MESSAGES(data["type"])
+                message_type = MESSAGES(data["type"])
 
-            if message_type == MESSAGES.HELLO:
-                self.LOGIC.ID = data["id"]
-            elif message_type == MESSAGES.PLAYERS_UPDATE:
-                self.LOGIC.update_players(
-                    {int(k): v for k, v in data.get("players", {}).items()}
-                )
-                self.LOGIC.update_bullets(data.get("bullets", []))
-                self.LOGIC.update_ships(data.get("ships", []))
-                self.LOGIC.update_enemies(data.get("enemies", []))
-                self.LOGIC.update_castles(data.get("castles", {}))
-            elif message_type == MESSAGES.QUIT:
-                self.connected = False
+                if message_type == MESSAGES.HELLO:
+                    self.LOGIC.ID = data["id"]
+                elif message_type == MESSAGES.PLAYERS_UPDATE:
+                    self.LOGIC.update_players(
+                        {int(k): v for k, v in data.get("players", {}).items()}
+                    )
+                    self.LOGIC.update_bullets(data.get("bullets", []))
+                    self.LOGIC.update_ships(data.get("ships", []))
+                    self.LOGIC.update_enemies(data.get("enemies", []))
+                    self.LOGIC.update_castles(data.get("castles", {}))
+                elif message_type == MESSAGES.QUIT:
+                    self.connected = False
+        except websockets.exceptions.ConnectionClosed:
+            self.connected = False
 
     def update_camera(self):
         self.camera.x = self.LOGIC.player.x
@@ -196,20 +199,21 @@ class Game:
         self.LOGIC.start_music()
 
         RENDER = "wss://oh-no-ships.onrender.com"
-        if host == "render":
-            connection = RENDER
-        else:
-            connection = f"ws://{host}:{port}"
+        connection = RENDER if host == "render" else f"ws://{host}:{port}"
 
-        async with websockets.connect(connection) as websocket:
-            self.connected = True
+        try:
+            async with websockets.connect(connection) as websocket:
+                self.connected = True
 
-            logger.info(f"Sending to server: {role}")
-            await messages.set_role(role, websocket)
+                logger.info(f"Sending to server: {role}")
+                await messages.set_role(role, websocket)
 
-            recv_task = asyncio.create_task(self.receive_from_server(websocket))
-            await self.loop(websocket)
-            recv_task.cancel()
+                recv_task = asyncio.create_task(self.receive_from_server(websocket))
+                await self.loop(websocket)
+                recv_task.cancel()
+        except (OSError, websockets.exceptions.WebSocketException) as e:
+            logger.warning(f"WebSocket connection error: {e}")
+        finally:
+            self.LOGIC.stop_music()
 
-        self.LOGIC.stop_music()
         return "lobby"

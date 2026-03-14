@@ -4,6 +4,7 @@ import pygame
 
 from levels import lobby, game
 from inputs import InputHandler
+from loguru import logger
 
 
 pygame.init()
@@ -24,7 +25,11 @@ if __name__ == "__main__":
         if role is None:
             break
 
-        result = asyncio.run(GAME.run(role, LOBBY.host.value, LOBBY.port.value))
+        try:
+            result = asyncio.run(GAME.run(role, LOBBY.host.value, LOBBY.port.value))
+        except Exception as e:
+            logger.error(f"Unexpected game crash: {e}")
+            result = "lobby"
         if result == "quit":
             break
 
