@@ -7,33 +7,18 @@ import pygame_gui
 from pygame.time import Clock
 from loguru import logger
 
-
-import messages
-from enums import ROLE, MESSAGES
-from client import Logic
-from inputs import InputHandler
-from factories import BASE_COLOR
-
-
-
-class Camera:    
-    def __init__(self, x, y, map_pixel_w: int, map_pixel_h: int,
-        screen_w: int, screen_h: int) -> None:
-        self.x = x
-        self.y = y
-        self.map_w = map_pixel_w
-        self.map_h = map_pixel_h
-        self.screen_w = screen_w
-        self.screen_h = screen_h
-        
-    def move(self, dx: int, dy: int) -> None:
-        self.x = max(0, min(self.x + dx, self.map_w - self.screen_w))
-        self.y = max(0, min(self.y + dy, self.map_h - self.screen_h))
-        
-    @property
-    def offset(self) -> tuple[int, int]:
-        return self.x, self.y
-
+import adapters.messages as messages
+from adapters.messages import MESSAGES
+from adapters.camera import Camera
+from adapters.input_adapter import InputAdapter
+from adapters.renderer import GameRenderer
+from frameworks.asset_store import AssetStore
+from frameworks.inputs import InputHandler
+from frameworks.factories import BASE_COLOR
+from use_cases.client_session import ClientSession
+from use_cases.input_translator import translate_move, translate_shoot
+from domain.enums import ROLE
+import frameworks.paths as paths
 
 
 class Game:
@@ -42,10 +27,20 @@ class Game:
     def __init__(
         self, window: pygame.Surface, inputs: InputHandler, clock: Clock
     ) -> None:
-        self.LOGIC = Logic()
-        self.camera = Camera(x = self.LOGIC.player.x, y = self.LOGIC.player.y,
-                             map_pixel_h = self.LOGIC.map_height, map_pixel_w = self.LOGIC.map_width,
-                             screen_h = window.get_height(), screen_w = window.get_width())
+        self._assets = AssetStore.get()
+        self._session = ClientSession()
+        self._renderer = GameRenderer(self._assets)
+        self._input_adapter = InputAdapter(inputs)
+
+        map_r = self._assets.map_render
+        self.camera = Camera(
+            x=self._session.player.x,
+            y=self._session.player.y,
+            map_pixel_h=map_r.height,
+            map_pixel_w=map_r.width,
+            screen_h=window.get_height(),
+            screen_w=window.get_width(),
+        )
         self.inputs = inputs
         self.clock = clock
         self.window = window
@@ -61,21 +56,20 @@ class Game:
 
     def _build_hud(self):
         W, H = self.window.get_size()
-        pw = max(180, min(220, int(W * 0.13)))  # panel width, responsive
+        pw = max(180, min(220, int(W * 0.13)))
         M = 10
         ew = pw - 2 * M
-        pad = 12  # screen edge margin
+        pad = 12
 
-        # Row heights and y positions (relative to panel top)
         row_h = 18
         bar_h = 16
         gap = 8
-        y0 = M                             # HP label
-        y1 = y0 + row_h + 2               # HP bar
-        y2 = y1 + bar_h + gap             # Ships label
-        y3 = y2 + row_h + gap             # Enemies label
-        y4 = y3 + row_h + gap             # Castles label
-        ph = y4 + row_h + M               # panel height
+        y0 = M
+        y1 = y0 + row_h + 2
+        y2 = y1 + bar_h + gap
+        y3 = y2 + row_h + gap
+        y4 = y3 + row_h + gap
+        ph = y4 + row_h + M
 
         self._hud_rect = pygame.Rect(W - pw - pad, H - ph - pad, pw, ph)
         self._hud_bg = pygame.Surface((pw, ph), pygame.SRCALPHA)
@@ -89,7 +83,6 @@ class Game:
             text="HP: 20/20",
             manager=self._hud_manager,
         )
-        # HP bar drawn manually; store its screen rect
         self._hp_bar_rect = pygame.Rect(rx, ry + y1, ew, bar_h)
 
         self._lbl_ships = pygame_gui.elements.UILabel(
@@ -109,29 +102,25 @@ class Game:
         )
 
     def _draw_hud(self, surface: pygame.Surface, time_delta: float):
-        player = self.LOGIC.player
+        player = self._session.player
         live = player.live
         max_live = player.max_live
         ratio = max(0.0, live / max_live) if max_live > 0 else 0.0
 
-        # Update label text
         self._lbl_hp.set_text(f"HP: {live}/{max_live}")
-        self._lbl_ships.set_text(f"Ships: {len(self.LOGIC.received_ships)}")
-        self._lbl_enemies.set_text(f"Enemies: {len(self.LOGIC.received_enemies)}")
-        self._lbl_castles.set_text(f"Castles: {len(self.LOGIC.castles)}")
+        self._lbl_ships.set_text(f"Ships: {len(self._session.received_ships)}")
+        self._lbl_enemies.set_text(f"Enemies: {len(self._session.received_enemies)}")
+        self._lbl_castles.set_text(f"Castles: {len(self._session.received_castles)}")
 
         self._hud_manager.update(time_delta)
 
-        # Semi-transparent grey panel
         surface.blit(self._hud_bg, self._hud_rect.topleft)
 
-        # Health bar (manual draw so it respects the transparent background)
         bar = self._hp_bar_rect
         pygame.draw.rect(surface, (0, 0, 0), bar)
         pygame.draw.rect(surface, (220, 60, 60), (bar.x, bar.y, int(bar.w * ratio), bar.h))
         pygame.draw.rect(surface, (200, 200, 200), bar, 1)
 
-        # pygame_gui labels on top
         self._hud_manager.draw_ui(surface)
 
     # ------------------------------------------------------------------
@@ -140,63 +129,82 @@ class Game:
         try:
             async for raw in websocket:
                 data = json.loads(raw)
-
                 message_type = MESSAGES(data["type"])
 
                 if message_type == MESSAGES.HELLO:
-                    self.LOGIC.ID = data["id"]
+                    self._session.ID = data["id"]
                 elif message_type == MESSAGES.PLAYERS_UPDATE:
-                    self.LOGIC.update_players(
+                    self._session.update_players(
                         {int(k): v for k, v in data.get("players", {}).items()}
                     )
-                    self.LOGIC.update_bullets(data.get("bullets", []))
-                    self.LOGIC.update_ships(data.get("ships", []))
-                    self.LOGIC.update_enemies(data.get("enemies", []))
-                    self.LOGIC.update_castles(data.get("castles", {}))
+                    self._session.update_bullets(data.get("bullets", []))
+                    self._session.update_ships(data.get("ships", []))
+                    self._session.update_enemies(data.get("enemies", []))
+                    self._session.update_castles(data.get("castles", {}))
                 elif message_type == MESSAGES.QUIT:
                     self.connected = False
         except websockets.exceptions.ConnectionClosed:
             self.connected = False
 
-    def update_camera(self):
-        self.camera.x = self.LOGIC.player.x
-        self.camera.y = self.LOGIC.player.y
-        self.camera.move(-self.camera.screen_w // 2, 
-                         - self.camera.screen_h // 2)
+    def _update_camera(self):
+        self.camera.x = self._session.player.x
+        self.camera.y = self._session.player.y
+        self.camera.move(-self.camera.screen_w // 2, -self.camera.screen_h // 2)
+
+    def _update_music(self):
+        in_battle = self._session.in_battle
+        if not hasattr(self, "_was_in_battle"):
+            self._was_in_battle = False
+
+        if in_battle and not self._was_in_battle:
+            pygame.mixer.music.load(paths.BATTLE_MUSIC_PATH)
+            pygame.mixer.music.play(loops=-1)
+            self._was_in_battle = True
+        elif not in_battle and self._was_in_battle:
+            pygame.mixer.music.load(paths.BACKGROND_MUSIC_PATH)
+            pygame.mixer.music.play(loops=-1)
+            self._was_in_battle = False
 
     async def loop(self, websocket) -> None:
         while self.connected and not self.inputs.quit:
-            await self.__handle_player_actions(websocket)
-
-            print(self.LOGIC.player)
-
-            self.update_camera()
+            await self._handle_player_actions(websocket)
+            self._update_camera()
             self.window.fill(BASE_COLOR)
-            self.LOGIC.draw(self.window, -self.camera.x, -self.camera.y)
+            self._renderer.draw(
+                self.window, self._session, -self.camera.x, -self.camera.y
+            )
+            self._update_music()
 
             time_delta = self.clock.tick(self.FRAME_RATE) / 1000.0
             self._draw_hud(self.window, time_delta)
             pygame.display.flip()
             await asyncio.sleep(0)
 
-    async def __handle_player_actions(self, websocket):
+    async def _handle_player_actions(self, websocket):
         self.inputs.update()
+        intention = self._input_adapter.read()
 
-        dx, dy, state = self.LOGIC.player.wish_to_move(self.inputs)
+        dx, dy, state = translate_move(intention, self._session.player.speed)
         if dx != 0 or dy != 0 or state != self._last_sent_state:
             self._last_sent_state = state
             await messages.wish_move(dx, dy, state, websocket)
 
-        dx, dy = self.LOGIC.player.wish_to_shoot(
-            self.inputs, self.camera.x, self.camera.y
+        shoot_dx, shoot_dy = translate_shoot(
+            intention,
+            self._session.player.x,
+            self._session.player.y,
+            self.camera.x,
+            self.camera.y,
         )
-        if dx != 0 or dy != 0:
-            await messages.wish_shot(self.LOGIC.player.role, dx, dy, websocket)
-
+        if shoot_dx != 0 or shoot_dy != 0:
+            await messages.wish_shot(
+                self._session.player.role, shoot_dx, shoot_dy, websocket
+            )
 
     async def run(self, role: ROLE, host: str, port: str) -> str:
-        self.LOGIC.reset()
-        self.LOGIC.start_music()
+        self._session.reset()
+        pygame.mixer.music.load(paths.BACKGROND_MUSIC_PATH)
+        pygame.mixer.music.play(loops=-1)
 
         RENDER = "wss://oh-no-ships.onrender.com"
         connection = RENDER if host == "render" else f"ws://{host}:{port}"
@@ -204,7 +212,6 @@ class Game:
         try:
             async with websockets.connect(connection) as websocket:
                 self.connected = True
-
                 logger.info(f"Sending to server: {role}")
                 await messages.set_role(role, websocket)
 
@@ -214,6 +221,6 @@ class Game:
         except (OSError, websockets.exceptions.WebSocketException) as e:
             logger.warning(f"WebSocket connection error: {e}")
         finally:
-            self.LOGIC.stop_music()
+            pygame.mixer.music.stop()
 
         return "lobby"

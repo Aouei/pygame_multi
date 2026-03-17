@@ -5,7 +5,8 @@ if __name__ != "__main__":
     if getattr(sys, "frozen", False):
         BASE_DIR = sys._MEIPASS
     else:
-        BASE_DIR = os.path.join(os.path.dirname(__file__), "..")
+        # src/frameworks/ → src/ → project root
+        BASE_DIR = os.path.join(os.path.dirname(__file__), "..", "..")
 
     ASSETS_DIR = os.path.join(BASE_DIR, "assets")
     PLAYER_DIR = os.path.join(ASSETS_DIR, "player")

@@ -5,3 +5,10 @@ from typing import Protocol, runtime_checkable
 class LivingEntity(Protocol):
     live: int
     max_live: int
+
+
+@runtime_checkable
+class Collidable(Protocol):
+    x: int
+    y: int
+    radius: int

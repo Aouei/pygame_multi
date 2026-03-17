@@ -20,10 +20,10 @@ class InputHandler:
 
     def _reset(self):
         self.quit = False
-        self.k_left = False  # pulso puntual (menús)
-        self.k_right = False  # pulso puntual (menús)
-        self.k_enter = False  # pulso puntual
-        self.con_left = False  # estado continuo (movimiento)
+        self.k_left = False
+        self.k_right = False
+        self.k_enter = False
+        self.con_left = False
         self.con_right = False
         self.con_up = False
         self.con_down = False
@@ -36,8 +36,6 @@ class InputHandler:
 
     def update(self):
         self._reset()
-
-        # Consumir eventos de pygame (necesario siempre para que pygame no se congele)
         events = pygame.event.get()
         self.mouse_pos = pygame.mouse.get_pos()
 
@@ -107,20 +105,17 @@ class InputHandler:
 
         j = self._joystick
 
-        # Ejes analógicos → movimiento continuo
         ax = j.get_axis(0) if j.get_numaxes() > 0 else 0.0
         ay = j.get_axis(1) if j.get_numaxes() > 1 else 0.0
-
         rx = j.get_axis(2) if j.get_numaxes() > 2 else 0.0
         ry = j.get_axis(3) if j.get_numaxes() > 3 else 0.0
-
         trigger = j.get_axis(5) > -0.5 if j.get_numaxes() > 5 else False
 
         if not trigger:
             self._shot_timer = 0
             self.shot = False
         elif not self._prev_trigger:
-            self.shot = True  # primer pulso — dispara inmediatamente
+            self.shot = True
             self._shot_timer = 0
         else:
             self._shot_timer += 1
@@ -129,7 +124,6 @@ class InputHandler:
                 self._shot_timer = 0
 
         self._prev_trigger = trigger
-
         self.right_stick = (rx, ry)
 
         if ax < -self.deadzone:
@@ -141,7 +135,6 @@ class InputHandler:
         if ay > self.deadzone:
             self.con_down = True
 
-        # Cruceta → estado continuo + pulso para menús
         if j.get_numhats() > 0:
             hx, hy = j.get_hat(0)
             if hx == -1 and self._prev_hat != -1:

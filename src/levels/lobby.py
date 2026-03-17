@@ -1,25 +1,26 @@
+import os
 import pygame
 import pygame_gui
-import os
-import sys
-from typing import Optional
 import asyncio
 import json
 import threading
+from typing import Optional
 
-import paths
-import server as server_module
 import websockets
 
+import frameworks.paths as paths
+from domain.enums import ROLE
+from adapters.messages import MESSAGES
+from frameworks.inputs import InputHandler
+from use_cases.lobby_service import LobbyService
 from pygame.time import Clock
-from enums import ROLE, MESSAGES
-from inputs import InputHandler
+
 
 pygame.font.init()
 
 
 class _EntryWrapper:
-    """Exposes .value so client.py can do LOBBY.host.value / LOBBY.port.value."""
+    """Exposes .value so main.py can do LOBBY.host.value / LOBBY.port.value."""
 
     def __init__(self, entry: pygame_gui.elements.UITextEntryLine):
         self._entry = entry
@@ -31,27 +32,34 @@ class _EntryWrapper:
 
 class Screen:
     FRAME_RATE = 60
-    ROLE_TEXT_FONT = pygame.font.Font(None, 64)
 
     def __init__(self, window: pygame.Surface, inputs: InputHandler, clock: Clock):
         self.inputs = inputs
         self.classes: list[tuple[ROLE, pygame.Surface]] = [
             (
                 ROLE.ARCHER,
-                pygame.image.load(os.path.join(paths.PLAYER_DIR, r"archer\idle.png")),
+                pygame.image.load(
+                    os.path.join(paths.PLAYER_DIR, r"archer\idle.png")
+                ),
             ),
             (
                 ROLE.MAGE,
-                pygame.image.load(os.path.join(paths.PLAYER_DIR, r"mage\idle.png")),
+                pygame.image.load(
+                    os.path.join(paths.PLAYER_DIR, r"mage\idle.png")
+                ),
             ),
             (
                 ROLE.FARMER,
-                pygame.image.load(os.path.join(paths.PLAYER_DIR, r"farmer\idle.png")),
+                pygame.image.load(
+                    os.path.join(paths.PLAYER_DIR, r"farmer\idle.png")
+                ),
             ),
             (
                 ROLE.MUSKETEER,
                 pygame.image.load(
-                    os.path.join(paths.PLAYER_DIR, r"musketeer\idle.png")
+                    os.path.join(
+                        paths.PLAYER_DIR, r"musketeer\idle.png"
+                    )
                 ),
             ),
         ]
@@ -64,8 +72,7 @@ class Screen:
 
         self._connected = False
         self._player_count = 0
-        self._server_obj: server_module.Server | None = None
-        self._server_thread: threading.Thread | None = None
+        self._lobby_service = LobbyService()
         self._ws_thread: threading.Thread | None = None
         self._ws_loop_ref: asyncio.AbstractEventLoop | None = None
         self._ws_ref = None
@@ -85,8 +92,6 @@ class Screen:
         char_size = min(self.size, int(H * 0.52))
         gap = max(30, int(W * 0.04))
 
-        # Both panel and character are laid out side by side and the pair is
-        # centered on screen.
         total_w = panel_w + gap + char_size
         left_x = (W - total_w) // 2
         center_y = H // 2
@@ -97,14 +102,13 @@ class Screen:
             manager=self.manager,
         )
 
-        # Character draw geometry (used in _draw)
         self._char_x = left_x + panel_w + gap
         self._char_y = center_y - char_size // 2
         self._char_size = char_size
 
-        M = 12                       # inner margin
-        ew = panel_w - 2 * M         # usable element width
-        btn_w = (ew - 20) // 3       # three buttons with 10 px gaps
+        M = 12
+        ew = panel_w - 2 * M
+        btn_w = (ew - 20) // 3
 
         pygame_gui.elements.UILabel(
             relative_rect=pygame.Rect(M, 8, ew, 22),
@@ -118,7 +122,7 @@ class Screen:
             container=self._panel,
             initial_text="25.33.144.47",
         )
-        
+
         pygame_gui.elements.UILabel(
             relative_rect=pygame.Rect(M, 74, ew, 22),
             text="Port",
@@ -133,14 +137,12 @@ class Screen:
         )
         self._port_entry.set_allowed_characters(list("0123456789"))
 
-        # Three buttons in one row
         self._btn_host = pygame_gui.elements.UIButton(
             relative_rect=pygame.Rect(M, 145, btn_w, 36),
             text="Host",
             manager=self.manager,
             container=self._panel,
         )
-        # Connect and Disconnect share the same slot; only one visible at a time
         self._btn_connect = pygame_gui.elements.UIButton(
             relative_rect=pygame.Rect(M + btn_w + 10, 145, btn_w, 36),
             text="Connect",
@@ -163,7 +165,6 @@ class Screen:
         )
         self._btn_play.disable()
 
-        # Player count only — status is drawn manually so it can be coloured
         self._lbl_players = pygame_gui.elements.UILabel(
             relative_rect=pygame.Rect(M + ew // 2, 195, ew // 2, 26),
             text="0/4",
@@ -174,34 +175,11 @@ class Screen:
         self._status_font = pygame.font.Font(None, 26)
         self._role_font = pygame.font.Font(None, 52)
 
-        # Wrappers so client.py can read .host.value / .port.value
         self.host = _EntryWrapper(self._ip_entry)
         self.port = _EntryWrapper(self._port_entry)
 
     # ------------------------------------------------------------------
-    # Server en-proceso
-    # ------------------------------------------------------------------
-
-    def _start_server(self):
-        self._stop_server()
-        self._server_obj = server_module.Server()
-        srv = self._server_obj
-        self._server_thread = threading.Thread(
-            target=lambda: asyncio.run(server_module.run(srv)),
-            daemon=True,
-        )
-        self._server_thread.start()
-
-    def _stop_server(self):
-        if self._server_obj:
-            self._server_obj.running = False
-        if self._server_thread:
-            self._server_thread.join(timeout=2.0)
-        self._server_obj = None
-        self._server_thread = None
-
-    # ------------------------------------------------------------------
-    # WebSocket connection (daemon thread)
+    # WebSocket connection probe
     # ------------------------------------------------------------------
 
     def _connect_ws(self):
@@ -223,14 +201,12 @@ class Screen:
     async def _ws_coro(self):
         try:
             RENDER = "wss://oh-no-ships.onrender.com"
-            if self.host.value == "render":
-                connection = RENDER
-            else:
-                connection = f"ws://{self.host.value}:{self.port.value}"
-
-            async with websockets.connect(
-                connection
-            ) as ws:
+            connection = (
+                RENDER
+                if self.host.value == "render"
+                else f"ws://{self.host.value}:{self.port.value}"
+            )
+            async with websockets.connect(connection) as ws:
                 self._ws_ref = ws
                 self._connected = True
                 async for raw in ws:
@@ -255,7 +231,7 @@ class Screen:
 
     def _disconnect(self):
         self._disconnect_ws()
-        self._stop_server()
+        self._lobby_service.stop_hosting()
 
     # ------------------------------------------------------------------
     # Lobby loop
@@ -275,7 +251,7 @@ class Screen:
 
         self._disconnect_ws()
         if self.selection is None:
-            self._stop_server()
+            self._lobby_service.stop_hosting()
         return self.selection
 
     def _handle_events(self, time_delta: float):
@@ -298,7 +274,7 @@ class Screen:
 
             if event.type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == self._btn_host:
-                    self._start_server()
+                    self._lobby_service.start_hosting()
                     threading.Timer(0.5, self._connect_ws).start()
                 elif event.ui_element == self._btn_connect:
                     self._connect_ws()
@@ -311,7 +287,6 @@ class Screen:
 
         self.manager.update(time_delta)
 
-        # Sync button visibility with connection status
         if self._connected:
             self._btn_connect.hide()
             self._btn_disconnect.show()
@@ -325,18 +300,12 @@ class Screen:
 
     def _draw(self):
         surface = self.window
-
-        # Character sprite (drawn first; panel renders on top if they overlap)
         scaled = pygame.transform.scale(
             self.classes[self.current_class][-1],
             (self._char_size, self._char_size),
         )
         surface.blit(scaled, (self._char_x, self._char_y))
-
-        # pygame_gui elements
         self.manager.draw_ui(surface)
-
-        # Overlaid text drawn after manager so it appears on top of the panel
         self._draw_status(surface)
         self._draw_role_label(surface)
 
@@ -349,7 +318,6 @@ class Screen:
             color = (180, 180, 180)
             text = "Disconnected"
         surf = self._status_font.render(text, True, color)
-        # Align vertically with the players label (195 px from panel top + inner offset)
         x = panel_rect.left + 12
         y = panel_rect.top + 195 + (26 - surf.get_height()) // 2
         surface.blit(surf, (x, y))
