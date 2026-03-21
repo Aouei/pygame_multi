@@ -49,6 +49,8 @@ class Game:
 
         self._hud_manager = pygame_gui.UIManager(window.get_size())
         self._build_hud()
+        self._show_controls = False
+        self._controls_surface = self._build_controls_surface()
 
     # ------------------------------------------------------------------
     # HUD
@@ -100,6 +102,60 @@ class Game:
             text="Castles: 0",
             manager=self._hud_manager,
         )
+
+    def _build_controls_surface(self) -> pygame.Surface:
+        font_title = pygame.font.Font(None, 34)
+        font = pygame.font.Font(None, 26)
+        pad = 20
+        line_h = 28
+
+        rows = [
+            ("Teclado", None),
+            ("Mover",        "WASD"),
+            ("Disparar",     "Clic izquierdo"),
+            ("Controles",    "M"),
+            ("", None),
+            ("Mando", None),
+            ("Mover",        "Analógico izquierdo"),
+            ("Disparar",     "Gatillo derecho (R2/RT)"),
+            ("Controles",    "Select (btn 8)"),
+        ]
+
+        col_label = 140
+        col_key   = 220
+        w = pad * 2 + col_label + col_key
+        h = pad * 2 + line_h + len(rows) * line_h
+
+        surf = pygame.Surface((w, h), pygame.SRCALPHA)
+        surf.fill((30, 30, 30, 210))
+        pygame.draw.rect(surf, (200, 200, 200, 80), surf.get_rect(), 1)
+
+        title = font_title.render("Controles", True, (255, 255, 255))
+        surf.blit(title, (pad, pad))
+
+        y = pad + line_h + 4
+        for label, key in rows:
+            if label == "" and key is None:
+                y += line_h // 2
+                continue
+            if key is None:
+                txt = font.render(label, True, (180, 220, 255))
+                surf.blit(txt, (pad, y))
+            else:
+                lbl = font.render(label, True, (200, 200, 200))
+                k   = font.render(key,   True, (255, 255, 140))
+                surf.blit(lbl, (pad, y))
+                surf.blit(k,   (pad + col_label, y))
+            y += line_h
+
+        return surf
+
+    def _draw_controls_panel(self, surface: pygame.Surface):
+        if not self._show_controls:
+            return
+        x = (surface.get_width()  - self._controls_surface.get_width())  // 2
+        y = (surface.get_height() - self._controls_surface.get_height()) // 2
+        surface.blit(self._controls_surface, (x, y))
 
     def _draw_hud(self, surface: pygame.Surface, time_delta: float):
         player = self._session.player
@@ -177,11 +233,14 @@ class Game:
 
             time_delta = self.clock.tick(self.FRAME_RATE) / 1000.0
             self._draw_hud(self.window, time_delta)
+            self._draw_controls_panel(self.window)
             pygame.display.flip()
             await asyncio.sleep(0)
 
     async def _handle_player_actions(self, websocket):
         self.inputs.update()
+        if self.inputs.toggle_controls:
+            self._show_controls = not self._show_controls
         intention = self._input_adapter.read()
 
         dx, dy, state = translate_move(intention, self._session.player.speed)

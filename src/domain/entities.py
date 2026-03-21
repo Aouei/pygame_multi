@@ -40,7 +40,7 @@ class Player:
     y: int
     live: int = 20
     max_live: int = 20
-    radius: int = 25
+    radius: int = 20
     speed: int = 5
     state: STATE = STATE.DOWN
     invulnerable: int = 0

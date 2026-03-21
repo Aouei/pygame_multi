@@ -36,7 +36,7 @@ class SimpleRect:
 
 
 class MapData:
-    COMMON_COLLISIONS = {"tree", "building", "cliff", "castle"}
+    COMMON_COLLISIONS = {"tree", "building", "cliff", "castle", "river"}
     COLLISION_TILES = {
         COLLISIONS.PLAYER: {"deep_water", *COMMON_COLLISIONS},
         COLLISIONS.BULLET: {"tree", "building", "deep_water", "castle"},

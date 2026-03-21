@@ -33,6 +33,7 @@ class InputHandler:
         self.right_stick = (0.0, 0.0)
         self.current_char = ""
         self.delete_char = False
+        self.toggle_controls = False
 
     def update(self):
         self._reset()
@@ -56,6 +57,8 @@ class InputHandler:
 
                 if event.key == pygame.K_ESCAPE:
                     self.quit = True
+                elif event.key == pygame.K_m:
+                    self.toggle_controls = True
                 elif event.key == pygame.K_RETURN:
                     self.k_enter = True
                 elif event.key == pygame.K_LEFT:
@@ -88,6 +91,8 @@ class InputHandler:
                     self.k_enter = True
                 elif event.button == 6:
                     self.quit = True
+                elif event.button == 8:
+                    self.toggle_controls = True
             elif event.type == pygame.JOYDEVICEREMOVED:
                 self._joystick = None
                 return
