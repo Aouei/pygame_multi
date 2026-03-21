@@ -4,7 +4,7 @@ import pygame
 import tiledpy.map.render as tiled_render
 
 import frameworks.paths as paths
-from domain.entities import Player, Ship, Bullet, Enemy
+from domain.entities import Player, Ship, Bullet, Enemy, Castle
 from domain.map_data import MapData
 from domain.protocols import LivingEntity
 from frameworks.factories import MAP_SCALE, HEALTH_BAR_HEIGHT, BASE_COLOR
@@ -342,47 +342,62 @@ class GameRenderer:
                     1,
                 )
 
+    def _sprite_width(self, entity) -> int:
+        if isinstance(entity, Player):
+            return self._assets.players[entity.role][entity.state][0].get_width()
+        elif isinstance(entity, Ship):
+            return self._assets.ships[entity.state].get_width()
+        elif isinstance(entity, Enemy):
+            return self._assets.enemies[entity.variant][entity.state].get_width()
+        elif isinstance(entity, Castle):
+            return self._assets.castle.get_width()
+        return HEALTH_BAR_HEIGHT
+
     def draw_ui(self, surface, dx, dy, session, map_r: MapRender):
         for player in session.received_players.copy().values():
             if isinstance(player, LivingEntity):
+                w = self._sprite_width(player)
                 self.draw_health_bar(
                     surface,
-                    player.x + dx,
-                    player.y + dy,
-                    HEALTH_BAR_HEIGHT,
+                    player.x - w // 2 + dx,
+                    player.y - w // 2 - HEALTH_BAR_HEIGHT + dy,
+                    w,
                     HEALTH_BAR_HEIGHT,
                     player,
                 )
 
         for ship in session.received_ships.copy():
             if isinstance(ship, LivingEntity):
+                w = self._sprite_width(ship)
                 self.draw_health_bar(
                     surface,
-                    ship.x - surface.get_width() // 2 + dx,
-                    ship.y - surface.get_width() // 2 - HEALTH_BAR_HEIGHT + dy,
-                    surface.get_width(),
+                    ship.x - w // 2 + dx,
+                    ship.y - w // 2 - HEALTH_BAR_HEIGHT + dy,
+                    w,
                     HEALTH_BAR_HEIGHT,
                     ship,
                 )
 
         for enemy in session.received_enemies.copy():
             if isinstance(enemy, LivingEntity):
+                w = self._sprite_width(enemy)
                 self.draw_health_bar(
                     surface,
-                    enemy.x - surface.get_width() // 2 + dx,
-                    enemy.y - surface.get_width() // 2 - HEALTH_BAR_HEIGHT + dy,
-                    surface.get_width(),
+                    enemy.x - w // 2 + dx,
+                    enemy.y - w // 2 - HEALTH_BAR_HEIGHT + dy,
+                    w,
                     HEALTH_BAR_HEIGHT,
                     enemy,
                 )
 
         for castle in session.received_castles.values():
             if isinstance(castle, LivingEntity):
+                w = self._sprite_width(castle)
                 self.draw_health_bar(
                     surface,
-                    castle.x - surface.get_width() // 2 + dx,
-                    castle.y - surface.get_width() // 2 - HEALTH_BAR_HEIGHT + dy,
-                    surface.get_width(),
+                    castle.x - w // 2 + dx,
+                    castle.y - w // 2 - HEALTH_BAR_HEIGHT + dy,
+                    w,
                     HEALTH_BAR_HEIGHT,
                     castle,
                 )
