@@ -1,4 +1,5 @@
 import math
+from math import gcd, lcm
 import pygame
 import tiledpy.map.render as tiled_render
 
@@ -19,6 +20,9 @@ class MapRender:
         self.map = MapData(data, scale)
         self._full_surface: pygame.Surface | None = None
         self._layer_surfaces: dict[str, pygame.Surface] = {}
+        self._animated_layer_names: set[str] = set()
+        self._precomputed_frames: dict[str, list[pygame.Surface]] = {}
+        self._layer_tick_ms: dict[str, int] = {}
 
     @property
     def width(self):
@@ -73,18 +77,81 @@ class MapRender:
 
         surface.blit(cached, (dst_x, dst_y), area=pygame.Rect(src_x, src_y, src_w, src_h))
 
+    def _draw_animated_layer_to(self, surface: pygame.Surface, layer, t_ms: int) -> None:
+        scale = self.map.scale
+        scaled_tw = int(self.map.map.tile_width * scale)
+        scaled_th = int(self.map.map.tile_height * scale)
+        surf_w = surface.get_width()
+        surf_h = surface.get_height()
+        for tile in layer.iter_tiles():
+            tile_surf = tile.get_animated_surface(t_ms, scale)
+            actual_w = tile_surf.get_width()
+            actual_h = tile_surf.get_height()
+            px = tile.tx * scaled_tw + int(layer.offset_x * scale)
+            py = tile.ty * scaled_th + int(layer.offset_y * scale) + scaled_th - actual_h
+            if px + actual_w < 0 or px > surf_w or py + actual_h < 0 or py > surf_h:
+                continue
+            if layer.opacity < 1.0:
+                tile_surf = tile_surf.copy()
+                tile_surf.set_alpha(int(layer.opacity * 255))
+            surface.blit(tile_surf, (px, py))
+
+    def _precompute_animated_layer(self, layer, name: str) -> None:
+        animated_tiles = layer.get_animated_tiles()
+        if not animated_tiles:
+            return
+
+        all_durations: list[int] = []
+        cycle_totals: list[int] = []
+        for tile in animated_tiles:
+            durations = [f["duration"] for f in tile.meta.animation]
+            all_durations.extend(durations)
+            cycle_totals.append(sum(durations))
+
+        tick_ms = gcd(*all_durations)
+        total_ms = lcm(*cycle_totals)
+        n_frames = total_ms // tick_ms
+
+        frames = []
+        for i in range(n_frames):
+            surf = pygame.Surface((self.map.width, self.map.height), pygame.SRCALPHA)
+            self._draw_animated_layer_to(surf, layer, i * tick_ms)
+            frames.append(surf)
+
+        self._precomputed_frames[name] = frames
+        self._layer_tick_ms[name] = tick_ms
+
     def draw_layer(self, surface, position, name: str):
-        if name not in self._layer_surfaces:
-            cached = pygame.Surface((self.map.width, self.map.height), pygame.SRCALPHA)
-            layer = self.map.map.get_layer(name)
-            if layer is not None:
-                tiled_render.draw_layer(
-                    cached, layer,
-                    self.map.map.tile_width, self.map.map.tile_height,
-                    (0, 0), self.map.scale,
-                )
-            self._layer_surfaces[name] = cached
-        self._blit_cached(surface, self._layer_surfaces[name], position)
+        layer = self.map.map.get_layer(name)
+
+        # Lazy detection: first time we see this layer, check for animated tiles
+        if name not in self._layer_surfaces and name not in self._animated_layer_names:
+            if layer is not None and layer.get_animated_tiles():
+                self._animated_layer_names.add(name)
+
+        if name in self._animated_layer_names:
+            if name not in self._precomputed_frames:
+                if layer is not None:
+                    self._precompute_animated_layer(layer, name)
+                else:
+                    self._precomputed_frames[name] = []
+                    self._layer_tick_ms[name] = 1
+            frames = self._precomputed_frames[name]
+            if frames:
+                tick_ms = self._layer_tick_ms[name]
+                idx = (pygame.time.get_ticks() // tick_ms) % len(frames)
+                self._blit_cached(surface, frames[idx], position)
+        else:
+            if name not in self._layer_surfaces:
+                cached = pygame.Surface((self.map.width, self.map.height), pygame.SRCALPHA)
+                if layer is not None:
+                    tiled_render.draw_layer(
+                        cached, layer,
+                        self.map.map.tile_width, self.map.map.tile_height,
+                        (0, 0), self.map.scale,
+                    )
+                self._layer_surfaces[name] = cached
+            self._blit_cached(surface, self._layer_surfaces[name], position)
 
     def draw(self, surface, position):
         if self._full_surface is None:
@@ -163,7 +230,7 @@ class GameRenderer:
     Lee sprites del AssetStore inyectado.
     """
 
-    DEBUG = False
+    DEBUG = True
     ANIM_FPS = 8
 
     def __init__(self, assets) -> None:

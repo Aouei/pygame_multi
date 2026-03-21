@@ -4,7 +4,8 @@
       "Bash(\"c:/Users/sergi/Documents/repos/pygame_multi/docs/index.md\":*)",
       "Bash(python3 -c \":*)",
       "WebFetch(domain:pytmx.readthedocs.io)",
-      "Bash(cmd /c \"dir /s /b C:\\\\Users\\\\sergi\\\\Documents\\\\repos\\\\pygame_multi\\\\.kiro\")"
+      "Bash(cmd /c \"dir /s /b C:\\\\Users\\\\sergi\\\\Documents\\\\repos\\\\pygame_multi\\\\.kiro\")",
+      "Bash(find /c/Users/sergi/Documents/repos/pygame_multi/src -name *map* -o -name *tile* -o -name *render*)"
     ]
   }
 }
