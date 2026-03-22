@@ -1,0 +1,134 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  # ── 1. Detectar bump y calcular nueva versión ─────────────────────────────
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.bump.outputs.should_release }}
+      new_tag:        ${{ steps.bump.outputs.new_tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detectar bump type y calcular tag
+        id: bump
+        run: |
+          MSG=$(git log -1 --pretty=%B)
+          if   echo "$MSG" | grep -qi "release major"; then BUMP=major
+          elif echo "$MSG" | grep -qi "release minor"; then BUMP=minor
+          elif echo "$MSG" | grep -qi "release patch"; then BUMP=patch
+          else
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          LAST=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+          LAST=${LAST:-v0.0.0}
+          IFS='.' read -r MAJ MIN PAT <<< "${LAST#v}"
+
+          case $BUMP in
+            major) MAJ=$((MAJ+1)); MIN=0; PAT=0 ;;
+            minor) MIN=$((MIN+1)); PAT=0 ;;
+            patch) PAT=$((PAT+1)) ;;
+          esac
+
+          NEW="v${MAJ}.${MIN}.${PAT}"
+          echo "should_release=true" >> $GITHUB_OUTPUT
+          echo "new_tag=$NEW"        >> $GITHUB_OUTPUT
+
+  # ── 2. Build Windows (.exe) ───────────────────────────────────────────────
+  build-windows:
+    needs: version
+    if: needs.version.outputs.should_release == 'true'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: |
+          pip install pyinstaller
+          pip install -r requirements.txt
+
+      - name: Compilar cliente
+        run: python build.py
+
+      - name: Renombrar exe
+        shell: pwsh
+        run: |
+          $tag = "${{ needs.version.outputs.new_tag }}"
+          Rename-Item "dist\Oh no, Ships!.exe" "Oh-no-Ships-$tag-windows.exe"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: dist/Oh-no-Ships-*-windows.exe
+
+  # ── 3. Build macOS (.app) ─────────────────────────────────────────────────
+  build-macos:
+    needs: version
+    if: needs.version.outputs.should_release == 'true'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: |
+          pip install pyinstaller
+          pip install -r requirements.txt
+
+      - name: Compilar cliente
+        run: python build.py
+
+      - name: Empaquetar .app en zip
+        run: |
+          TAG="${{ needs.version.outputs.new_tag }}"
+          cd dist
+          zip -r "Oh-no-Ships-${TAG}-mac.zip" "Oh no, Ships!.app"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-app
+          path: dist/Oh-no-Ships-*-mac.zip
+
+  # ── 4. Crear tag + GitHub Release ─────────────────────────────────────────
+  release:
+    needs: [version, build-windows, build-macos]
+    if: needs.version.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Crear y pushear tag
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ needs.version.outputs.new_tag }}
+          git push origin ${{ needs.version.outputs.new_tag }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Crear GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.version.outputs.new_tag }}
+          name: "Oh no, Ships! ${{ needs.version.outputs.new_tag }}"
+          generate_release_notes: true
+          files: |
+            artifacts/windows-exe/*.exe
+            artifacts/macos-app/*.zip
