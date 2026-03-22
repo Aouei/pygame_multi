@@ -12,7 +12,8 @@
       "Bash(python -c \"import pygame_gui; print\\(''pygame_gui path:'', pygame_gui.__file__\\)\")",
       "Bash(where python:*)",
       "Bash(\"/c/Users/sergi/miniconda3/envs/PYGAME/python.exe\" -c \"import pygame; print\\(pygame.__version__\\); print\\(''DIRECTION_LTR:'', hasattr\\(pygame, ''DIRECTION_LTR''\\)\\)\")",
-      "Bash(\"/c/Users/sergi/anaconda3/envs/PYGAME/python.exe\" -c \"import pygame; print\\(pygame.__version__\\); print\\(''DIRECTION_LTR:'', hasattr\\(pygame, ''DIRECTION_LTR''\\)\\)\")"
+      "Bash(\"/c/Users/sergi/anaconda3/envs/PYGAME/python.exe\" -c \"import pygame; print\\(pygame.__version__\\); print\\(''DIRECTION_LTR:'', hasattr\\(pygame, ''DIRECTION_LTR''\\)\\)\")",
+      "Bash(\"/c/Users/sergi/anaconda3/envs/PYGAME/python.exe\" -c \":*)"
     ]
   }
 }

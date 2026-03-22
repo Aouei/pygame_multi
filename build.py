@@ -43,6 +43,7 @@ client_cmd = [
     "--hidden-import", "numpy",
     "--collect-all", "pygame_gui",
     "--collect-all", "pygame",
+    "--runtime-hook", "pygame_compat_hook.py",
     "--icon", "taira.ico",
     "src/main.py",
 ]
