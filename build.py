@@ -41,6 +41,7 @@ client_cmd = [
     "--hidden-import", "websockets",
     "--hidden-import", "pandas",
     "--hidden-import", "numpy",
+    "--collect-all", "pygame_gui",
     "--icon", "taira.ico",
     "src/main.py",
 ]
