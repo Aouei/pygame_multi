@@ -16,6 +16,8 @@ class Screen:
 
         self._show_controls = False
         self._controls_surface = build_controls_surface()
+        self._focused = 0
+        self._buttons = []
 
         self.manager = pygame_gui.UIManager(window.get_size())
         self._build_ui()
@@ -41,6 +43,7 @@ class Screen:
             text="Salir",
             manager=self.manager,
         )
+        self._buttons = [self._btn_play, self._btn_controls, self._btn_quit]
 
     def loop(self) -> str:
         while True:
@@ -51,6 +54,7 @@ class Screen:
 
             self.window.fill((132, 226, 150))
             self.manager.draw_ui(self.window)
+            self._draw_focus_highlight(self.window)
             if self._show_controls:
                 s = self._controls_surface
                 x = (self.window.get_width()  - s.get_width())  // 2
@@ -71,6 +75,34 @@ class Screen:
                         return "quit"
                 elif event.key == pygame.K_m:
                     self._show_controls = not self._show_controls
+                elif event.key == pygame.K_UP:
+                    self._focused = (self._focused - 1) % len(self._buttons)
+                elif event.key == pygame.K_DOWN:
+                    self._focused = (self._focused + 1) % len(self._buttons)
+                elif event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+                    result = self._confirm_focused()
+                    if result is not None:
+                        return result
+
+            elif event.type == pygame.JOYHATMOTION:
+                _, hy = event.value
+                if hy == 1:
+                    self._focused = (self._focused - 1) % len(self._buttons)
+                elif hy == -1:
+                    self._focused = (self._focused + 1) % len(self._buttons)
+
+            elif event.type == pygame.JOYBUTTONDOWN:
+                if event.button == 0:
+                    result = self._confirm_focused()
+                    if result is not None:
+                        return result
+                elif event.button == 6:
+                    if self._show_controls:
+                        self._show_controls = False
+                    else:
+                        return "quit"
+                elif event.button == 8:
+                    self._show_controls = not self._show_controls
 
             if event.type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == self._btn_play:
@@ -82,9 +114,19 @@ class Screen:
 
             self.manager.process_events(event)
 
-        # toggle desde mando
-        if self.inputs.toggle_controls:
-            self._show_controls = not self._show_controls
-
         self.manager.update(time_delta)
         return None
+
+    def _confirm_focused(self):
+        btn = self._buttons[self._focused]
+        if btn == self._btn_play:
+            return "play"
+        if btn == self._btn_controls:
+            self._show_controls = not self._show_controls
+        if btn == self._btn_quit:
+            return "quit"
+        return None
+
+    def _draw_focus_highlight(self, surface: pygame.Surface):
+        rect = self._buttons[self._focused].get_abs_rect()
+        pygame.draw.rect(surface, (255, 220, 50), rect, 3)

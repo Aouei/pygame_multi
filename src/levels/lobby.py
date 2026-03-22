@@ -72,6 +72,7 @@ class Screen:
 
         self._connected = False
         self._player_count = 0
+        self._focused = 0
         self._lobby_service = LobbyService()
         self._ws_thread: threading.Thread | None = None
         self._ws_loop_ref: asyncio.AbstractEventLoop | None = None
@@ -179,6 +180,27 @@ class Screen:
         self.port = _EntryWrapper(self._port_entry)
 
     # ------------------------------------------------------------------
+    # Gamepad focus navigation
+    # ------------------------------------------------------------------
+
+    @property
+    def _nav_items(self):
+        if self._connected:
+            items = [self._btn_disconnect]
+            if self._btn_play.is_enabled:
+                items.append(self._btn_play)
+        else:
+            items = [self._ip_entry, self._port_entry, self._btn_host, self._btn_connect]
+        return items
+
+    def _draw_focus_highlight(self, surface: pygame.Surface):
+        nav = self._nav_items
+        if nav:
+            idx = min(self._focused, len(nav) - 1)
+            rect = nav[idx].get_abs_rect()
+            pygame.draw.rect(surface, (255, 220, 50), rect, 3)
+
+    # ------------------------------------------------------------------
     # WebSocket connection probe
     # ------------------------------------------------------------------
 
@@ -272,6 +294,43 @@ class Screen:
                     if self._connected:
                         self.selection = self.classes[self.current_class][0]
 
+            elif event.type == pygame.JOYHATMOTION:
+                hx, hy = event.value
+                if hx == -1:
+                    self.current_class = (self.current_class - 1) % len(self.classes)
+                elif hx == 1:
+                    self.current_class = (self.current_class + 1) % len(self.classes)
+                nav = self._nav_items
+                if nav:
+                    if hy == 1:
+                        self._focused = (self._focused - 1) % len(nav)
+                    elif hy == -1:
+                        self._focused = (self._focused + 1) % len(nav)
+                    self._focused = min(self._focused, len(nav) - 1)
+
+            elif event.type == pygame.JOYBUTTONDOWN:
+                if event.button == 0:
+                    nav = self._nav_items
+                    if nav:
+                        item = nav[min(self._focused, len(nav) - 1)]
+                        if isinstance(item, pygame_gui.elements.UITextEntryLine):
+                            from frameworks.virtual_keyboard import VirtualKeyboard
+                            result = VirtualKeyboard(item.get_text()).run(self.window, self.clock)
+                            if result is not None:
+                                item.set_text(result)
+                        elif item == self._btn_host:
+                            self._lobby_service.start_hosting()
+                            threading.Timer(0.5, self._connect_ws).start()
+                        elif item == self._btn_connect:
+                            self._connect_ws()
+                        elif item == self._btn_disconnect:
+                            self._disconnect()
+                        elif item == self._btn_play and self._connected:
+                            self.selection = self.classes[self.current_class][0]
+                elif event.button == 6:
+                    self.inputs.quit = True
+                    return
+
             if event.type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == self._btn_host:
                     self._lobby_service.start_hosting()
@@ -306,6 +365,7 @@ class Screen:
         )
         surface.blit(scaled, (self._char_x, self._char_y))
         self.manager.draw_ui(surface)
+        self._draw_focus_highlight(surface)
         self._draw_status(surface)
         self._draw_role_label(surface)
 
