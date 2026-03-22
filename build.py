@@ -48,6 +48,18 @@ client_cmd = [
     "src/main.py",
 ]
 
+# En entornos conda, los .pyd del stdlib dependen de DLLs en Library/bin
+# que PyInstaller no detecta automáticamente. Las añadimos si existen.
+_conda_lib_bin = os.path.join(sys.base_prefix, "Library", "bin")
+_conda_stdlib_dlls = [
+    "ffi-8.dll", "libexpat.dll", "libbz2.dll", "liblzma.dll",
+    "sqlite3.dll", "libcrypto-3-x64.dll", "libssl-3-x64.dll",
+]
+for _dll in _conda_stdlib_dlls:
+    _dll_path = os.path.join(_conda_lib_bin, _dll)
+    if os.path.isfile(_dll_path):
+        client_cmd.extend(["--add-binary", f"{_dll_path};."])
+
 # print("=" * 60)
 # print("Compilando server.exe ...")
 # print("=" * 60)

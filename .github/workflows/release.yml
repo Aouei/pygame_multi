@@ -57,6 +57,10 @@ jobs:
         run: |
           pip install pyinstaller
           pip install -r requirements.txt
+          pip install "pygame-ce==2.5.7" --force-reinstall --no-deps
+
+      - name: Debug pygame
+        run: python -c "import pygame; print('version:', pygame.__version__); print('FRect:', hasattr(pygame, 'FRect')); print('DIRECTION_LTR:', hasattr(pygame, 'DIRECTION_LTR'))"
 
       - name: Compilar cliente
         run: python build.py
@@ -87,6 +91,7 @@ jobs:
         run: |
           pip install pyinstaller
           pip install -r requirements.txt
+          pip install "pygame-ce==2.5.7" --force-reinstall --no-deps
 
       - name: Compilar cliente
         run: python build.py

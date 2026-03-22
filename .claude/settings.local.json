@@ -13,7 +13,22 @@
       "Bash(where python:*)",
       "Bash(\"/c/Users/sergi/miniconda3/envs/PYGAME/python.exe\" -c \"import pygame; print\\(pygame.__version__\\); print\\(''DIRECTION_LTR:'', hasattr\\(pygame, ''DIRECTION_LTR''\\)\\)\")",
       "Bash(\"/c/Users/sergi/anaconda3/envs/PYGAME/python.exe\" -c \"import pygame; print\\(pygame.__version__\\); print\\(''DIRECTION_LTR:'', hasattr\\(pygame, ''DIRECTION_LTR''\\)\\)\")",
-      "Bash(\"/c/Users/sergi/anaconda3/envs/PYGAME/python.exe\" -c \":*)"
+      "Bash(\"/c/Users/sergi/anaconda3/envs/PYGAME/python.exe\" -c \":*)",
+      "Bash(\"/c/Users/sergi/anaconda3/envs/PYGAME/python.exe\" -c \"import pygame; print\\(''FRect:'', hasattr\\(pygame, ''FRect''\\)\\); print\\(''version:'', pygame.__version__\\)\")",
+      "Bash(.venv_pip/Scripts/python.exe -m pip show tiledpy)",
+      "Bash(.venv_pip/Scripts/python.exe -m pip list)",
+      "Bash(.venv_pip/Scripts/pip install:*)",
+      "Bash(.venv_pip/Scripts/python.exe -c \"import pygame; print\\(''version:'', pygame.__version__\\); print\\(''FRect:'', hasattr\\(pygame, ''FRect''\\)\\); print\\(''DIRECTION_LTR:'', hasattr\\(pygame, ''DIRECTION_LTR''\\)\\)\")",
+      "Bash(.venv_pip/Scripts/python.exe build.py)",
+      "Bash(rm -rf .venv_pip)",
+      "Bash(\"/c/Users/sergi/anaconda3/envs/PYGAME/python.exe\" -m venv .venv_pip)",
+      "Bash(.venv_pip/Scripts/python.exe --version)",
+      "Bash(.venv_pip/Scripts/python.exe -c \"import sys; import os; ffi = os.path.join\\(sys.base_prefix, ''Library'', ''bin'', ''ffi-8.dll''\\); print\\(''base_prefix:'', sys.base_prefix\\); print\\(''ffi-8.dll exists:'', os.path.isfile\\(ffi\\)\\)\")",
+      "Bash(.venv_pip/Scripts/python.exe -c \":*)",
+      "Bash(\"/c/Users/sergi/anaconda3/envs/PYGAME/python.exe\" build.py)",
+      "Bash(rm -f \"Oh no, Ships!.spec\")",
+      "Bash(rm -rf \"build/Oh no, Ships!\")",
+      "mcp__engram__mem_save"
     ]
   }
 }
