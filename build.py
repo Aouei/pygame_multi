@@ -42,6 +42,7 @@ client_cmd = [
     "--hidden-import", "pandas",
     "--hidden-import", "numpy",
     "--collect-all", "pygame_gui",
+    "--collect-all", "pygame",
     "--icon", "taira.ico",
     "src/main.py",
 ]

@@ -5,7 +5,14 @@
       "Bash(python3 -c \":*)",
       "WebFetch(domain:pytmx.readthedocs.io)",
       "Bash(cmd /c \"dir /s /b C:\\\\Users\\\\sergi\\\\Documents\\\\repos\\\\pygame_multi\\\\.kiro\")",
-      "Bash(find /c/Users/sergi/Documents/repos/pygame_multi/src -name *map* -o -name *tile* -o -name *render*)"
+      "Bash(find /c/Users/sergi/Documents/repos/pygame_multi/src -name *map* -o -name *tile* -o -name *render*)",
+      "Bash(python -c \"import pygame; print\\(''version:'', pygame.__version__\\); print\\(''has DIRECTION_LTR:'', hasattr\\(pygame, ''DIRECTION_LTR''\\)\\)\")",
+      "Bash(python -c \"import pygame.freetype; print\\(''freetype DIRECTION_LTR:'', hasattr\\(pygame.freetype, ''DIRECTION_LTR''\\)\\); import pygame.font; print\\(''font DIRECTION_LTR:'', hasattr\\(pygame.font, ''DIRECTION_LTR''\\)\\)\")",
+      "Bash(python -c \"import pkg_resources; print\\(''pygame_gui:'', pkg_resources.get_distribution\\(''pygame_gui''\\).version\\)\")",
+      "Bash(python -c \"import pygame_gui; print\\(''pygame_gui path:'', pygame_gui.__file__\\)\")",
+      "Bash(where python:*)",
+      "Bash(\"/c/Users/sergi/miniconda3/envs/PYGAME/python.exe\" -c \"import pygame; print\\(pygame.__version__\\); print\\(''DIRECTION_LTR:'', hasattr\\(pygame, ''DIRECTION_LTR''\\)\\)\")",
+      "Bash(\"/c/Users/sergi/anaconda3/envs/PYGAME/python.exe\" -c \"import pygame; print\\(pygame.__version__\\); print\\(''DIRECTION_LTR:'', hasattr\\(pygame, ''DIRECTION_LTR''\\)\\)\")"
     ]
   }
 }
