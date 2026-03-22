@@ -206,13 +206,24 @@ class MapRender:
                 area=pygame.Rect(clip_x, clip_y, clip_w, clip_h),
             )
 
+        EDGE_MARGIN = 8
         for point in points:
             rel_x = (point["x"] - player_x) * sc
             rel_y = (point["y"] - player_y) * sc
-            px = int(R + rel_x)
-            py = int(R + rel_y)
-            if (px - R) ** 2 + (py - R) ** 2 <= R**2:
-                self._mini_surf.blit(point["image"], (px, py))
+            dist_sq = rel_x ** 2 + rel_y ** 2
+            inner_r = R - EDGE_MARGIN
+            if dist_sq <= inner_r ** 2:
+                px = int(R + rel_x)
+                py = int(R + rel_y)
+                img = point["image"]
+                self._mini_surf.blit(img, (px - img.get_width() // 2, py - img.get_height() // 2))
+            elif point.get("clamp_to_edge"):
+                dist = math.sqrt(dist_sq)
+                factor = inner_r / dist
+                px = int(R + rel_x * factor)
+                py = int(R + rel_y * factor)
+                img = point["image"]
+                self._mini_surf.blit(img, (px - img.get_width() // 2, py - img.get_height() // 2))
 
         self._mini_result.fill((0, 0, 0, 0))
         self._mini_result.blit(self._mini_surf, (0, 0))
@@ -415,14 +426,20 @@ class GameRenderer:
         minimap_points = []
         players_sprites = self._assets.players
 
+        sc = map_r.MINI_SCALE
+
+        def _mini_img(surf: pygame.Surface) -> pygame.Surface:
+            w = max(1, int(surf.get_width() * sc))
+            h = max(1, int(surf.get_height() * sc))
+            return pygame.transform.scale(surf, (w, h))
+
         for player in session.received_players.copy().values():
             minimap_points.append(
                 {
                     "x": player.x,
                     "y": player.y,
-                    "image": pygame.transform.scale(
-                        players_sprites[player.role][player.state][0], (16, 16)
-                    ),
+                    "image": _mini_img(players_sprites[player.role][player.state][0]),
+                    "clamp_to_edge": True,
                 }
             )
 
@@ -431,7 +448,18 @@ class GameRenderer:
                 {
                     "x": castle.x,
                     "y": castle.y,
-                    "image": pygame.transform.scale(self._assets.castle, (16, 16)),
+                    "image": _mini_img(self._assets.castle),
+                    "clamp_to_edge": False,
+                }
+            )
+
+        for ship in session.received_ships:
+            minimap_points.append(
+                {
+                    "x": ship.x,
+                    "y": ship.y,
+                    "image": _mini_img(self._assets.ships[ship.state]),
+                    "clamp_to_edge": True,
                 }
             )
 
@@ -440,9 +468,8 @@ class GameRenderer:
             {
                 "x": p.x,
                 "y": p.y,
-                "image": pygame.transform.scale(
-                    players_sprites[p.role][p.state][0], (16, 16)
-                ),
+                "image": _mini_img(players_sprites[p.role][p.state][0]),
+                "clamp_to_edge": False,
             }
         )
 
