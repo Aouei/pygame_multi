@@ -15,6 +15,7 @@ def build_controls_surface() -> pygame.Surface:
         ("", None),
         ("Mando", None),
         ("Mover",        "Analógico izquierdo"),
+        ("Apuntar",      "Analógico derecho"),
         ("Disparar",     "Gatillo derecho (R2/RT)"),
         ("Controles",    "Select (btn 8)"),
     ]
