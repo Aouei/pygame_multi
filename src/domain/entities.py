@@ -152,8 +152,8 @@ class Enemy:
 class Castle:
     x: int
     y: int
-    live: int = 50
-    max_live: int = 50
+    live: int = 200
+    max_live: int = 200
     radius: int = 64
     invulnerable: int = 0
 

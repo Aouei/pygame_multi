@@ -38,10 +38,10 @@ class SimpleRect:
 class MapData:
     COMMON_COLLISIONS = {"tree", "building", "cliff", "castle", "river"}
     COLLISION_TILES = {
-        COLLISIONS.PLAYER: {"deep_water", *COMMON_COLLISIONS},
-        COLLISIONS.BULLET: {"tree", "building", "deep_water", "castle"},
+        COLLISIONS.PLAYER: {"deep_water", *COMMON_COLLISIONS, "no_walk"},
+        COLLISIONS.BULLET: {"tree", "building", "deep_water", "castle", "no_walk"},
         COLLISIONS.SHIP: {"ground", *COMMON_COLLISIONS},
-        COLLISIONS.ENEMY: {"deep_water", *COMMON_COLLISIONS},
+        COLLISIONS.ENEMY: {"deep_water", *COMMON_COLLISIONS, "no_walk", 'ground'},
     }
 
     PLAYER_SPAWN_CODES = {"player_spawn"}
