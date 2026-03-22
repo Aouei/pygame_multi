@@ -241,7 +241,7 @@ class GameRenderer:
     Lee sprites del AssetStore inyectado.
     """
 
-    DEBUG = True
+    DEBUG = False
     ANIM_FPS = 8
 
     def __init__(self, assets) -> None:

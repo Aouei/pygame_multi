@@ -17,7 +17,7 @@ class ServerSession:
         self.TICK_RATE = 20
         self.IDS = {0, 1, 2, 3}
         self.MAX_SHIPS: int = 5
-        self.MAX_ENEMIES: int = 5
+        self.MAX_ENEMIES: int = 10
         self.BULLET_VELOCITY = 30
         self.INVULNERABLE_TICKS = 10
         self.DELTA = {
