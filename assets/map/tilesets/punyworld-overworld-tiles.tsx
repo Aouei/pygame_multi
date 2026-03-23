@@ -3,6 +3,35 @@
  <image source="punyworld-overworld-tileset.png" width="432" height="1040"/>
  <tile id="0" type="ground"/>
  <tile id="50" type="beach"/>
+ <tile id="108" type="cliff">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="9.97482" y="10.0132" width="5.8698" height="3.03081"/>
+   <object id="2" x="6.17672" y="11.0107" width="5.02578" height="4.94905"/>
+  </objectgroup>
+ </tile>
+ <tile id="109" type="cliff">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0.0767294" y="9.01571" width="15.883" height="3.79811"/>
+  </objectgroup>
+ </tile>
+ <tile id="110" type="cliff">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0.0767294" y="10.0516" width="6.86728" height="2.53207"/>
+   <object id="3" x="3.06918" y="11.8931" width="6.82892" height="3.98993"/>
+  </objectgroup>
+ </tile>
+ <tile id="111" type="cliff">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="5.10251" y="0" width="6.71382" height="11.0874"/>
+   <object id="2" x="-0.0383647" y="9.97482" width="11.1258" height="2.64716"/>
+  </objectgroup>
+ </tile>
+ <tile id="112" type="cliff">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="3.68301" y="0.0767294" width="6.25345" height="9.89809"/>
+   <object id="2" x="5.90816" y="10.1666" width="9.93646" height="2.80062"/>
+  </objectgroup>
+ </tile>
  <tile id="119" type="cliff">
   <objectgroup draworder="index" id="2">
    <object id="1" x="10.0899" y="10.0899" width="6.06162" height="0.805659"/>
@@ -20,16 +49,49 @@
    <object id="2" x="4.14339" y="11.049" width="2.76226" height="4.87232"/>
   </objectgroup>
  </tile>
- <tile id="122" type="cliff"/>
- <tile id="123" type="cliff"/>
- <tile id="135">
+ <tile id="122" type="cliff">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0.153459" y="10.0516" width="9.74463" height="2.95408"/>
+   <object id="2" x="6.09999" y="0.306918" width="3.95156" height="10.4736"/>
+  </objectgroup>
+ </tile>
+ <tile id="123" type="cliff">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="6.02326" y="0.0767294" width="4.14339" height="11.8931"/>
+   <object id="2" x="6.02326" y="9.74463" width="9.66791" height="3.49119"/>
+  </objectgroup>
+ </tile>
+ <tile id="127" type="cliff">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0.0383647" y="4.02829" width="15.9214" height="11.9698"/>
+  </objectgroup>
+ </tile>
+ <tile id="128" type="cliff">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0.115094" y="4.02829" width="15.8446" height="11.2025"/>
+  </objectgroup>
+ </tile>
+ <tile id="135" type="cliff">
   <objectgroup draworder="index" id="2">
    <object id="1" x="5.36364" y="0.181818" width="8.54545" height="15.5455"/>
   </objectgroup>
  </tile>
- <tile id="137">
+ <tile id="136" type="cliff"/>
+ <tile id="137" type="cliff">
   <objectgroup draworder="index" id="2">
    <object id="1" x="3.81818" y="-0.0909091" width="6.72727" height="16.1818"/>
+  </objectgroup>
+ </tile>
+ <tile id="138" type="cliff">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0.0767294" y="3.9132" width="11.9314" height="9.59118"/>
+   <object id="2" x="6.13835" y="8.32514" width="5.8698" height="7.51948"/>
+  </objectgroup>
+ </tile>
+ <tile id="139" type="cliff">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="5.25596" y="3.52955" width="10.5119" height="9.97482"/>
+   <object id="2" x="3.9132" y="3.49119" width="6.06162" height="12.7754"/>
   </objectgroup>
  </tile>
  <tile id="146" type="cliff">
@@ -42,25 +104,47 @@
    <object id="1" x="6.02326" y="0" width="4.10502" height="15.9597"/>
   </objectgroup>
  </tile>
- <tile id="149" type="cliff"/>
- <tile id="150" type="cliff"/>
- <tile id="162">
+ <tile id="149" type="cliff">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0.115094" y="3.10754" width="11.7396" height="10.1283"/>
+   <object id="2" x="6.09999" y="6.13835" width="5.83144" height="9.82136"/>
+  </objectgroup>
+ </tile>
+ <tile id="150" type="cliff">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="4.06666" y="4.98741" width="5.94653" height="10.9339"/>
+   <object id="2" x="3.95156" y="3.10754" width="11.9314" height="9.783"/>
+  </objectgroup>
+ </tile>
+ <tile id="154" type="cliff">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0.115094" y="2.95408" width="15.9214" height="12.9673"/>
+  </objectgroup>
+ </tile>
+ <tile id="155" type="cliff">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0" y="3.83647" width="15.9214" height="11.356"/>
+  </objectgroup>
+ </tile>
+ <tile id="162" type="cliff">
   <objectgroup draworder="index" id="2">
    <object id="1" x="5.90909" y="0" width="6.90909" height="12.2727"/>
    <object id="2" x="5.90909" y="4.27273" width="10.1818" height="10"/>
   </objectgroup>
  </tile>
- <tile id="163">
+ <tile id="163" type="cliff">
   <objectgroup draworder="index" id="2">
    <object id="1" x="0.0909091" y="2.72727" width="16" height="10.9091"/>
   </objectgroup>
  </tile>
- <tile id="164">
+ <tile id="164" type="cliff">
   <objectgroup draworder="index" id="2">
    <object id="2" x="3.63636" y="-0.0909091" width="6.54545" height="10.0909"/>
    <object id="3" x="0" y="5.54545" width="9.09091" height="8.27273"/>
   </objectgroup>
  </tile>
+ <tile id="165" type="cliff"/>
+ <tile id="166" type="cliff"/>
  <tile id="173" type="cliff">
   <objectgroup draworder="index" id="2">
    <object id="1" x="6.13835" y="0.115094" width="4.87232" height="11.9698"/>
@@ -80,6 +164,63 @@
  </tile>
  <tile id="176" type="cliff"/>
  <tile id="177" type="cliff"/>
+ <tile id="197" type="tree">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="5.06414" y="11.2025" width="5.94653" height="2.80062"/>
+  </objectgroup>
+ </tile>
+ <tile id="206" type="tree">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="5.10251" y="10.8956" width="5.8698" height="3.22264"/>
+  </objectgroup>
+ </tile>
+ <tile id="207">
+  <animation>
+   <frame tileid="206" duration="100"/>
+   <frame tileid="206" duration="100"/>
+   <frame tileid="197" duration="100"/>
+   <frame tileid="206" duration="100"/>
+  </animation>
+ </tile>
+ <tile id="224" type="tree">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="3.14591" y="10.1283" width="5.8698" height="3.03081"/>
+  </objectgroup>
+ </tile>
+ <tile id="233" type="tree">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="3.18427" y="10.0899" width="5.75471" height="2.95408"/>
+  </objectgroup>
+ </tile>
+ <tile id="243" type="tree">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="5.17924" y="3.10754" width="5.63961" height="2.80062"/>
+   <object id="2" x="13.1975" y="7.13584" width="2.87735" height="2.87735"/>
+  </objectgroup>
+ </tile>
+ <tile id="244" type="tree">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0.0383647" y="6.98238" width="2.95408" height="3.06918"/>
+   <object id="2" x="5.14087" y="11.1258" width="5.75471" height="3.03081"/>
+   <object id="3" x="13.1975" y="7.13584" width="2.80062" height="2.76226"/>
+  </objectgroup>
+ </tile>
+ <tile id="245" type="tree">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="4.94905" y="2.99245" width="6.06162" height="3.14591"/>
+   <object id="2" x="0.0767294" y="7.05911" width="2.91572" height="2.87735"/>
+  </objectgroup>
+ </tile>
+ <tile id="251" type="tree">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="7.05911" y="11.049" width="5.90816" height="3.03081"/>
+  </objectgroup>
+ </tile>
+ <tile id="260" type="tree">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="7.02074" y="11.0107" width="5.94653" height="3.03081"/>
+  </objectgroup>
+ </tile>
  <tile id="270" type="river">
   <objectgroup draworder="index" id="2">
    <object id="1" x="2.99245" y="4.10502" width="9.1308" height="11.8931"/>
@@ -682,7 +823,7 @@
  <tile id="553" type="no_walk"/>
  <tile id="558" type="no_walk"/>
  <tile id="563" type="deep_water"/>
- <tile id="598">
+ <tile id="598" type="river">
   <objectgroup draworder="index" id="2">
    <object id="1" x="3.125" y="0.125" width="9.5" height="15.625"/>
   </objectgroup>
@@ -693,6 +834,189 @@
    <frame tileid="601" duration="100"/>
   </animation>
  </tile>
+ <tile id="706" type="building"/>
+ <tile id="707" type="building"/>
+ <tile id="708" type="building"/>
+ <tile id="709" type="building"/>
+ <tile id="710" type="building"/>
+ <tile id="711" type="building"/>
+ <tile id="712" type="building"/>
+ <tile id="713" type="building"/>
+ <tile id="714" type="building"/>
+ <tile id="715" type="building"/>
+ <tile id="716" type="building"/>
+ <tile id="717" type="building"/>
+ <tile id="718" type="building"/>
+ <tile id="719" type="building"/>
+ <tile id="720" type="building"/>
+ <tile id="721" type="building"/>
+ <tile id="722" type="building"/>
+ <tile id="723" type="building"/>
+ <tile id="724" type="building"/>
+ <tile id="725" type="building"/>
+ <tile id="726" type="building"/>
+ <tile id="733" type="building"/>
+ <tile id="734" type="building"/>
+ <tile id="735" type="building"/>
+ <tile id="736" type="building"/>
+ <tile id="737" type="building"/>
+ <tile id="738" type="building"/>
+ <tile id="739" type="building"/>
+ <tile id="740" type="building"/>
+ <tile id="741" type="building"/>
+ <tile id="742" type="building"/>
+ <tile id="743" type="building">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="1.03585" y="-0.0767294" width="7.09747" height="16.0364"/>
+  </objectgroup>
+ </tile>
+ <tile id="744" type="building"/>
+ <tile id="745" type="building"/>
+ <tile id="746" type="building"/>
+ <tile id="747" type="building">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="8.13332" y="0.0767294" width="6.79055" height="15.8446"/>
+  </objectgroup>
+ </tile>
+ <tile id="748" type="building"/>
+ <tile id="749" type="building"/>
+ <tile id="750" type="building"/>
+ <tile id="751" type="building"/>
+ <tile id="752" type="building"/>
+ <tile id="753" type="building"/>
+ <tile id="760" type="building"/>
+ <tile id="761" type="building"/>
+ <tile id="762" type="building"/>
+ <tile id="763" type="building"/>
+ <tile id="764" type="building"/>
+ <tile id="765" type="building"/>
+ <tile id="766" type="building"/>
+ <tile id="767" type="building"/>
+ <tile id="768" type="building"/>
+ <tile id="769" type="building"/>
+ <tile id="770" type="building"/>
+ <tile id="771" type="building"/>
+ <tile id="772" type="building"/>
+ <tile id="773" type="building"/>
+ <tile id="774" type="building"/>
+ <tile id="775" type="building">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0" y="1.11258" width="15.9597" height="6.71382"/>
+  </objectgroup>
+ </tile>
+ <tile id="776" type="building"/>
+ <tile id="777" type="building"/>
+ <tile id="778" type="building"/>
+ <tile id="779" type="building"/>
+ <tile id="780" type="building"/>
+ <tile id="787" type="building"/>
+ <tile id="788" type="building"/>
+ <tile id="789" type="building"/>
+ <tile id="790" type="building"/>
+ <tile id="791" type="building"/>
+ <tile id="792" type="building"/>
+ <tile id="793" type="building"/>
+ <tile id="794" type="building"/>
+ <tile id="795" type="building"/>
+ <tile id="796" type="building"/>
+ <tile id="797" type="building">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="1.03585" y="6.79055" width="13.8113" height="9.1308"/>
+  </objectgroup>
+ </tile>
+ <tile id="798" type="building">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="1.15094" y="6.09999" width="13.8497" height="9.74463"/>
+  </objectgroup>
+ </tile>
+ <tile id="799" type="building">
+  <objectgroup draworder="index" id="3">
+   <object id="2" x="0.115094" y="7.48112" width="15.8063" height="8.4786"/>
+  </objectgroup>
+ </tile>
+ <tile id="800" type="building"/>
+ <tile id="801" type="building"/>
+ <tile id="802" type="building"/>
+ <tile id="803" type="building"/>
+ <tile id="804" type="building"/>
+ <tile id="805" type="building"/>
+ <tile id="806" type="building"/>
+ <tile id="807" type="building"/>
+ <tile id="814" type="building"/>
+ <tile id="815" type="building"/>
+ <tile id="816" type="building"/>
+ <tile id="817" type="building"/>
+ <tile id="818" type="building"/>
+ <tile id="819" type="building"/>
+ <tile id="824" type="building"/>
+ <tile id="825" type="building"/>
+ <tile id="826" type="building"/>
+ <tile id="827" type="building"/>
+ <tile id="828" type="building"/>
+ <tile id="829" type="building"/>
+ <tile id="830" type="building"/>
+ <tile id="831" type="building"/>
+ <tile id="832" type="building"/>
+ <tile id="833" type="building"/>
+ <tile id="834" type="building"/>
+ <tile id="841" type="building">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="3.03081" y="12.0849" width="10.0899" height="2.99245"/>
+  </objectgroup>
+ </tile>
+ <tile id="842" type="building">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="6.02326" y="12.0465" width="3.95156" height="2.87735"/>
+  </objectgroup>
+ </tile>
+ <tile id="843" type="building">
+  <objectgroup draworder="index" id="3">
+   <object id="3" x="3.03081" y="11.9698" width="9.85973" height="3.18427"/>
+  </objectgroup>
+ </tile>
+ <tile id="844" type="building">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="1.99496" y="12.0849" width="11.9698" height="3.10754"/>
+  </objectgroup>
+ </tile>
+ <tile id="845" type="building">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="2.07169" y="11.9314" width="11.8547" height="2.91572"/>
+  </objectgroup>
+ </tile>
+ <tile id="846" type="building">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="2.03333" y="12.0465" width="11.9314" height="2.95408"/>
+  </objectgroup>
+ </tile>
+ <tile id="851" type="building"/>
+ <tile id="852" type="building"/>
+ <tile id="853" type="building"/>
+ <tile id="854" type="building"/>
+ <tile id="855" type="building"/>
+ <tile id="856" type="building"/>
+ <tile id="857" type="building"/>
+ <tile id="858" type="building"/>
+ <tile id="859" type="building"/>
+ <tile id="860" type="building"/>
+ <tile id="861" type="building"/>
+ <tile id="868" type="building"/>
+ <tile id="869" type="building"/>
+ <tile id="870" type="building"/>
+ <tile id="871" type="building"/>
+ <tile id="872" type="building"/>
+ <tile id="873" type="building"/>
+ <tile id="878" type="building"/>
+ <tile id="879" type="building"/>
+ <tile id="880" type="building"/>
+ <tile id="881" type="building"/>
+ <tile id="882" type="building"/>
+ <tile id="883" type="building"/>
+ <tile id="884" type="building"/>
+ <tile id="885" type="building"/>
+ <tile id="886" type="building"/>
+ <tile id="887" type="building"/>
+ <tile id="888" type="building"/>
  <tile id="895" type="building"/>
  <tile id="896" type="building"/>
  <tile id="897" type="building"/>
@@ -713,6 +1037,7 @@
  <tile id="912" type="building"/>
  <tile id="913" type="building"/>
  <tile id="914" type="building"/>
+ <tile id="915" type="building"/>
  <tile id="922" type="building">
   <objectgroup draworder="index" id="2">
    <object id="1" x="0.909091" y="10.9091" width="13.9091" height="5"/>
@@ -737,6 +1062,7 @@
  <tile id="939" type="building"/>
  <tile id="940" type="building"/>
  <tile id="941" type="building"/>
+ <tile id="942" type="building"/>
  <tile id="949" type="building"/>
  <tile id="950" type="building"/>
  <tile id="951" type="building"/>
@@ -757,6 +1083,7 @@
  <tile id="966" type="building"/>
  <tile id="967" type="building"/>
  <tile id="968" type="building"/>
+ <tile id="969" type="building"/>
  <tile id="976" type="building">
   <objectgroup draworder="index" id="3">
    <object id="2" x="0.909091" y="10.9091" width="14.0909" height="5"/>
@@ -781,6 +1108,7 @@
  <tile id="993" type="building"/>
  <tile id="994" type="building"/>
  <tile id="995" type="building"/>
+ <tile id="996" type="building"/>
  <tile id="1003" type="building">
   <objectgroup draworder="index" id="2">
    <object id="1" x="2.90909" y="10.1818" width="10.1818" height="4.63636"/>
@@ -837,6 +1165,7 @@
  <tile id="1020" type="building"/>
  <tile id="1021" type="building"/>
  <tile id="1022" type="building"/>
+ <tile id="1023" type="building"/>
  <wangsets>
   <wangset name="overworld" type="corner" tile="-1">
    <wangcolor name="grass" color="#00ff00" tile="-1" probability="1"/>
