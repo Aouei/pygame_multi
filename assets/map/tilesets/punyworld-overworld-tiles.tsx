@@ -76,7 +76,6 @@
    <object id="1" x="5.36364" y="0.181818" width="8.54545" height="15.5455"/>
   </objectgroup>
  </tile>
- <tile id="136" type="cliff"/>
  <tile id="137" type="cliff">
   <objectgroup draworder="index" id="2">
    <object id="1" x="3.81818" y="-0.0909091" width="6.72727" height="16.1818"/>
@@ -143,8 +142,6 @@
    <object id="3" x="0" y="5.54545" width="9.09091" height="8.27273"/>
   </objectgroup>
  </tile>
- <tile id="165" type="cliff"/>
- <tile id="166" type="cliff"/>
  <tile id="173" type="cliff">
   <objectgroup draworder="index" id="2">
    <object id="1" x="6.13835" y="0.115094" width="4.87232" height="11.9698"/>
@@ -162,8 +159,6 @@
    <object id="2" x="-0.767294" y="8.17168" width="9.74463" height="5.83144"/>
   </objectgroup>
  </tile>
- <tile id="176" type="cliff"/>
- <tile id="177" type="cliff"/>
  <tile id="197" type="tree">
   <objectgroup draworder="index" id="2">
    <object id="1" x="5.06414" y="11.2025" width="5.94653" height="2.80062"/>
@@ -948,17 +943,6 @@
  <tile id="817" type="building"/>
  <tile id="818" type="building"/>
  <tile id="819" type="building"/>
- <tile id="824" type="building"/>
- <tile id="825" type="building"/>
- <tile id="826" type="building"/>
- <tile id="827" type="building"/>
- <tile id="828" type="building"/>
- <tile id="829" type="building"/>
- <tile id="830" type="building"/>
- <tile id="831" type="building"/>
- <tile id="832" type="building"/>
- <tile id="833" type="building"/>
- <tile id="834" type="building"/>
  <tile id="841" type="building">
   <objectgroup draworder="index" id="2">
    <object id="1" x="3.03081" y="12.0849" width="10.0899" height="2.99245"/>
@@ -989,34 +973,6 @@
    <object id="1" x="2.03333" y="12.0465" width="11.9314" height="2.95408"/>
   </objectgroup>
  </tile>
- <tile id="851" type="building"/>
- <tile id="852" type="building"/>
- <tile id="853" type="building"/>
- <tile id="854" type="building"/>
- <tile id="855" type="building"/>
- <tile id="856" type="building"/>
- <tile id="857" type="building"/>
- <tile id="858" type="building"/>
- <tile id="859" type="building"/>
- <tile id="860" type="building"/>
- <tile id="861" type="building"/>
- <tile id="868" type="building"/>
- <tile id="869" type="building"/>
- <tile id="870" type="building"/>
- <tile id="871" type="building"/>
- <tile id="872" type="building"/>
- <tile id="873" type="building"/>
- <tile id="878" type="building"/>
- <tile id="879" type="building"/>
- <tile id="880" type="building"/>
- <tile id="881" type="building"/>
- <tile id="882" type="building"/>
- <tile id="883" type="building"/>
- <tile id="884" type="building"/>
- <tile id="885" type="building"/>
- <tile id="886" type="building"/>
- <tile id="887" type="building"/>
- <tile id="888" type="building"/>
  <tile id="895" type="building"/>
  <tile id="896" type="building"/>
  <tile id="897" type="building"/>
@@ -1037,7 +993,6 @@
  <tile id="912" type="building"/>
  <tile id="913" type="building"/>
  <tile id="914" type="building"/>
- <tile id="915" type="building"/>
  <tile id="922" type="building">
   <objectgroup draworder="index" id="2">
    <object id="1" x="0.909091" y="10.9091" width="13.9091" height="5"/>
@@ -1062,7 +1017,6 @@
  <tile id="939" type="building"/>
  <tile id="940" type="building"/>
  <tile id="941" type="building"/>
- <tile id="942" type="building"/>
  <tile id="949" type="building"/>
  <tile id="950" type="building"/>
  <tile id="951" type="building"/>
@@ -1083,7 +1037,6 @@
  <tile id="966" type="building"/>
  <tile id="967" type="building"/>
  <tile id="968" type="building"/>
- <tile id="969" type="building"/>
  <tile id="976" type="building">
   <objectgroup draworder="index" id="3">
    <object id="2" x="0.909091" y="10.9091" width="14.0909" height="5"/>
@@ -1108,7 +1061,6 @@
  <tile id="993" type="building"/>
  <tile id="994" type="building"/>
  <tile id="995" type="building"/>
- <tile id="996" type="building"/>
  <tile id="1003" type="building">
   <objectgroup draworder="index" id="2">
    <object id="1" x="2.90909" y="10.1818" width="10.1818" height="4.63636"/>
@@ -1139,10 +1091,6 @@
    <object id="1" x="6" y="12.375" width="4.125" height="2.25"/>
   </objectgroup>
  </tile>
- <tile id="1009" type="building"/>
- <tile id="1010" type="building"/>
- <tile id="1011" type="building"/>
- <tile id="1012" type="building"/>
  <tile id="1013" type="building">
   <objectgroup draworder="index" id="2">
    <object id="1" x="4" y="9.875" width="8.25" height="4.875"/>
@@ -1165,7 +1113,6 @@
  <tile id="1020" type="building"/>
  <tile id="1021" type="building"/>
  <tile id="1022" type="building"/>
- <tile id="1023" type="building"/>
  <wangsets>
   <wangset name="overworld" type="corner" tile="-1">
    <wangcolor name="grass" color="#00ff00" tile="-1" probability="1"/>
