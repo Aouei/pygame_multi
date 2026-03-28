@@ -2,7 +2,17 @@
 <tileset version="1.10" tiledversion="1.11.2" name="punyworld-overworld" tilewidth="16" tileheight="16" tilecount="1755" columns="27">
  <image source="punyworld-overworld-tileset.png" width="432" height="1040"/>
  <tile id="0" type="ground"/>
+ <tile id="22" type="ground"/>
+ <tile id="23" type="ground"/>
+ <tile id="24" type="ground"/>
+ <tile id="35" type="ground"/>
+ <tile id="47" type="ground"/>
+ <tile id="49" type="ground"/>
  <tile id="50" type="beach"/>
+ <tile id="51" type="ground"/>
+ <tile id="76" type="ground"/>
+ <tile id="77" type="ground"/>
+ <tile id="78" type="ground"/>
  <tile id="108" type="cliff">
   <objectgroup draworder="index" id="2">
    <object id="1" x="9.97482" y="10.0132" width="5.8698" height="3.03081"/>
@@ -529,7 +539,6 @@
    <frame tileid="552" duration="400"/>
   </animation>
  </tile>
- <tile id="310" type="no_walk"/>
  <tile id="311">
   <animation>
    <frame tileid="311" duration="400"/>
