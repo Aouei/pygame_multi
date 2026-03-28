@@ -1,27 +1,26 @@
 import threading
-import asyncio
-from typing import Optional
+from typing import Callable, Optional
 
 
 class LobbyService:
     """
     Gestiona el ciclo de vida del servidor en-proceso.
-    Sin imports de pygame ni websockets.
+    Sin imports de pygame, asyncio ni websockets.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, runner: Callable) -> None:
+        self._runner = runner
         self._server_obj = None
         self._server_thread: Optional[threading.Thread] = None
 
     def start_hosting(self) -> None:
         self.stop_hosting()
         from use_cases.server_session import ServerSession
-        from frameworks.ws_runner import run as ws_run
 
         self._server_obj = ServerSession()
         srv = self._server_obj
         self._server_thread = threading.Thread(
-            target=lambda: asyncio.run(ws_run(srv)),
+            target=lambda: self._runner(srv),
             daemon=True,
         )
         self._server_thread.start()

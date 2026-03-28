@@ -283,12 +283,34 @@ class ServerSession:
 
         return self.died_players
 
-    def serialize(self) -> dict:
-        return {
-            "clients": len(self.CLIENTS),
-            "players": {id: player.dump() for id, player in self.PLAYERS.items()},
-            "bullets": [bullet.dump() for bullet in self.BULLETS],
-            "ships": [ship.dump() for ship in self.SHIPS],
-            "enemies": [enemy.dump() for enemy in self.ENEMIES],
-            "castles": {id: castle.dump() for id, castle in self.MAP.castles.items()},
-        }
+    def snapshot(self):
+        from use_cases.dtos import GameSnapshot, PlayerDTO, BulletDTO, ShipDTO, EnemyDTO, CastleDTO
+
+        def _player_dto(p):
+            d = p.dump()
+            return PlayerDTO(**d)
+
+        def _bullet_dto(b):
+            d = b.dump()
+            return BulletDTO(**d)
+
+        def _ship_dto(s):
+            d = s.dump()
+            return ShipDTO(**d)
+
+        def _enemy_dto(e):
+            d = e.dump()
+            return EnemyDTO(**d)
+
+        def _castle_dto(c):
+            d = c.dump()
+            return CastleDTO(**d)
+
+        return GameSnapshot(
+            clients=len(self.CLIENTS),
+            players={idd: _player_dto(p) for idd, p in self.PLAYERS.items()},
+            bullets=[_bullet_dto(b) for b in self.BULLETS],
+            ships=[_ship_dto(s) for s in self.SHIPS],
+            enemies=[_enemy_dto(e) for e in self.ENEMIES],
+            castles={idd: _castle_dto(c) for idd, c in self.MAP.castles.items()},
+        )

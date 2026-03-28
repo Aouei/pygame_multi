@@ -15,6 +15,7 @@ class Counter:
         """Incrementa un tick. Devuelve True (y se autoreset) al llegar al tiempo máximo."""
         self._count += 1
         if self._count >= self.seconds * self.rate:
+            
             self._count = 0
             return True
         return False

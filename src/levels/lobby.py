@@ -73,7 +73,9 @@ class Screen:
         self._connected = False
         self._player_count = 0
         self._focused = 0
-        self._lobby_service = LobbyService()
+        import asyncio
+        from frameworks.ws_runner import run as _ws_run
+        self._lobby_service = LobbyService(runner=lambda srv: asyncio.run(_ws_run(srv)))
         self._ws_thread: threading.Thread | None = None
         self._ws_loop_ref: asyncio.AbstractEventLoop | None = None
         self._ws_ref = None

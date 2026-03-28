@@ -34,9 +34,9 @@ async def _game_loop(session: ServerSession):
                 session.remove_player(idd)
             session.died_players.discard(idd)
 
-        snapshot = session.serialize()
-        logger.info(f"Sended UPDATE to players {snapshot}")
-        messages.update_clients(snapshot, list(session.CLIENTS.values()))
+        snap = session.snapshot()
+        logger.info(f"Sended UPDATE to players {snap}")
+        messages.update_clients(snap, list(session.CLIENTS.values()))
 
 
 async def run(session: ServerSession):

@@ -44,38 +44,38 @@ class ClientSession:
     def in_battle(self) -> bool:
         return bool(self.received_ships or self.received_enemies)
 
-    def update_players(self, players: dict) -> None:
+    def apply_snapshot(self, snap) -> None:
         self.received_players.clear()
-        for idd, player in players.items():
-            self.received_players[idd] = Player(ROLE.MAGE, 0, 0)
-            self.received_players[idd].update(player)
-        self.player.update(players.get(self.ID, {}))
+        for idd, dto in snap.players.items():
+            p = Player(ROLE.MAGE, 0, 0)
+            p.update(vars(dto))
+            self.received_players[idd] = p
+        if self._ID in snap.players:
+            self.player.update(vars(snap.players[self._ID]))
 
-    def update_bullets(self, bullets: list) -> None:
         self.received_bullets.clear()
-        for bullet in bullets:
-            self.received_bullets.append(Bullet(0, 0, 0, 0, ROLE.MAGE))
-            self.received_bullets[-1].update(bullet)
+        for dto in snap.bullets:
+            b = Bullet(0, 0, 0, 0, ROLE.MAGE)
+            b.update(vars(dto))
+            self.received_bullets.append(b)
 
-    def update_ships(self, ships: list) -> None:
         self.received_ships.clear()
-        for ship in ships:
-            self.received_ships.append(Ship(0, 0, []))
-            self.received_ships[-1].update(ship)
+        for dto in snap.ships:
+            s = Ship(0, 0, [])
+            s.update(vars(dto))
+            self.received_ships.append(s)
 
-    def update_enemies(self, enemies: list) -> None:
         self.received_enemies.clear()
-        for enemy in enemies:
-            self.received_enemies.append(Enemy(0, 0, [], 0))
-            self.received_enemies[-1].update(enemy)
+        for dto in snap.enemies:
+            e = Enemy(0, 0, [], 0)
+            e.update(vars(dto))
+            self.received_enemies.append(e)
 
-    def update_castles(self, castles: dict) -> None:
-        server_ids = {int(k) for k in castles}
+        server_ids = set(snap.castles.keys())
         for cid in list(self.received_castles.keys()):
             if cid not in server_ids:
                 del self.received_castles[cid]
-        for id_str, data in castles.items():
-            cid = int(id_str)
+        for cid, dto in snap.castles.items():
             if cid not in self.received_castles:
-                self.received_castles[cid] = Castle(data["x"], data["y"])
-            self.received_castles[cid].update(data)
+                self.received_castles[cid] = Castle(dto.x, dto.y)
+            self.received_castles[cid].update(vars(dto))

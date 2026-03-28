@@ -147,13 +147,8 @@ class Game:
                 if message_type == MESSAGES.HELLO:
                     self._session.ID = data["id"]
                 elif message_type == MESSAGES.PLAYERS_UPDATE:
-                    self._session.update_players(
-                        {int(k): v for k, v in data.get("players", {}).items()}
-                    )
-                    self._session.update_bullets(data.get("bullets", []))
-                    self._session.update_ships(data.get("ships", []))
-                    self._session.update_enemies(data.get("enemies", []))
-                    self._session.update_castles(data.get("castles", {}))
+                    from use_cases.dtos import GameSnapshot
+                    self._session.apply_snapshot(GameSnapshot.from_wire(data))
                 elif message_type == MESSAGES.QUIT:
                     self.connected = False
         except websockets.exceptions.ConnectionClosed:

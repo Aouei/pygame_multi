@@ -45,8 +45,8 @@ def wish_shot(role, dx: float, dy: float, socket: ClientConnection):
     return socket.send(json.dumps(message))
 
 
-def update_clients(data: dict, sockets: list[ClientConnection]):
-    message = json.dumps({"type": MESSAGES.PLAYERS_UPDATE.value, **data})
+def update_clients(snapshot, sockets: list[ClientConnection]):
+    message = json.dumps({"type": MESSAGES.PLAYERS_UPDATE.value, **snapshot.to_wire()})
     broadcast(sockets, message)
 
 
