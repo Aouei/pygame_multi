@@ -11,8 +11,7 @@ pygame.init()
 INPUTS = InputHandler()
 CLOCK = pygame.time.Clock()
 
-window = pygame.display.set_mode((700, 700))
-# window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 
 MENU  = menu.Screen(window, INPUTS, CLOCK)
 LOBBY = lobby.Screen(window, INPUTS, CLOCK)
