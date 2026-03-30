@@ -1,0 +1,1116 @@
+
+<!doctype html>
+<html lang="es" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../estados/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>ServerState & ClientState - Pygame Multi — Documentación</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#servidor-vs-cliente" class="md-skip">
+          Saltar a contenido
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
+    <a href="../.." title="Pygame Multi — Documentación" class="md-header__button md-logo" aria-label="Pygame Multi — Documentación" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Pygame Multi — Documentación
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ServerState & ClientState
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="amber"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Buscar">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando búsqueda
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Inicio
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Diagramas
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navegación" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Pygame Multi — Documentación" class="md-nav__button md-logo" aria-label="Pygame Multi — Documentación" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Pygame Multi — Documentación
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inicio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagramas
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Diagramas
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mensajes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paso de Mensajes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../estados/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estados y Condiciones
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ServerState & ClientState
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ServerState & ClientState
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#resumen-de-responsabilidades" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resumen de responsabilidades
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#separacion-por-capas-lado-servidor-vs-cliente" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Separación por capas (lado servidor vs cliente)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flujo-de-datos-gamesnapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flujo de datos: GameSnapshot
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mapdata-servidor-vs-maprender-cliente" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MapData (servidor) vs MapRender (cliente)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ciclo-de-vida-de-un-jugador-en-el-servidor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ciclo de vida de un jugador en el servidor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ciclo-de-vida-de-un-barco" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ciclo de vida de un barco
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flujo-completo-de-datos-partida-en-curso" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flujo completo de datos (partida en curso)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#serversession-detalle-de-handle_message" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServerSession — detalle de handle_message
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gamerenderer-flujo-de-render" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GameRenderer — flujo de render
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tabla-de-responsabilidades-detallada" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tabla de responsabilidades detallada
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="servidor-vs-cliente">Servidor vs Cliente</h1>
+<p>El proyecto separa la lógica en dos procesos independientes que se comunican exclusivamente por WebSocket.
+Cada lado está organizado en capas Clean Architecture: el servidor corre <code>ServerSession</code> (use_cases) orquestado por <code>ws_runner</code> (frameworks); el cliente corre <code>ClientSession</code> + <code>GameRenderer</code> (use_cases + adapters) orquestado por <code>game.Game</code> (frameworks).</p>
+<hr />
+<h2 id="resumen-de-responsabilidades">Resumen de responsabilidades</h2>
+<table>
+<thead>
+<tr>
+<th>Aspecto</th>
+<th>Servidor</th>
+<th>Cliente</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Entry point</strong></td>
+<td><code>server.py</code> → <code>ws_runner.run()</code></td>
+<td><code>main.py</code> → <code>game.Game.run()</code></td>
+</tr>
+<tr>
+<td><strong>Fuente de verdad</strong></td>
+<td>Sí — <code>ServerSession</code> tiene posiciones canónicas</td>
+<td>No — recibe <code>GameSnapshot</code> del servidor</td>
+</tr>
+<tr>
+<td><strong>Mapa</strong></td>
+<td><code>MapData</code> — valida colisiones, A*</td>
+<td><code>MapRender</code> — renderiza tiles y minimap</td>
+</tr>
+<tr>
+<td><strong>Jugadores</strong></td>
+<td><code>dict[id → Player]</code> con posición real</td>
+<td><code>ClientSession.received_players</code></td>
+</tr>
+<tr>
+<td><strong>Balas</strong></td>
+<td>Mueve, detecta colisiones y elimina</td>
+<td>Dibuja rotadas según dirección</td>
+</tr>
+<tr>
+<td><strong>Barcos</strong></td>
+<td>Pathfinding A*, movimiento suave, vida</td>
+<td>Dibuja según <code>state</code> (dirección)</td>
+</tr>
+<tr>
+<td><strong>Conexiones WS</strong></td>
+<td><code>ServerSession.CLIENTS: dict[id → socket]</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>Input</strong></td>
+<td>Nunca toca inputs</td>
+<td><code>InputHandler</code> → <code>InputAdapter</code> → <code>PlayerIntention</code></td>
+</tr>
+<tr>
+<td><strong>Pygame / render</strong></td>
+<td>No renderiza nada</td>
+<td><code>GameRenderer</code> dibuja todo a 60fps</td>
+</tr>
+<tr>
+<td><strong>Tick rate</strong></td>
+<td>20Hz — broadcast + física</td>
+<td>60fps — render + envío de intenciones</td>
+</tr>
+<tr>
+<td><strong>DTOs</strong></td>
+<td><code>snapshot() → GameSnapshot</code></td>
+<td><code>apply_snapshot(GameSnapshot)</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="separacion-por-capas-lado-servidor-vs-cliente">Separación por capas (lado servidor vs cliente)</h2>
+<pre class="mermaid"><code>flowchart LR
+    subgraph SRV["Servidor"]
+        direction TB
+        WSR["ws_runner _game_loop() 20Hz"]
+        WSSH["ws_server_handler handle_client()"]
+        SS["ServerSession tick() / snapshot()"]
+        MD["MapData KDTree + A*"]
+        MSG_S["messages.py update_clients(GameSnapshot)"]
+        WSR --&gt; SS
+        WSSH --&gt; SS
+        SS --&gt; MD
+        SS --&gt; MSG_S
+    end
+
+    subgraph CLI["Cliente"]
+        direction TB
+        GAME["game.Game loop 60fps"]
+        IA["InputAdapter read() → PlayerIntention"]
+        CS["ClientSession apply_snapshot(GameSnapshot)"]
+        GR["GameRenderer draw(surface, session, dx, dy)"]
+        AS["AssetStore sprites / MapRender"]
+        GAME --&gt; IA
+        GAME --&gt; CS
+        GAME --&gt; GR
+        GR --&gt; AS
+    end
+
+    SRV &lt;--&gt;|"WebSocket JSON: PLAYERS_UPDATE / WISH_MOVE / SHOT"| CLI</code></pre>
+<hr />
+<h2 id="flujo-de-datos-gamesnapshot">Flujo de datos: GameSnapshot</h2>
+<p>El snapshot es el objeto que cruza la frontera entre servidor y cliente. Es el único punto de acoplamiento entre ambos lados.</p>
+<pre class="mermaid"><code>flowchart LR
+    SS["ServerSession entidades de dominio"] --&gt;|"snapshot()"| GS["GameSnapshot DTOs puros"]
+    GS --&gt;|"to_wire()"| JSON["JSON string tipo: players_update"]
+    JSON --&gt;|"WebSocket broadcast"| RAW["JSON recibido por cliente"]
+    RAW --&gt;|"GameSnapshot.from_wire()"| GS2["GameSnapshot DTOs puros"]
+    GS2 --&gt;|"apply_snapshot()"| CS["ClientSession entidades de dominio"]</code></pre>
+<hr />
+<h2 id="mapdata-servidor-vs-maprender-cliente">MapData (servidor) vs MapRender (cliente)</h2>
+<p>El mapa se carga dos veces, con responsabilidades distintas:</p>
+<table>
+<thead>
+<tr>
+<th>Aspecto</th>
+<th><code>MapData</code></th>
+<th><code>MapRender</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Capa</strong></td>
+<td><code>domain/map_data.py</code></td>
+<td><code>adapters/renderer.py</code></td>
+</tr>
+<tr>
+<td><strong>Usado en</strong></td>
+<td><code>ServerSession</code></td>
+<td><code>AssetStore</code> → <code>GameRenderer</code></td>
+</tr>
+<tr>
+<td><strong>Parser</strong></td>
+<td><code>tiledpy.Parser.load()</code> → <code>TileMap</code></td>
+<td><code>MapData</code> + <code>tiledpy.map.render</code></td>
+</tr>
+<tr>
+<td><strong>Colisiones</strong></td>
+<td><code>KDTree</code> por tipo (<code>COLLISIONS</code>)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>Pathfinding</strong></td>
+<td>A* sobre grid de tiles</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>Spawn tiles</strong></td>
+<td>Player spawn, ship spawn, disembark</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>Render tiles</strong></td>
+<td>—</td>
+<td><code>pygame.Surface</code> precalculada por capa</td>
+</tr>
+<tr>
+<td><strong>Minimap</strong></td>
+<td>—</td>
+<td>Versión escalada al 20% + máscara circular</td>
+</tr>
+<tr>
+<td><strong>Capas animadas</strong></td>
+<td>—</td>
+<td>Precomputa frames por <code>tick_ms</code> con <code>gcd</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="ciclo-de-vida-de-un-jugador-en-el-servidor">Ciclo de vida de un jugador en el servidor</h2>
+<pre class="mermaid"><code>stateDiagram-v2
+    [*] --&gt; Conectado : new_player(socket) → HELLO enviado
+    Conectado --&gt; Registrado : handle_message ROLE → Player creado en spawn
+    Registrado --&gt; Registrado : handle_message WISH_MOVE → __try_move()
+    Registrado --&gt; Registrado : handle_message SHOT → __new_bullet()
+    Registrado --&gt; Muerto : tick() detecta live ≤ 0 o castillos destruidos
+    Muerto --&gt; [*] : QUIT enviado + remove_player(id)
+    Conectado --&gt; [*] : ConnectionClosed → remove_player(id)
+    Registrado --&gt; [*] : ConnectionClosed → remove_player(id)</code></pre>
+<hr />
+<h2 id="ciclo-de-vida-de-un-barco">Ciclo de vida de un barco</h2>
+<pre class="mermaid"><code>stateDiagram-v2
+    [*] --&gt; Navegando : __check_round() — Ship creado con path A*
+    Navegando --&gt; Navegando : __move() — avanza hacia target, pop path[0] al llegar
+    Navegando --&gt; Llegado : path vacío — llegó al destino (desembarcó)
+    Llegado --&gt; SpawnEnemigos : __spawn_enemies() genera Enemy desde ship.x/y
+    SpawnEnemigos --&gt; Llegado : spawn_enemy_timer.tick() cada 5s
+    Llegado --&gt; [*] : impactado por bala — live llega a 0
+    Navegando --&gt; [*] : impactado por bala — live llega a 0</code></pre>
+<hr />
+<h2 id="flujo-completo-de-datos-partida-en-curso">Flujo completo de datos (partida en curso)</h2>
+<pre class="mermaid"><code>flowchart LR
+    subgraph SERVIDOR["Servidor — proceso autoritativo"]
+        direction TB
+        IH_S["WISH_MOVE / SHOT (intenciones del cliente)"]
+        SS2["ServerSession: __try_move(), __new_bullet(), __move_bullets(), __move(ships/enemies), __check_round()"]
+        MD2["MapData: KDTree colisiones + A* pathfinding"]
+        SER["snapshot() → GameSnapshot → to_wire() → JSON"]
+        IH_S --&gt; SS2
+        SS2 &lt;--&gt; MD2
+        SS2 --&gt; SER
+    end
+
+    subgraph RED["WebSocket — JSON"]
+        direction TB
+        WS_IN["→ WISH_MOVE / SHOT"]
+        WS_OUT["← PLAYERS_UPDATE"]
+    end
+
+    subgraph CLIENTE["Cliente — proceso de render"]
+        direction TB
+        IH_C["InputHandler: teclado / mando"]
+        IA2["InputAdapter read() → PlayerIntention"]
+        GAME2["game.Game loop 60fps"]
+        CS2["ClientSession apply_snapshot(GameSnapshot)"]
+        GR2["GameRenderer draw(surface, session, dx, dy)"]
+        AS2["AssetStore sprites + MapRender"]
+        IH_C --&gt; IA2 --&gt; GAME2
+        GAME2 --&gt;|"WISH_MOVE / SHOT"| WS_IN
+        WS_OUT --&gt; GAME2
+        GAME2 --&gt;|"apply_snapshot"| CS2
+        GR2 --&gt; AS2
+        CS2 -.-&gt; GR2
+    end
+
+    SER --&gt; WS_OUT
+    WS_IN --&gt; IH_S</code></pre>
+<hr />
+<h2 id="serversession-detalle-de-handle_message">ServerSession — detalle de <code>handle_message</code></h2>
+<pre class="mermaid"><code>flowchart TD
+    A["handle_message(id, data)"] --&gt; B["msg_type = data['type']"]
+    B --&gt; C{tipo}
+
+    C --&gt;|role| D["__set_player_class(id, data)"]
+    D --&gt; D1["x, y = MAP.spawn()"]
+    D1 --&gt; D2["PLAYERS[id] = Player(role, x, y)"]
+
+    C --&gt;|wish_mode| E["__try_move(id, data)"]
+    E --&gt; E1["new_x = player.x + dx, new_y = player.y + dy"]
+    E1 --&gt; E2{"colisión con ship, castillo o MAP?"}
+    E2 --&gt;|False| E3["player.x, player.y = new_x, new_y"]
+    E2 --&gt;|True| E4["movimiento descartado"]
+
+    C --&gt;|shot| F["__new_bullet(id, data)"]
+    F --&gt; F1["x = player.x + dx * BULLET_VELOCITY"]
+    F1 --&gt; F2["BULLETS.append(Bullet(x, y, dx, dy, role))"]</code></pre>
+<hr />
+<h2 id="gamerenderer-flujo-de-render">GameRenderer — flujo de render</h2>
+<pre class="mermaid"><code>flowchart TD
+    DR["GameRenderer.draw(surface, session, dx, dy)"]
+    DR --&gt; M1["map_r.draw_layer(surface, offset, 'water')"]
+    DR --&gt; M2["map_r.draw_layer(surface, offset, 'cliff')"]
+    DR --&gt; P["por cada player: draw_player(surface, dx, dy, player)"]
+    DR --&gt; SH["por cada ship: draw_ship(surface, dx, dy, ship)"]
+    DR --&gt; EN["por cada enemy: draw_enemy(surface, dx, dy, enemy)"]
+    DR --&gt; BU["por cada bullet: draw_bullet(surface, x+dx, y+dy, role, dx, dy)"]
+    DR --&gt; M3["map_r.draw_layer(surface, offset, 'buildings')"]
+    DR --&gt; CA["draw_castles(surface, dx, dy, castles)"]
+    DR --&gt; UI["draw_ui(surface, dx, dy, session, map_r)"]
+
+    P --&gt; P1["frames = assets.players[role][state], blit(frames[anim_frame], x+dx, y+dy)"]
+    BU --&gt; BU1["angle = atan2(-dy, dx) - 90°, rotated = rotate(assets.bullets[role], angle), blit(rotated, center=(x,y))"]
+    UI --&gt; MM["draw_minimap(surface, session, map_r)"]</code></pre>
+<hr />
+<h2 id="tabla-de-responsabilidades-detallada">Tabla de responsabilidades detallada</h2>
+<table>
+<thead>
+<tr>
+<th>Operación</th>
+<th style="text-align: center;"><code>ServerSession</code></th>
+<th style="text-align: center;"><code>ClientSession</code></th>
+<th style="text-align: center;"><code>GameRenderer</code></th>
+<th style="text-align: center;"><code>AssetStore</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Almacenar posiciones canónicas</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Validar colisiones con mapa</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Pathfinding A*</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Mover barcos y enemigos</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Mover balas</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Spawn de entidades</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Gestionar conexiones WS</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Serializar estado → GameSnapshot</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Almacenar snapshots recibidos</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Aplicar GameSnapshot del servidor</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Almacenar sprites / MapRender</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">✓</td>
+</tr>
+<tr>
+<td>Renderizar mapa por capas</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Renderizar jugadores / barcos / balas</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Renderizar HUD y minimap</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Procesar input</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Volver al principio
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "navigation.sections", "navigation.expand", "navigation.indexes", "content.code.annotate", "content.code.copy", "content.tabs.link", "toc.integrate", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

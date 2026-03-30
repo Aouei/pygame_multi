@@ -1,0 +1,1106 @@
+
+<!doctype html>
+<html lang="es" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../mensajes/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Clases - Pygame Multi — Documentación</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#diagramas-de-clases" class="md-skip">
+          Saltar a contenido
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
+    <a href="../.." title="Pygame Multi — Documentación" class="md-header__button md-logo" aria-label="Pygame Multi — Documentación" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Pygame Multi — Documentación
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Clases
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="amber"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Buscar">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando búsqueda
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Inicio
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Diagramas
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navegación" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Pygame Multi — Documentación" class="md-nav__button md-logo" aria-label="Pygame Multi — Documentación" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Pygame Multi — Documentación
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inicio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagramas
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Diagramas
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clases
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#vision-global-por-capas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visión global por capas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#domain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Domain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Cases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interface-adapters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interface Adapters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enumeraciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enumeraciones
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mensajes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paso de Mensajes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../estados/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estados y Condiciones
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../server-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ServerState & ClientState
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="diagramas-de-clases">Diagramas de Clases</h1>
+<p>El proyecto sigue <strong>Clean Architecture</strong> en cuatro capas. La regla central: las capas internas nunca importan las externas. <code>domain/</code> y <code>use_cases/</code> tienen cero imports de <code>pygame</code>, <code>asyncio</code> ni <code>websockets</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>[ Frameworks &amp; Drivers ]  →  [ Interface Adapters ]  →  [ Use Cases ]  →  [ Domain ]
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  pygame, asyncio,             renderers, input          ServerSession,    entities,
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  websockets, asset_store,     adapters, serializers,    ClientSession,    map_data,
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  ws_runner, inputs            messages, camera          LobbyService      rules puras
+</code></pre></div>
+<hr />
+<h2 id="vision-global-por-capas">Visión global por capas</h2>
+<pre class="mermaid"><code>flowchart TB
+    subgraph FW["Frameworks &amp; Drivers"]
+        direction LR
+        AS[AssetStore singleton sprites]
+        WSR[ws_runner asyncio + websockets]
+        IH[InputHandler teclado / mando]
+        LOBBY_SH[lobby.Screen pygame_gui]
+        GAME_SH[game.Game bucle async]
+    end
+
+    subgraph AD["Interface Adapters"]
+        direction LR
+        MSG[messages.py JSON builders]
+        WSSH[ws_server_handler handle_client async]
+        IA[InputAdapter InputHandler→PlayerIntention]
+        CAM[Camera]
+        GR[GameRenderer draw_*]
+        MR[MapRender tiles + minimap]
+    end
+
+    subgraph UC["Use Cases"]
+        direction LR
+        SS[ServerSession tick / snapshot]
+        CS[ClientSession apply_snapshot]
+        LS[LobbyService start_hosting]
+        IT[input_translator translate_move / translate_shoot]
+        DTOS[dtos.py GameSnapshot / DTOs]
+        PORTS[ports.py IInputSource / IAssetProvider]
+    end
+
+    subgraph DOM["Domain"]
+        direction LR
+        ENT["Player · Bullet · Ship · Enemy · Castle · Counter · Geometry"]
+        MD[MapData KDTree + A*]
+        RUL[rules.py check_intersection]
+        ENUMS[enums.py ROLE · STATE · COLLISIONS]
+        PROTO[protocols.py LivingEntity · Collidable]
+    end
+
+    FW --&gt; AD --&gt; UC --&gt; DOM</code></pre>
+<hr />
+<h2 id="domain">Domain</h2>
+<p>Entidades puras sin dependencias externas. Contienen solo lógica de datos y reglas de negocio.</p>
+<pre class="mermaid"><code>classDiagram
+    direction TB
+
+    class Player {
+        +role: ROLE
+        +x: int
+        +y: int
+        +live: int = 20
+        +max_live: int = 20
+        +radius: int = 20
+        +speed: int = 5
+        +state: STATE = DOWN
+        +invulnerable: int = 0
+        +update(data: dict)
+        +dump() dict
+    }
+
+    class Bullet {
+        +x: int
+        +y: int
+        +dx: float
+        +dy: float
+        +owner: ROLE
+        +damage: int = 2
+        +radius: int = 16
+        +update(data: dict)
+        +dump() dict
+    }
+
+    class Ship {
+        +x: int
+        +y: int
+        +path: list~STATE~
+        +live: int = 20
+        +max_live: int = 20
+        +radius: int = 32
+        +speed: int = 5
+        +state: STATE = DOWN
+        +target_x: int
+        +target_y: int
+        +update(data: dict)
+        +dump() dict
+    }
+
+    class Enemy {
+        +x: int
+        +y: int
+        +path: list~STATE~
+        +variant: int
+        +live: int = 5
+        +max_live: int = 5
+        +radius: int = 25
+        +speed: int = 15
+        +damage: int = 4
+        +state: STATE = LEFT
+        +target_x: int
+        +target_y: int
+        +update(data: dict)
+        +dump() dict
+    }
+
+    class Castle {
+        +x: int
+        +y: int
+        +live: int = 200
+        +max_live: int = 200
+        +radius: int = 64
+        +invulnerable: int = 0
+        +update(data: dict)
+        +dump() dict
+    }
+
+    class Counter {
+        +seconds: float
+        +rate: int = 20
+        -_count: int
+        +tick() bool
+        +reset()
+    }
+
+    class Geometry {
+        +x: int
+        +y: int
+        +radius: int
+    }
+
+    class LivingEntity {
+        &lt;&lt;protocol&gt;&gt;
+        +live: int
+        +max_live: int
+    }
+
+    class Collidable {
+        &lt;&lt;protocol&gt;&gt;
+        +x: int
+        +y: int
+        +radius: int
+    }
+
+    class MapData {
+        +map: TileMap
+        +scale: int
+        +player_spawn_tiles: list
+        +ship_spawn_tiles: list
+        +disembark_tiles: list
+        +enemy_target_tiles: set
+        +castles: dict~int, Castle~
+        +collision_shapes: dict
+        +width: int
+        +height: int
+        +spawn(is_player) tuple
+        +is_collision(pos, collision) bool
+        +find_path(sc, sr, tc, tr, collision) list~STATE~
+        +pixel_to_tile(x, y) tuple
+        +tile_center(col, row) tuple
+        +remove_castle(castle_id)
+    }
+
+    Player ..|&gt; LivingEntity
+    Ship ..|&gt; LivingEntity
+    Enemy ..|&gt; LivingEntity
+    Castle ..|&gt; LivingEntity
+    Player ..|&gt; Collidable
+    Bullet ..|&gt; Collidable
+    Ship ..|&gt; Collidable
+    Enemy ..|&gt; Collidable
+    Castle ..|&gt; Collidable
+    MapData *-- "0..*" Castle : castles</code></pre>
+<hr />
+<h2 id="use-cases">Use Cases</h2>
+<p>Orquestadores de negocio. Sin imports de <code>pygame</code>, <code>asyncio</code> ni <code>websockets</code>.</p>
+<pre class="mermaid"><code>classDiagram
+    direction TB
+
+    class ServerSession {
+        +TICK_RATE: int = 20
+        +IDS: set
+        +MAX_SHIPS: int = 5
+        +MAX_ENEMIES: int = 10
+        +BULLET_VELOCITY: int = 30
+        +CLIENTS: dict
+        +PLAYERS: dict~int, Player~
+        +BULLETS: list~Bullet~
+        +SHIPS: list~Ship~
+        +ENEMIES: list~Enemy~
+        +MAP: MapData
+        +running: bool
+        +died_players: set
+        +available_ids: list
+        +new_player(socket) int
+        +remove_player(id)
+        +handle_message(id, data)
+        +tick() set
+        +snapshot() GameSnapshot
+        +reset()
+    }
+
+    class ClientSession {
+        +received_players: dict~int, Player~
+        +received_bullets: list~Bullet~
+        +received_ships: list~Ship~
+        +received_enemies: list~Enemy~
+        +received_castles: dict~int, Castle~
+        +player: Player
+        +ID: int
+        +in_battle: bool
+        +apply_snapshot(snap: GameSnapshot)
+        +reset()
+    }
+
+    class LobbyService {
+        -_runner: Callable
+        -_server_obj: ServerSession
+        -_server_thread: Thread
+        +server_obj: ServerSession
+        +start_hosting()
+        +stop_hosting()
+    }
+
+    class PlayerIntention {
+        &lt;&lt;dataclass&gt;&gt;
+        +move_left: bool
+        +move_right: bool
+        +move_up: bool
+        +move_down: bool
+        +shoot: bool
+        +mouse_pos: tuple
+        +right_stick_x: float
+        +right_stick_y: float
+        +use_stick: bool
+        +deadzone: float
+    }
+
+    class GameSnapshot {
+        &lt;&lt;dataclass&gt;&gt;
+        +clients: int
+        +players: dict~int, PlayerDTO~
+        +bullets: list~BulletDTO~
+        +ships: list~ShipDTO~
+        +enemies: list~EnemyDTO~
+        +castles: dict~int, CastleDTO~
+        +from_wire(data: dict)$ GameSnapshot
+        +to_wire() dict
+    }
+
+    class PlayerDTO {
+        &lt;&lt;dataclass&gt;&gt;
+        +x: int
+        +y: int
+        +live: int
+        +state: str
+        +role: str
+    }
+
+    class BulletDTO {
+        &lt;&lt;dataclass&gt;&gt;
+        +x: int
+        +y: int
+        +dx: float
+        +dy: float
+        +role: str
+    }
+
+    class ShipDTO {
+        &lt;&lt;dataclass&gt;&gt;
+        +x: int
+        +y: int
+        +state: str
+        +live: int
+    }
+
+    class EnemyDTO {
+        &lt;&lt;dataclass&gt;&gt;
+        +x: int
+        +y: int
+        +state: str
+        +live: int
+        +variant: int
+    }
+
+    class CastleDTO {
+        &lt;&lt;dataclass&gt;&gt;
+        +x: int
+        +y: int
+        +live: int
+    }
+
+    class IInputSource {
+        &lt;&lt;protocol&gt;&gt;
+        +read() PlayerIntention
+    }
+
+    class IAssetProvider {
+        &lt;&lt;protocol&gt;&gt;
+        +players: dict
+        +bullets: dict
+        +ships: dict
+        +enemies: list
+        +castle: object
+    }
+
+    class IServerProcess {
+        &lt;&lt;protocol&gt;&gt;
+        +running: bool
+    }
+
+    ServerSession *-- "0..4" Player : PLAYERS
+    ServerSession *-- "*" Bullet : BULLETS
+    ServerSession *-- "*" Ship : SHIPS
+    ServerSession *-- "*" Enemy : ENEMIES
+    ServerSession *-- MapData : MAP
+    ServerSession ..&gt; GameSnapshot : snapshot()
+    ClientSession ..&gt; GameSnapshot : apply_snapshot()
+    GameSnapshot *-- PlayerDTO
+    GameSnapshot *-- BulletDTO
+    GameSnapshot *-- ShipDTO
+    GameSnapshot *-- EnemyDTO
+    GameSnapshot *-- CastleDTO
+    LobbyService ..&gt; ServerSession : crea</code></pre>
+<hr />
+<h2 id="interface-adapters">Interface Adapters</h2>
+<p>Traducen entre el mundo externo (JSON, pygame, websockets) y los use cases.</p>
+<pre class="mermaid"><code>classDiagram
+    direction TB
+
+    class InputAdapter {
+        -_handler: InputHandler
+        +read() PlayerIntention
+    }
+
+    class GameRenderer {
+        +DEBUG: bool = False
+        +ANIM_FPS: int = 8
+        -_assets: AssetStore
+        +draw(surface, session, dx, dy)
+        +draw_player(surface, dx, dy, player)
+        +draw_ship(surface, dx, dy, ship)
+        +draw_enemy(surface, dx, dy, enemy)
+        +draw_bullet(surface, x, y, role, dx, dy)
+        +draw_castles(surface, dx, dy, castles)
+        +draw_health_bar(surface, x, y, w, h, entity)
+        +draw_ui(surface, dx, dy, session, map_r)
+        +draw_minimap(surface, session, map_r)
+    }
+
+    class MapRender {
+        +MINI_SIZE: int = 320
+        +MINI_SCALE: float = 0.2
+        -map: MapData
+        -_full_surface: Surface
+        -_layer_surfaces: dict
+        -_precomputed_frames: dict
+        +width: int
+        +height: int
+        +castles: dict
+        +draw(surface, position)
+        +draw_layer(surface, position, name)
+        +draw_mini(surface, dx, dy, points, px, py)
+        +draw_collision_debug(surface, position)
+    }
+
+    class Camera {
+        +x: int
+        +y: int
+        +map_pixel_w: int
+        +map_pixel_h: int
+        +screen_w: int
+        +screen_h: int
+        +move(dx, dy)
+    }
+
+    class MESSAGES {
+        &lt;&lt;enumeration&gt;&gt;
+        HELLO = hello
+        ROLE = role
+        WISH_MOVE = wish_mode
+        PLAYERS_UPDATE = players_update
+        SHOT = shot
+        QUIT = quit
+        ROUND_START = round_start
+        SHUT_DOWN = shut_down
+    }
+
+    InputAdapter ..&gt; PlayerIntention : produce
+    GameRenderer ..&gt; MapRender : usa
+    GameRenderer ..&gt; ClientSession : lee estado</code></pre>
+<hr />
+<h2 id="enumeraciones">Enumeraciones</h2>
+<pre class="mermaid"><code>classDiagram
+    direction LR
+
+    class ROLE {
+        &lt;&lt;enumeration&gt;&gt;
+        ARCHER = archer
+        FARMER = farmer
+        MAGE = mage
+        MUSKETEER = musketeer
+    }
+
+    class STATE {
+        &lt;&lt;enumeration&gt;&gt;
+        UP = up
+        DOWN = down
+        LEFT = left
+        RIGHT = right
+        IDLE = idle
+    }
+
+    class COLLISIONS {
+        &lt;&lt;enumeration&gt;&gt;
+        PLAYER = player
+        BULLET = bullet
+        SHIP = ship
+        ENEMY = enemy
+    }</code></pre>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Volver al principio
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "navigation.sections", "navigation.expand", "navigation.indexes", "content.code.annotate", "content.code.copy", "content.tabs.link", "toc.integrate", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
